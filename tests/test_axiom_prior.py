@@ -79,9 +79,7 @@ def _make_mock_trainer(
     def _lin(in_f: int, out_f: int) -> nn.Linear:
         layer = nn.Linear(in_f, out_f)
         with torch.no_grad():
-            layer.weight.copy_(
-                torch.randn(out_f, in_f, generator=g_rng) * (0.6 / math.sqrt(in_f))
-            )
+            layer.weight.copy_(torch.randn(out_f, in_f, generator=g_rng) * (0.6 / math.sqrt(in_f)))
             layer.bias.copy_(torch.randn(out_f, generator=g_rng) * 0.05)
         return layer
 
@@ -104,12 +102,8 @@ def _make_mock_trainer(
     gen_m, crit_m = _ShapeGen().to(device), _FlatCrit().to(device)
     prior = MoGParticlePrior(num_particles, latent_dim, sigma=sigma_z).to(device)
     with torch.no_grad():
-        prior.z.copy_(
-            torch.randn(num_particles, latent_dim, generator=g_rng).to(device)
-        )
-    reg = AxiomPriorRegularizer(
-        max_prototypes=32, bound_device=device, bound_shape=(num_particles, latent_dim)
-    )
+        prior.z.copy_(torch.randn(num_particles, latent_dim, generator=g_rng).to(device))
+    reg = AxiomPriorRegularizer(max_prototypes=32, bound_device=device, bound_shape=(num_particles, latent_dim))
     opt_g = torch.optim.Adam(list(gen_m.parameters()) + [prior.z], lr=1e-2)
     opt_d = torch.optim.Adam(crit_m.parameters(), lr=1e-2)
     opt_d.record = SimpleNamespace(  # type: ignore[attr-defined]
@@ -148,9 +142,7 @@ def _make_mock_trainer(
         del rows
         out = gen(z)
         if float(sigma_out) > 0.0:
-            eps = torch.randn(out.shape, generator=noise, dtype=out.dtype).to(
-                out.device
-            )
+            eps = torch.randn(out.shape, generator=noise, dtype=out.dtype).to(out.device)
             out = out + float(sigma_out) * eps
         return out
 
@@ -189,18 +181,14 @@ def test_static_l2_imports_and_forbidden_ops() -> None:
         if isinstance(node, ast.ImportFrom):
             mod = node.module or ""
             if node.level == 1:
-                assert mod in allowed_l1, (
-                    f"L2 prior.py may only import L0/L1, got .{mod}"
-                )
+                assert mod in allowed_l1, f"L2 prior.py may only import L0/L1, got .{mod}"
             elif node.level >= 2:
                 assert mod in allowed_public, f"Unexpected parent import ..{mod}"
             else:
                 assert not mod.startswith("particlegan") and mod != "random"
         elif isinstance(node, ast.Import):
             for alias in node.names:
-                assert (
-                    not alias.name.startswith("particlegan") and alias.name != "random"
-                )
+                assert not alias.name.startswith("particlegan") and alias.name != "random"
 
     forbidden = {
         "svd",
@@ -217,18 +205,10 @@ def test_static_l2_imports_and_forbidden_ops() -> None:
     for node in ast.walk(tree):
         if isinstance(node, ast.Attribute):
             assert node.attr not in forbidden, f"Forbidden attribute .{node.attr}"
-            is_ag = (
-                node.attr == "grad"
-                and isinstance(node.value, ast.Attribute)
-                and node.value.attr == "autograd"
-            )
+            is_ag = node.attr == "grad" and isinstance(node.value, ast.Attribute) and node.value.attr == "autograd"
             assert not is_ag, "Forbidden torch.autograd.grad in prior.py"
-    assert "NormalNoiseManipulator" not in source, (
-        "Zero class-name string sniffing allowed"
-    )
-    assert "_axiom_active_rows" not in source, (
-        "Zero monkey-patched prior.z attributes allowed"
-    )
+    assert "NormalNoiseManipulator" not in source, "Zero class-name string sniffing allowed"
+    assert "_axiom_active_rows" not in source, "Zero monkey-patched prior.z attributes allowed"
 
 
 def test_static_l2_style_and_complexity() -> None:
@@ -237,11 +217,7 @@ def test_static_l2_style_and_complexity() -> None:
     for lineno, line in enumerate(source.splitlines(), start=1):
         assert len(line) <= 120, f"Line {lineno} exceeds 120 chars ({len(line)})"
         assert chr(59) not in line, f"Semicolon found on line {lineno}"
-    fns = [
-        n
-        for n in ast.walk(tree)
-        if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))
-    ]
+    fns = [n for n in ast.walk(tree) if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))]
     c901 = [_mccabe_c901(fn) for fn in fns]
     bcc = [_radon_bool_cc(fn) for fn in fns]
     assert max(c901) <= 10, f"Max C901 {max(c901)} > 10"
@@ -257,12 +233,8 @@ def test_static_l2_style_and_complexity() -> None:
 
 def test_rotated_10to1_ellipse_burg_pullback_convergence() -> None:
     rad = math.radians(37.0)
-    rot = torch.tensor(
-        [[math.cos(rad), -math.sin(rad)], [math.sin(rad), math.cos(rad)]]
-    )
-    cov_true = (
-        rot @ torch.diag(torch.tensor([1.0, 0.01])) @ rot.T
-    )  # 10:1 std (100:1 var)
+    rot = torch.tensor([[math.cos(rad), -math.sin(rad)], [math.sin(rad), math.cos(rad)]])
+    cov_true = rot @ torch.diag(torch.tensor([1.0, 0.01])) @ rot.T  # 10:1 std (100:1 var)
     chol_true = torch.linalg.cholesky(cov_true)
 
     sigma_z = 0.10
@@ -322,16 +294,10 @@ def test_highd_d32_haar_rotated_rank_preserving_pullback() -> None:
         opt.step()
 
     with torch.no_grad():
-        m_tilde = torch.linalg.solve_triangular(
-            chol_true, sigma_z * gen.weight, upper=False
-        )
+        m_tilde = torch.linalg.solve_triangular(chol_true, sigma_z * gen.weight, upper=False)
         eigs = torch.linalg.eigvalsh(m_tilde @ m_tilde.T)
-        assert float(eigs.min().item()) > 0.90, (
-            f"Rank collapse detected: min_eig={eigs.min().item()}"
-        )
-        assert float(eigs.max().item()) < 1.10, (
-            f"Overshoot detected: max_eig={eigs.max().item()}"
-        )
+        assert float(eigs.min().item()) > 0.90, f"Rank collapse detected: min_eig={eigs.min().item()}"
+        assert float(eigs.max().item()) < 1.10, f"Overshoot detected: max_eig={eigs.max().item()}"
 
 
 # ---------------------------------------------------------------------------
@@ -362,9 +328,7 @@ def test_curvature_compensated_tanh_variance_fidelity() -> None:
         torch.ones(64),
         eps_g=eps,
     )
-    real_lin = (lin_gen(mu + sigma_z * eps) - lin_gen(mu)).detach().square().sum(
-        dim=-1
-    ) / 2.0
+    real_lin = (lin_gen(mu + sigma_z * eps) - lin_gen(mu)).detach().square().sum(dim=-1) / 2.0
     reg_lin.update_curvature_ema(torch.zeros(64, dtype=torch.long), real_lin, tang_lin)
     assert torch.allclose(
         reg_lin.curvature_gamma_per_component(coal_lin),
@@ -391,11 +355,7 @@ def test_curvature_compensated_tanh_variance_fidelity() -> None:
         g_loc = torch.Generator().manual_seed(99)
         for _ in range(120):
             coal = reg.atlas.coalesce()
-            gamma = (
-                reg.curvature_gamma_per_component(coal)[0]
-                if use_curv
-                else torch.tensor(1.0)
-            )
+            gamma = reg.curvature_gamma_per_component(coal)[0] if use_curv else torch.tensor(1.0)
             eps_b = torch.randn(64, 2, generator=g_loc)
             opt.zero_grad()
             loss, tang_v, _ = whitened_burg_pullback_loss(
@@ -409,12 +369,8 @@ def test_curvature_compensated_tanh_variance_fidelity() -> None:
             loss.backward()
             opt.step()
             with torch.no_grad():
-                real_v = (gen_t(mu + sigma_z * eps_b) - gen_t(mu)).square().sum(
-                    dim=-1
-                ) / 2.0
-                reg.update_curvature_ema(
-                    torch.zeros(64, dtype=torch.long), real_v, tang_v
-                )
+                real_v = (gen_t(mu + sigma_z * eps_b) - gen_t(mu)).square().sum(dim=-1) / 2.0
+                reg.update_curvature_ema(torch.zeros(64, dtype=torch.long), real_v, tang_v)
         with torch.no_grad():
             ev_eps = torch.randn(4096, 2, generator=torch.Generator().manual_seed(7))
             ev_out = gen_t(sigma_z * ev_eps)
@@ -423,9 +379,7 @@ def test_curvature_compensated_tanh_variance_fidelity() -> None:
 
     bias_uncomp = _train_tanh(use_curv=False)
     bias_comp = _train_tanh(use_curv=True)
-    assert bias_uncomp < -0.08, (
-        f"Expected concave tanh contraction bias, got {bias_uncomp}"
-    )
+    assert bias_uncomp < -0.08, f"Expected concave tanh contraction bias, got {bias_uncomp}"
     assert abs(bias_comp) < abs(bias_uncomp) * 0.5, (
         f"Curvature compensation did not reduce tanh bias: uncomp={bias_uncomp:.3f}, comp={bias_comp:.3f}"
     )
@@ -462,18 +416,13 @@ def test_wide_latent_2sketch_ustat_unbiasedness() -> None:
     n_phases = 128
     for i in range(n_phases):
         gen.zero_grad()
-        l_hat, _, _ = whitened_burg_pullback_loss(
-            gen, mu, sigma_z, tc_b, inv_w, phase=(i + 0.5) / float(n_phases)
-        )
+        l_hat, _, _ = whitened_burg_pullback_loss(gen, mu, sigma_z, tc_b, inv_w, phase=(i + 0.5) / float(n_phases))
         l_hat.backward()
         loss_acc += float(l_hat.detach().item())
         grad_acc += gen.weight.grad.detach()
     mean_loss = loss_acc / float(n_phases)
     mean_grad = grad_acc / float(n_phases)
-    cos_sim = float(
-        (mean_grad * exact_grad).sum()
-        / (mean_grad.norm() * exact_grad.norm()).clamp_min(1e-12)
-    )
+    cos_sim = float((mean_grad * exact_grad).sum() / (mean_grad.norm() * exact_grad.norm()).clamp_min(1e-12))
     assert math.isclose(mean_loss, float(exact_loss.item()), rel_tol=0.08)
     assert cos_sim > 0.99, f"2-sketch U-stat gradient misaligned: cos={cos_sim}"
 
@@ -482,11 +431,7 @@ def test_wide_latent_2sketch_ustat_unbiasedness() -> None:
         q, _ = torch.linalg.qr(torch.randn(d_z, dim, generator=g))
         gen.weight.copy_(q.T / sigma_z)
     eq_vals = [
-        float(
-            whitened_burg_pullback_loss(
-                gen, mu, sigma_z, tc_b, inv_w, phase=(i + 0.5) / 64.0
-            )[0].item()
-        )
+        float(whitened_burg_pullback_loss(gen, mu, sigma_z, tc_b, inv_w, phase=(i + 0.5) / 64.0)[0].item())
         for i in range(64)
     ]
     assert abs(sum(eq_vals) / len(eq_vals)) < 0.05
@@ -498,12 +443,8 @@ def test_wide_latent_2sketch_ustat_unbiasedness() -> None:
 
 
 def test_rank_free_4d_8x8_pullback_parity() -> None:
-    tr_4d, noise_4d = _make_mock_trainer(
-        out_shape=(1, 8, 8), latent_dim=4, num_particles=32, seed=5
-    )
-    tr_2d, noise_2d = _make_mock_trainer(
-        out_shape=(64,), latent_dim=4, num_particles=32, seed=5
-    )
+    tr_4d, noise_4d = _make_mock_trainer(out_shape=(1, 8, 8), latent_dim=4, num_particles=32, seed=5)
+    tr_2d, noise_2d = _make_mock_trainer(out_shape=(64,), latent_dim=4, num_particles=32, seed=5)
 
     g = torch.Generator().manual_seed(55)
     real_4d = torch.randn(16, 1, 8, 8, generator=g)
@@ -567,24 +508,13 @@ def test_clock_free_row_init_ema_and_zero_rng() -> None:
         z = torch.zeros((8, 4))
         s_idx = torch.tensor([0, 2, 5])
         is_f = torch.tensor([True, True, True])
-        g1 = (
-            torch.tensor(
-                [[1.0, -2.0, 0.5, 0.2], [-0.3, 1.5, -0.8, 0.4], [0.2, 0.1, 1.0, -1.0]]
-            )
-            * scale
-        )
+        g1 = torch.tensor([[1.0, -2.0, 0.5, 0.2], [-0.3, 1.5, -0.8, 0.4], [0.2, 0.1, 1.0, -1.0]]) * scale
         ps = torch.ones((3, 1))
         reg.apply_prior_row_update(z, s_idx, is_f, g1, ps, 0.1, torch.tensor(1.0))
         assert reg.row_init is not None and bool(reg.row_init[s_idx].all())
         assert not bool(reg.row_init[1].item())
         z_after1 = z.clone()
-        g2 = (
-            g1 * 0.5
-            + torch.tensor(
-                [[0.1, 0.2, -0.3, 0.4], [0.2, -0.1, 0.3, -0.2], [-0.1, 0.3, 0.1, 0.2]]
-            )
-            * scale
-        )
+        g2 = g1 * 0.5 + torch.tensor([[0.1, 0.2, -0.3, 0.4], [0.2, -0.1, 0.3, -0.2], [-0.1, 0.3, 0.1, 0.2]]) * scale
         reg.apply_prior_row_update(z, s_idx, is_f, g2, ps, 0.1, torch.tensor(1.0))
         deltas.append((z_after1, z - z_after1))
 
@@ -601,32 +531,20 @@ def test_clock_free_row_init_ema_and_zero_rng() -> None:
     all_t = torch.ones(4, dtype=torch.bool)
     g_const = torch.ones((4, 3))
     for _ in range(100):
-        reg_a.apply_prior_row_update(
-            za, idx_all, all_t, g_const, torch.ones((4, 1)), 0.01, torch.tensor(1.0)
-        )
-    reg_b.apply_prior_row_update(
-        zb, idx_all, all_t, g_const, torch.ones((4, 1)), 0.01, torch.tensor(1.0)
-    )
+        reg_a.apply_prior_row_update(za, idx_all, all_t, g_const, torch.ones((4, 1)), 0.01, torch.tensor(1.0))
+    reg_b.apply_prior_row_update(zb, idx_all, all_t, g_const, torch.ones((4, 1)), 0.01, torch.tensor(1.0))
     za.zero_()
     zb.zero_()
-    g_probe = torch.tensor(
-        [[2.0, -1.0, 0.5], [0.1, 1.0, -0.2], [-1.0, 0.3, 0.7], [0.4, -0.8, 1.2]]
-    )
-    reg_a.apply_prior_row_update(
-        za, idx_all, all_t, g_probe, torch.ones((4, 1)), 0.05, torch.tensor(1.0)
-    )
-    reg_b.apply_prior_row_update(
-        zb, idx_all, all_t, g_probe, torch.ones((4, 1)), 0.05, torch.tensor(1.0)
-    )
+    g_probe = torch.tensor([[2.0, -1.0, 0.5], [0.1, 1.0, -0.2], [-1.0, 0.3, 0.7], [0.4, -0.8, 1.2]])
+    reg_a.apply_prior_row_update(za, idx_all, all_t, g_probe, torch.ones((4, 1)), 0.05, torch.tensor(1.0))
+    reg_b.apply_prior_row_update(zb, idx_all, all_t, g_probe, torch.ones((4, 1)), 0.05, torch.tensor(1.0))
     assert torch.allclose(za, zb, atol=1e-6)
     assert random.getstate() == py_before
     assert np.array_equal(np.random.get_state()[1], np_before[1])
     assert torch.equal(torch.get_rng_state(), torch_before)
 
     # Full forward + central_pullback_cov + pullback step must consume 0 global RNG state.
-    tr, noise = _make_mock_trainer(
-        out_shape=(2,), latent_dim=2, num_particles=24, seed=3
-    )
+    tr, noise = _make_mock_trainer(out_shape=(2,), latent_dim=2, num_particles=24, seed=3)
     real = torch.randn(16, 2, generator=torch.Generator().manual_seed(4))
     z_s, idx_s = tr.prior.sample(16, generator=torch.Generator().manual_seed(5))
     py_step = random.getstate()
@@ -675,9 +593,9 @@ def test_suite5_compat_mass_ltv_gauge_and_quotas() -> None:
     reg.v_push = reg.proto_var.clone()
     reg.update_quantizer(centers[3:].repeat(4, 1))
     assert math.isclose(float(reg.proto_var[1].item()), 0.375, rel_tol=1e-4)
-    split_tot = 0.5 * (
-        float(reg.proto_var[0].item()) + float(reg.proto_var[2].item())
-    ) + (0.25 * float((reg.proto_c[0] - reg.proto_c[2]).square().sum().item()) / 2.0)
+    split_tot = 0.5 * (float(reg.proto_var[0].item()) + float(reg.proto_var[2].item())) + (
+        0.25 * float((reg.proto_c[0] - reg.proto_c[2]).square().sum().item()) / 2.0
+    )
     assert math.isclose(split_tot, 20.0, rel_tol=1e-4)
 
     # Suite 5B 10x width guard + post-coalesced psi zero-mean gauge.
@@ -696,9 +614,7 @@ def test_suite5_compat_mass_ltv_gauge_and_quotas() -> None:
     reg_psi.psi = torch.tensor([2.0, -2.0, 0.0])
     reg_psi.v_push = reg_psi.proto_var.clone()
     w_u = torch.tensor([[0.8, 0.2, 0.0], [0.8, 0.2, 0.0], [0.0, 0.0, 1.0]])
-    reg_psi.update_laguerre_dual(
-        reg_psi.proto_c, w_u @ reg_psi.proto_c, w_u, torch.tensor(1.0), 0.015
-    )
+    reg_psi.update_laguerre_dual(reg_psi.proto_c, w_u @ reg_psi.proto_c, w_u, torch.tensor(1.0), 0.015)
     assert abs(float(reg_psi.psi.mean().item())) < 1e-6
 
     # Suite 5C re-exported allocate_deficit_quotas.
@@ -716,19 +632,13 @@ def test_suite5_compat_mass_ltv_gauge_and_quotas() -> None:
 
 
 def test_schema2_checkpoint_roundtrip_continuation_and_tamper() -> None:
-    tr1, noise1 = _make_mock_trainer(
-        out_shape=(2,), latent_dim=2, num_particles=32, seed=11
-    )
+    tr1, noise1 = _make_mock_trainer(out_shape=(2,), latent_dim=2, num_particles=32, seed=11)
     g_data = torch.Generator().manual_seed(12)
     c4 = torch.tensor([[-4.0, -4.0], [4.0, -4.0], [-4.0, 4.0], [4.0, 4.0]])
 
     for step in range(4):
-        real = c4[torch.randint(0, 4, (32,), generator=g_data)] + 0.08 * torch.randn(
-            32, 2, generator=g_data
-        )
-        z_s, idx_s = tr1.prior.sample(
-            32, generator=torch.Generator().manual_seed(100 + step)
-        )
+        real = c4[torch.randint(0, 4, (32,), generator=g_data)] + 0.08 * torch.randn(32, 2, generator=g_data)
+        z_s, idx_s = tr1.prior.sample(32, generator=torch.Generator().manual_seed(100 + step))
         axiom_pullback_step(
             tr1,
             real,
@@ -748,9 +658,7 @@ def test_schema2_checkpoint_roundtrip_continuation_and_tamper() -> None:
     deepcopy(tr1.prior_regularizer).load_state_dict(sd)
 
     # Restore into a fresh trainer with cloned weights/optimizers for bit-exact continuation.
-    tr2, noise2 = _make_mock_trainer(
-        out_shape=(2,), latent_dim=2, num_particles=32, seed=11
-    )
+    tr2, noise2 = _make_mock_trainer(out_shape=(2,), latent_dim=2, num_particles=32, seed=11)
     tr2.G.load_state_dict(deepcopy(tr1.G.state_dict()))
     tr2.D.load_state_dict(deepcopy(tr1.D.state_dict()))
     with torch.no_grad():
@@ -758,12 +666,8 @@ def test_schema2_checkpoint_roundtrip_continuation_and_tamper() -> None:
     tr2.opt_g.load_state_dict(deepcopy(tr1.opt_g.state_dict()))
     tr2.prior_regularizer.load_state_dict(sd)
 
-    real_next = c4[torch.randint(0, 4, (32,), generator=g_data)] + 0.08 * torch.randn(
-        32, 2, generator=g_data
-    )
-    z_next, idx_next = tr1.prior.sample(
-        32, generator=torch.Generator().manual_seed(200)
-    )
+    real_next = c4[torch.randint(0, 4, (32,), generator=g_data)] + 0.08 * torch.randn(32, 2, generator=g_data)
+    z_next, idx_next = tr1.prior.sample(32, generator=torch.Generator().manual_seed(200))
     out1 = axiom_pullback_step(
         tr1,
         real_next,
@@ -828,9 +732,7 @@ def test_cuda_pullback_step_and_checkpoint() -> None:
         pytest.skip("CUDA not available")
     dev = torch.device("cuda:0")
     for shape in ((2,), (1, 8, 8)):
-        tr, noise = _make_mock_trainer(
-            out_shape=shape, latent_dim=4, num_particles=32, device=dev, seed=7
-        )
+        tr, noise = _make_mock_trainer(out_shape=shape, latent_dim=4, num_particles=32, device=dev, seed=7)
         g = torch.Generator(device=dev).manual_seed(0)
         real = torch.randn(16, *shape, device=dev, generator=g)
         z_s, idx_s = tr.prior.sample(16, generator=g)
@@ -848,13 +750,56 @@ def test_cuda_pullback_step_and_checkpoint() -> None:
             penalty=torch.tensor(0.1, device=dev),
         )
         assert bool(torch.isfinite(out[0]).all())
-        assert (
-            tr.prior_regularizer.row_m is not None
-            and tr.prior_regularizer.row_m.device.type == "cuda"
-        )
+        assert tr.prior_regularizer.row_m is not None and tr.prior_regularizer.row_m.device.type == "cuda"
         sd = tr.prior_regularizer.state_dict()
-        restored = AxiomPriorRegularizer(
-            max_prototypes=32, bound_device=dev, bound_shape=(32, 4)
-        )
+        restored = AxiomPriorRegularizer(max_prototypes=32, bound_device=dev, bound_shape=(32, 4))
         restored.load_state_dict(sd)
         assert restored.row_m is not None and restored.row_m.device.type == "cuda"
+
+
+def test_burg_born_infeld_compression_bounds_singular_manifold_gradient() -> None:
+    lin = nn.Linear(2, 2, bias=False)
+    with torch.no_grad():
+        lin.weight.copy_(torch.diag(torch.tensor([100.0, 1.0])))
+    mu = torch.randn(16, 2)
+    cov = torch.eye(2).unsqueeze(0).expand(16, 2, 2).clone()
+    inv_w = torch.ones(16)
+    loss, _, _ = whitened_burg_pullback_loss(lin, mu, 1.0, cov, inv_w)
+    # Without BI compression loss ~ 4.5 * 5000 = 22500; BI compression caps growth to O(sqrt(v)) << 2000.
+    assert torch.isfinite(loss) and float(loss.item()) < 1500.0
+    loss.backward()
+    assert lin.weight.grad is not None and bool(torch.isfinite(lin.weight.grad).all())
+
+
+@pytest.mark.cuda
+def test_cuda_deterministic_pullback_step() -> None:
+    if not torch.cuda.is_available():
+        pytest.skip("CUDA not available")
+    prev = torch.are_deterministic_algorithms_enabled()
+    torch.use_deterministic_algorithms(True)
+    try:
+        dev = torch.device("cuda:0")
+        tr, noise = _make_mock_trainer(out_shape=(2,), latent_dim=2, num_particles=32, device=dev, seed=11)
+        g = torch.Generator(device=dev).manual_seed(0)
+        modes = torch.tensor([[-3.0, -3.0], [3.0, 3.0]], device=dev)
+        for _ in range(4):
+            real = modes[torch.randint(0, 2, (16,), device=dev, generator=g)] + 0.1 * torch.randn(
+                16, 2, device=dev, generator=g
+            )
+            z_s, idx_s = tr.prior.sample(16, generator=g)
+            out = axiom_pullback_step(
+                tr,
+                real,
+                real,
+                z_s,
+                idx_s,
+                sigma_out=0.0,
+                noise=noise,
+                critic=tr.D,
+                loss_d=torch.tensor(1.0, device=dev),
+                penalty=torch.tensor(0.1, device=dev),
+            )
+            assert bool(torch.isfinite(out[0]).all())
+        torch.cuda.synchronize()
+    finally:
+        torch.use_deterministic_algorithms(prev)
