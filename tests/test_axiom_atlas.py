@@ -113,9 +113,7 @@ def _count_cuda_syncs() -> Iterator[Dict[str, int]]:
     try:
         yield syncs
     finally:
-        torch.Tensor.item, torch.Tensor.tolist, torch.Tensor.__bool__, torch.unique = (
-            orig  # type: ignore[assignment]
-        )
+        torch.Tensor.item, torch.Tensor.tolist, torch.Tensor.__bool__, torch.unique = orig  # type: ignore[assignment]
 
 
 # ---------------------------------------------------------------------------
@@ -138,11 +136,7 @@ def test_static_l1_imports_and_forbidden_ops() -> None:
     for node in ast.walk(tree):
         if isinstance(node, ast.Attribute):
             assert node.attr not in forbidden, f"Forbidden op {node.attr!r}"
-            is_ag = (
-                node.attr == "grad"
-                and isinstance(node.value, ast.Attribute)
-                and node.value.attr == "autograd"
-            )
+            is_ag = node.attr == "grad" and isinstance(node.value, ast.Attribute) and node.value.attr == "autograd"
             assert not is_ag, "Forbidden torch.autograd.grad in atlas.py"
 
 
@@ -157,11 +151,7 @@ def test_static_l1_style_caches_and_complexity() -> None:
         assert len(line) <= 120, f"Line {lineno} exceeds 120 chars ({len(line)})"
         assert chr(59) not in line, f"Semicolon found on line {lineno}"
 
-    fns = [
-        n
-        for n in ast.walk(tree)
-        if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))
-    ]
+    fns = [n for n in ast.walk(tree) if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))]
     c901_vals = [_mccabe_c901(fn) for fn in fns]
     bool_vals = [_radon_bool_cc(fn) for fn in fns]
     assert max(c901_vals) <= 10, f"Max C901 {max(c901_vals)} > 10"
@@ -219,11 +209,7 @@ def test_clock_free_stationary_hit_confidence_and_zero_rng() -> None:
     assert torch.allclose(at.proto_n, n_after_250, rtol=0.02)
 
     n_pre_shock = float(at.proto_n.mean().item())
-    y_shock = (
-        centers[0]
-        + torch.tensor([80.0, 80.0])
-        + 0.1 * torch.randn(32, 2, generator=gen)
-    )
+    y_shock = centers[0] + torch.tensor([80.0, 80.0]) + 0.1 * torch.randn(32, 2, generator=gen)
     at.update(y_shock)
     assert float(at.proto_n.mean().item()) < 0.5 * n_pre_shock
 
@@ -247,10 +233,7 @@ def test_unbiased_streaming_covariance_and_b_lt_k() -> None:
     centers = torch.tensor([[-6.0, 0.0], [6.0, 0.0], [0.0, -6.0], [0.0, 6.0]])
     angles = [25.0, 70.0, 115.0, 160.0]
     true_cov_t = torch.stack(
-        [
-            _sample_rotated_ellipse(2, centers[0], 0.50, 0.05, ang, gen)[1]
-            for ang in angles
-        ],
+        [_sample_rotated_ellipse(2, centers[0], 0.50, 0.05, ang, gen)[1] for ang in angles],
         dim=0,
     )
 
@@ -269,10 +252,7 @@ def test_unbiased_streaming_covariance_and_b_lt_k() -> None:
     n_avg = 0
     for step in range(400):
         idx = torch.randint(0, 4, (3,), generator=gen)
-        pts = [
-            _sample_rotated_ellipse(1, centers[cid], 0.50, 0.05, angles[cid], gen)[0]
-            for cid in idx.tolist()
-        ]
+        pts = [_sample_rotated_ellipse(1, centers[cid], 0.50, 0.05, angles[cid], gen)[0] for cid in idx.tolist()]
         at.update(torch.cat(pts, dim=0))
         if step >= 200:
             cov_acc += at.proto_cov
@@ -315,9 +295,7 @@ def test_ltc_exact_merge_and_split_rotated_ellipses() -> None:
     wt = wa + wb
     c_ab = (wa * ca + wb * cb) / wt
     da, db = ca - c_ab, cb - c_ab
-    expected_cov = (
-        wa * (cov_a + torch.outer(da, da)) + wb * (cov_b + torch.outer(db, db))
-    ) / wt
+    expected_cov = (wa * (cov_a + torch.outer(da, da)) + wb * (cov_b + torch.outer(db, db))) / wt
 
     at.merge_pair(0, 1)
     assert torch.allclose(at.proto_c[0], c_ab, atol=1e-6)
@@ -383,9 +361,9 @@ def test_gersho_merge_before_split_ltv_retention_in_update() -> None:
     assert at.proto_var is not None
     expected_v_merged = 0.5 * (0.10 + 0.40) + 0.25 * 1.0 / 2.0
     assert math.isclose(float(at.proto_var[1].item()), expected_v_merged, rel_tol=1e-4)
-    split_tot = 0.5 * (
-        float(at.proto_var[0].item()) + float(at.proto_var[2].item())
-    ) + (0.25 * float((at.proto_c[0] - at.proto_c[2]).square().sum().item()) / 2.0)
+    split_tot = 0.5 * (float(at.proto_var[0].item()) + float(at.proto_var[2].item())) + (
+        0.25 * float((at.proto_c[0] - at.proto_c[2]).square().sum().item()) / 2.0
+    )
     assert math.isclose(split_tot, 20.0, rel_tol=1e-4)
 
 
@@ -403,9 +381,7 @@ def test_directional_coalescence_anisotropic_vs_isotropic_and_mp_shrinkage() -> 
     cov_ell = rot @ torch.diag(torch.tensor([1.0, 0.01])) @ rot.T
 
     c_m0, c_m1 = -1.4 * u_min, 1.4 * u_min
-    proto_c = torch.stack(
-        [c_m0 - 0.3 * u_maj, c_m0 + 0.3 * u_maj, c_m1 - 0.3 * u_maj, c_m1 + 0.3 * u_maj]
-    )
+    proto_c = torch.stack([c_m0 - 0.3 * u_maj, c_m0 + 0.3 * u_maj, c_m1 - 0.3 * u_maj, c_m1 + 0.3 * u_maj])
     proto_cov = cov_ell.unsqueeze(0).expand(4, 2, 2).clone()
     proto_w = torch.full((4,), 0.25)
     proto_n = torch.full((4,), 20.0)
@@ -420,9 +396,7 @@ def test_directional_coalescence_anisotropic_vs_isotropic_and_mp_shrinkage() -> 
     assert torch.allclose(coal.comp_n_eff, torch.tensor([40.0, 40.0]))
 
     # Isotropic scalar coalescence fails on the exact same modes due to the kappa* = 8.665 cliff.
-    _, _, _, iso_multicell = coalesce_pythagorean_ltv(
-        proto_c, cov_trace_mean(proto_cov), proto_w
-    )
+    _, _, _, iso_multicell = coalesce_pythagorean_ltv(proto_c, cov_trace_mean(proto_cov), proto_w)
     assert not bool(iso_multicell.all().item())
 
     # 10x width-ratio guard (Suite 5B): must NOT false-merge var=0.01 with var=1.0.
@@ -439,9 +413,7 @@ def test_directional_coalescence_anisotropic_vs_isotropic_and_mp_shrinkage() -> 
 
     # D=32, n_eff=16 (r_C = 2.0 >= 1.0) -> exact isotropic shrinkage.
     diag32 = torch.linspace(0.1, 3.2, 32)
-    shrunk_high_r = cov_shrink_mp(
-        torch.diag(diag32).unsqueeze(0), torch.tensor([16.0])
-    )[0]
+    shrunk_high_r = cov_shrink_mp(torch.diag(diag32).unsqueeze(0), torch.tensor([16.0]))[0]
     assert torch.allclose(shrunk_high_r, diag32.mean() * torch.eye(32), atol=1e-6)
 
 
@@ -453,40 +425,25 @@ def test_directional_coalescence_anisotropic_vs_isotropic_and_mp_shrinkage() -> 
 def test_continuous_rho_atom_and_connectivity_gate_regimes() -> None:
     gen = torch.Generator().manual_seed(42)
 
-    bits = torch.tensor(
-        [[((i >> b) & 1) * 2.0 - 1.0 for b in range(4)] for i in range(16)]
-    )
+    bits = torch.tensor([[((i >> b) & 1) * 2.0 - 1.0 for b in range(4)] for i in range(16)])
     y_exact = bits[torch.randint(0, 16, (128,), generator=gen)]
-    y_noisy = bits[torch.randint(0, 16, (128,), generator=gen)] + 0.015 * torch.randn(
-        128, 4, generator=gen
-    )
+    y_noisy = bits[torch.randint(0, 16, (128,), generator=gen)] + 0.015 * torch.randn(128, 4, generator=gen)
     ang = (2.0 * math.pi / 8.0) * torch.arange(8, dtype=torch.float32)
     ring_c = torch.stack((3.0 * ang.cos(), 3.0 * ang.sin()), dim=1)
-    y_gauss = ring_c[torch.randint(0, 8, (128,), generator=gen)] + 0.12 * torch.randn(
-        128, 2, generator=gen
-    )
+    y_gauss = ring_c[torch.randint(0, 8, (128,), generator=gen)] + 0.12 * torch.randn(128, 2, generator=gen)
     t = torch.linspace(0.5, 4.0 * math.pi, 128)
     y_spiral = torch.stack((t * t.cos(), t * t.sin()), dim=1) / (4.0 * math.pi)
 
-    rho_b = [
-        float(batch_annular_gap_ratio(y).item())
-        for y in (y_exact, y_noisy, y_gauss, y_spiral)
-    ]
+    rho_b = [float(batch_annular_gap_ratio(y).item()) for y in (y_exact, y_noisy, y_gauss, y_spiral)]
     assert rho_b[0] < 1e-4
     assert rho_b[0] < rho_b[1] < rho_b[2] < rho_b[3]
     assert rho_b[3] > 0.40
 
-    assert math.isclose(
-        float(batch_annular_gap_ratio(y_noisy * 1e-3).item()), rho_b[1], abs_tol=1e-4
-    )
-    assert math.isclose(
-        float(batch_annular_gap_ratio(y_noisy * 1e3).item()), rho_b[1], abs_tol=1e-4
-    )
+    assert math.isclose(float(batch_annular_gap_ratio(y_noisy * 1e-3).item()), rho_b[1], abs_tol=1e-4)
+    assert math.isclose(float(batch_annular_gap_ratio(y_noisy * 1e3).item()), rho_b[1], abs_tol=1e-4)
 
     r_exact = float(
-        compute_rho_atom(
-            bits, cov_from_scalar(torch.full((16,), 1e-24), 4), torch.full((16,), 20.0)
-        ).item()
+        compute_rho_atom(bits, cov_from_scalar(torch.full((16,), 1e-24), 4), torch.full((16,), 20.0)).item()
     )
     r_noisy = float(
         compute_rho_atom(
@@ -505,16 +462,8 @@ def test_continuous_rho_atom_and_connectivity_gate_regimes() -> None:
     assert r_exact < 1e-6 and 0.005 < r_noisy < 0.05 and 0.03 < r_gauss < 0.16
 
     for y_cur, r_cur in ((y_exact, r_exact), (y_noisy, r_noisy), (y_gauss, r_gauss)):
-        assert (
-            float(compute_connectivity_gate(y_cur, rho_atom=torch.tensor(r_cur)).item())
-            == 0.0
-        )
-    assert (
-        float(
-            compute_connectivity_gate(y_spiral, rho_atom=torch.tensor(rho_b[3])).item()
-        )
-        > 0.75
-    )
+        assert float(compute_connectivity_gate(y_cur, rho_atom=torch.tensor(r_cur)).item()) == 0.0
+    assert float(compute_connectivity_gate(y_spiral, rho_atom=torch.tensor(rho_b[3])).item()) > 0.75
 
 
 # ---------------------------------------------------------------------------
@@ -530,9 +479,7 @@ def test_hamilton_ledger_quotas_eviction_and_bijection() -> None:
     comp_w = torch.full((k_c,), 1.0 / float(k_c))
 
     ledger = HamiltonCommitmentLedger()
-    out = ledger.update(
-        torch.zeros((k_c, 2)), torch.arange(k_c), comp_c, comp_w, num_particles=k_c
-    )
+    out = ledger.update(torch.zeros((k_c, 2)), torch.arange(k_c), comp_c, comp_w, num_particles=k_c)
     assert torch.equal(out.quotas, torch.ones(k_c, dtype=torch.long))
     assert torch.equal(out.occupancy, torch.ones(k_c, dtype=torch.long))
     assert int(torch.unique(out.batch_comp).numel()) == k_c
@@ -542,9 +489,7 @@ def test_hamilton_ledger_quotas_eviction_and_bijection() -> None:
     pts4 = torch.tensor([[0.1, 0.0], [0.2, 0.0], [5.0, 0.0], [10.1, 0.0]])
     led2 = HamiltonCommitmentLedger()
     led2.update(pts4, torch.arange(4), c2, torch.tensor([0.75, 0.25]), num_particles=4)
-    out2 = led2.update(
-        pts4, torch.arange(4), c2, torch.tensor([0.5, 0.5]), num_particles=4
-    )
+    out2 = led2.update(pts4, torch.arange(4), c2, torch.tensor([0.5, 0.5]), num_particles=4)
     assert out2.batch_comp.tolist() == [0, 0, 1, 1]
 
     # 7C: Mini-batch (B < P) reaches exact full-table quotas and tracks shifted targets.
@@ -561,9 +506,7 @@ def test_hamilton_ledger_quotas_eviction_and_bijection() -> None:
     assert int(out3.quotas.sum().item()) == p_tot
 
     c4_shifted = c4 + torch.tensor([[2.0, -1.0]])
-    out_s = led3.update(
-        x_all[:16], torch.arange(16), c4_shifted, w4, num_particles=p_tot
-    )
+    out_s = led3.update(x_all[:16], torch.arange(16), c4_shifted, w4, num_particles=p_tot)
     assert torch.allclose(out_s.batch_target, c4_shifted[out_s.batch_comp], atol=1e-6)
 
     # 7D: Disengaged on connected manifolds or when P > MAX_LEDGER_PARTICLES.
@@ -586,10 +529,7 @@ def test_hamilton_ledger_quotas_eviction_and_bijection() -> None:
         torch.zeros(4),
         torch.full((4,), 0.01),
     )
-    assert (
-        at_iso.commit_particles(x_all[:8], torch.arange(8), MAX_LEDGER_PARTICLES + 1)
-        is None
-    )
+    assert at_iso.commit_particles(x_all[:8], torch.arange(8), MAX_LEDGER_PARTICLES + 1) is None
     assert at_iso.commit_particles(x_all[:8], torch.arange(8), 64) is not None
 
 
@@ -630,11 +570,7 @@ def test_spd_d64_vs_diagonal_d65_parity() -> None:
         at.split_slot(0, 1)
         delta = 0.5 * (at.proto_c[1] - at.proto_c[0])
         assert torch.allclose(0.5 * (at.proto_c[0] + at.proto_c[1]), c0_pre, atol=1e-5)
-        rec = (
-            at.proto_cov[0] + torch.outer(delta, delta)
-            if expected_ndim == 3
-            else at.proto_cov[0] + delta.square()
-        )
+        rec = at.proto_cov[0] + torch.outer(delta, delta) if expected_ndim == 3 else at.proto_cov[0] + delta.square()
         assert torch.allclose(rec, cov0_pre, atol=1e-5)
         coal = at.coalesce()
         assert bool(coal.all_iso.item()) and int(coal.comp_c.shape[0]) == 2
@@ -650,9 +586,7 @@ def test_shock_recovery_under_5_steps_and_mass_conservation() -> None:
     c4 = torch.tensor([[-3.0, -3.0], [3.0, -3.0], [-3.0, 3.0], [3.0, 3.0]])
     at = PrototypeAtlas(max_prototypes=8)
     for _ in range(15):
-        yb = c4[torch.randint(0, 4, (128,), generator=gen)] + 0.1 * torch.randn(
-            128, 2, generator=gen
-        )
+        yb = c4[torch.randint(0, 4, (128,), generator=gen)] + 0.1 * torch.randn(128, 2, generator=gen)
         at.update(yb)
         assert abs(float(at.proto_w.sum().item()) - 1.0) < 1e-5
         assert abs(float(at.w_fake_ema.sum().item()) - 1.0) < 1e-5
@@ -668,9 +602,7 @@ def test_shock_recovery_under_5_steps_and_mass_conservation() -> None:
     at_scale.psi = torch.zeros(4)
     at_scale.v_push = torch.full((4,), 0.01)
     for _ in range(3):
-        yb_su = c4[torch.randint(0, 4, (128,), generator=gen)] + 10.0 * torch.randn(
-            128, 2, generator=gen
-        )
+        yb_su = c4[torch.randint(0, 4, (128,), generator=gen)] + 10.0 * torch.randn(128, 2, generator=gen)
         at_scale.update(yb_su)
     assert at_scale.proto_var is not None
     med_su = float(at_scale.proto_var.median().item())
@@ -678,9 +610,7 @@ def test_shock_recovery_under_5_steps_and_mass_conservation() -> None:
 
     # 9B: 100x teleport shock & 1e-2x return preserve unit mass & collapse spread < 5 steps.
     for _ in range(4):
-        yb_up = (c4 * 100.0)[
-            torch.randint(0, 4, (128,), generator=gen)
-        ] + 10.0 * torch.randn(128, 2, generator=gen)
+        yb_up = (c4 * 100.0)[torch.randint(0, 4, (128,), generator=gen)] + 10.0 * torch.randn(128, 2, generator=gen)
         at.update(yb_up)
         assert abs(float(at.proto_w.sum().item()) - 1.0) < 1e-5
         assert abs(float(at.w_fake_ema.sum().item()) - 1.0) < 1e-5
@@ -689,9 +619,7 @@ def test_shock_recovery_under_5_steps_and_mass_conservation() -> None:
     assert 20.0 <= w_var_up <= 1000.0, f"Teleport scale-up failed: w_var={w_var_up}"
 
     for _ in range(4):
-        yb_dn = c4[torch.randint(0, 4, (128,), generator=gen)] + 0.1 * torch.randn(
-            128, 2, generator=gen
-        )
+        yb_dn = c4[torch.randint(0, 4, (128,), generator=gen)] + 0.1 * torch.randn(128, 2, generator=gen)
         at.update(yb_dn)
         assert abs(float(at.proto_w.sum().item()) - 1.0) < 1e-5
         assert abs(float(at.w_fake_ema.sum().item()) - 1.0) < 1e-5
@@ -709,17 +637,14 @@ def test_shock_recovery_under_5_steps_and_mass_conservation() -> None:
     at_col.psi = torch.zeros(4)
     at_col.v_push = torch.full((4,), 100.0)
     for _ in range(3):
-        yb_small = c4[torch.randint(0, 4, (128,), generator=gen)] + 0.1 * torch.randn(
-            128, 2, generator=gen
-        )
+        yb_small = c4[torch.randint(0, 4, (128,), generator=gen)] + 0.1 * torch.randn(128, 2, generator=gen)
         at_col.update(yb_small)
     assert float(at_col.proto_var.median().item()) < 0.2
 
     # 9D: Single extreme outlier preserves exact unit mass on proto_w & w_fake_ema.
     shock_1 = torch.cat(
         [
-            c4[torch.randint(0, 4, (127,), generator=gen)]
-            + 0.05 * torch.randn(127, 2, generator=gen),
+            c4[torch.randint(0, 4, (127,), generator=gen)] + 0.05 * torch.randn(127, 2, generator=gen),
             torch.tensor([[80.0, 80.0]]),
         ],
         dim=0,
@@ -747,9 +672,7 @@ def test_schema2_checkpoint_roundtrip_and_tamper_rejection() -> None:
     c4 = torch.tensor([[-5.0, -5.0], [5.0, -5.0], [-5.0, 5.0], [5.0, 5.0]])
     at = PrototypeAtlas(max_prototypes=12)
     for _ in range(8):
-        yb = c4[torch.randint(0, 4, (64,), generator=gen)] + 0.08 * torch.randn(
-            64, 2, generator=gen
-        )
+        yb = c4[torch.randint(0, 4, (64,), generator=gen)] + 0.08 * torch.randn(64, 2, generator=gen)
         at.update(yb)
     coal = at.coalesce(yb)
     _ = at.commit_particles(yb[:16], torch.arange(16), 32, coalesced=coal)
@@ -758,24 +681,16 @@ def test_schema2_checkpoint_roundtrip_and_tamper_rejection() -> None:
     at_restored = PrototypeAtlas(max_prototypes=12)
     at_restored.load_state_dict(sd)
 
-    y_next = c4[torch.randint(0, 4, (64,), generator=gen)] + 0.08 * torch.randn(
-        64, 2, generator=gen
-    )
+    y_next = c4[torch.randint(0, 4, (64,), generator=gen)] + 0.08 * torch.randn(64, 2, generator=gen)
     at.update(y_next)
     at_restored.update(y_next)
     assert torch.equal(at.proto_c, at_restored.proto_c)
     assert torch.equal(at.proto_cov, at_restored.proto_cov)
     assert torch.equal(at.proto_n, at_restored.proto_n)
-    l_a = at.commit_particles(
-        y_next[:16], torch.arange(16, 32), 32, coalesced=at.coalesce(y_next)
-    )
-    l_b = at_restored.commit_particles(
-        y_next[:16], torch.arange(16, 32), 32, coalesced=at_restored.coalesce(y_next)
-    )
+    l_a = at.commit_particles(y_next[:16], torch.arange(16, 32), 32, coalesced=at.coalesce(y_next))
+    l_b = at_restored.commit_particles(y_next[:16], torch.arange(16, 32), 32, coalesced=at_restored.coalesce(y_next))
     assert l_a is not None and l_b is not None
-    assert torch.equal(l_a.batch_comp, l_b.batch_comp) and torch.equal(
-        l_a.row_comp, l_b.row_comp
-    )
+    assert torch.equal(l_a.batch_comp, l_b.batch_comp) and torch.equal(l_a.row_comp, l_b.row_comp)
 
     def _mut(**overrides: object) -> Dict[str, object]:
         out = at.state_dict()
@@ -824,15 +739,11 @@ def test_cold_start_discrete_regimes_and_manifold_separation() -> None:
     c4 = torch.tensor([[-3.0, -3.0], [3.0, -3.0], [-3.0, 3.0], [3.0, 3.0]])
     at4 = PrototypeAtlas(max_prototypes=256)
     for _ in range(25):
-        y4 = c4[torch.randint(0, 4, (64,), generator=gen)] + 0.12 * torch.randn(
-            64, 2, generator=gen
-        )
+        y4 = c4[torch.randint(0, 4, (64,), generator=gen)] + 0.12 * torch.randn(64, 2, generator=gen)
         at4.update(y4)
         coal4 = at4.coalesce(y4)
     assert int(coal4.comp_c.shape[0]) == 4 and bool(coal4.all_iso.item())
-    assert (
-        at4.commit_particles(y4[:16], torch.arange(16), 64, coalesced=coal4) is not None
-    )
+    assert at4.commit_particles(y4[:16], torch.arange(16), 64, coalesced=coal4) is not None
 
     # 2. five_word (5 exact atoms, B=64): deduplicates on step 0 -> K_p=K_c=5, all_iso=True.
     gen = torch.Generator().manual_seed(0)
@@ -846,15 +757,11 @@ def test_cold_start_discrete_regimes_and_manifold_separation() -> None:
             assert int(at5.proto_c.shape[0]) == 5 and bool(coal5.all_iso.item())
     assert int(coal5.comp_c.shape[0]) == 5 and bool(coal5.all_iso.item())
     assert at5.rho_atom_ema < 1e-4 and at5.g_conn_ema < 1e-3
-    assert (
-        at5.commit_particles(y5[:16], torch.arange(16), 64, coalesced=coal5) is not None
-    )
+    assert at5.commit_particles(y5[:16], torch.arange(16), 64, coalesced=coal5) is not None
 
     # 3. bytegan_256 ({-1,+1}^8, B=64): discovers all 256 atoms with rho=0 & active ledger.
     gen = torch.Generator().manual_seed(0)
-    b256 = torch.tensor(
-        [[((i >> b) & 1) * 2.0 - 1.0 for b in range(8)] for i in range(256)]
-    )
+    b256 = torch.tensor([[((i >> b) & 1) * 2.0 - 1.0 for b in range(8)] for i in range(256)])
     at256 = PrototypeAtlas(max_prototypes=256)
     for _ in range(25):
         yb = b256[torch.randint(0, 256, (64,), generator=gen)]
@@ -863,10 +770,7 @@ def test_cold_start_discrete_regimes_and_manifold_separation() -> None:
         assert bool(coal256.all_iso.item())
     assert int(at256.proto_c.shape[0]) == 256 and int(coal256.comp_c.shape[0]) == 256
     assert at256.rho_atom_ema < 1e-4 and at256.g_conn_ema < 1e-3
-    assert (
-        at256.commit_particles(yb[:16], torch.arange(16), 256, coalesced=coal256)
-        is not None
-    )
+    assert at256.commit_particles(yb[:16], torch.arange(16), 256, coalesced=coal256) is not None
 
     # 4. grid100 (10x10 modes, sig=0.05, B=64): discovers & isolates all 100 modes.
     gen = torch.Generator().manual_seed(0)
@@ -874,9 +778,7 @@ def test_cold_start_discrete_regimes_and_manifold_separation() -> None:
     g100 = torch.stack(torch.meshgrid(gx, gx, indexing="ij"), dim=-1).reshape(100, 2)
     at100 = PrototypeAtlas(max_prototypes=256)
     for _ in range(40):
-        yg = g100[torch.randint(0, 100, (64,), generator=gen)] + 0.05 * torch.randn(
-            64, 2, generator=gen
-        )
+        yg = g100[torch.randint(0, 100, (64,), generator=gen)] + 0.05 * torch.randn(64, 2, generator=gen)
         at100.update(yg)
         coal100 = at100.coalesce(yg)
     assert int(coal100.comp_c.shape[0]) == 100 and bool(coal100.all_iso.item())
@@ -891,9 +793,7 @@ def test_cold_start_discrete_regimes_and_manifold_separation() -> None:
         at_sp.update(ys)
         coal_sp = at_sp.coalesce(ys)
     assert not bool(coal_sp.all_iso.item()) and at_sp.g_conn_ema > 0.80
-    assert (
-        at_sp.commit_particles(ys[:16], torch.arange(16), 64, coalesced=coal_sp) is None
-    )
+    assert at_sp.commit_particles(ys[:16], torch.arange(16), 64, coalesced=coal_sp) is None
 
 
 # ---------------------------------------------------------------------------
@@ -935,8 +835,77 @@ def test_cuda_atlas_and_zero_sync_hamilton_ledger() -> None:
             num_particles=k_c,
         )
     assert sum(syncs.values()) == 0, f"Expected 0 CUDA host syncs, got {syncs}"
-    assert (
-        out.batch_comp.device.type == "cuda" and out.batch_target.device.type == "cuda"
-    )
+    assert out.batch_comp.device.type == "cuda" and out.batch_target.device.type == "cuda"
     assert torch.equal(out.occupancy, torch.ones(k_c, device=dev, dtype=torch.long))
     assert int(torch.unique(out.batch_comp).numel()) == k_c
+
+
+def test_law1_wishart_shrinkage_fisher_isolation_and_hysteresis() -> None:
+    # 1. Wishart-excess shrinkage shrinks noisy isotropic finite-sample cov stronger than true anisotropy.
+    gen = torch.Generator().manual_seed(7)
+    dim = 32
+    samples = torch.randn(100, dim, generator=gen)
+    emp_iso = (samples.T @ samples / 100.0).unsqueeze(0)
+    aniso = torch.diag(torch.cat((torch.full((4,), 10.0), torch.full((dim - 4,), 0.1)))).unsqueeze(0)
+    n_eff = torch.tensor([360.0])  # n_cov = 120, gam = 32/120 = 0.267
+    s_iso = cov_shrink_mp(emp_iso, n_eff)[0]
+    s_aniso = cov_shrink_mp(aniso, n_eff)[0]
+    iso_cond = float(torch.linalg.eigvalsh(s_iso).max() / torch.linalg.eigvalsh(s_iso).min())
+    aniso_cond = float(torch.linalg.eigvalsh(s_aniso).max() / torch.linalg.eigvalsh(s_aniso).min())
+    assert iso_cond < 1.5 and aniso_cond > 20.0
+
+    # 2. 1D Fisher isolation isolates D=32 modes at dist=18 (>2.6*sqrt(32)=14.7, <old 4.2*sqrt(32)=23.8).
+    centers = torch.zeros((2, dim))
+    centers[0, 0], centers[1, 0] = -9.0, 9.0  # dist = 18.0 > 2.6*sqrt(32) and > 6.0*1.0, < 4.2*sqrt(32)
+    covs = torch.eye(dim).unsqueeze(0).expand(2, dim, dim).clone()
+    coal = coalesce_directional_ltc(centers, covs, torch.tensor([0.5, 0.5]), torch.tensor([40.0, 40.0]))
+    assert bool(coal.all_iso.item()) and int(coal.comp_c.shape[0]) == 2
+
+    # 3. Non-isolated manifold prototypes receive isotropic comp_cov_tgt (no chord-sagitta explosion).
+    theta = torch.linspace(0.0, 2.0 * math.pi, 17)[:-1]
+    ring = torch.stack((1.5 * theta.cos(), 1.5 * theta.sin()), dim=1)
+    tang = torch.stack((-theta.sin(), theta.cos()), dim=1)
+    ring_cov = 0.2 * (tang.unsqueeze(2) * tang.unsqueeze(1)) + 1e-4 * torch.eye(2).unsqueeze(0)
+    coal_ring = coalesce_directional_ltc(ring, ring_cov, torch.full((16,), 1.0 / 16.0), torch.full((16,), 20.0))
+    assert not bool(coal_ring.all_iso.item())
+    off_diag = coal_ring.comp_cov_tgt - torch.diag_embed(coal_ring.comp_cov_tgt.diagonal(dim1=-2, dim2=-1))
+    assert float(off_diag.abs().amax()) < 1e-6
+
+    # 4. Schmitt-trigger hysteresis avoids evicting settled particles on small weight wobble when all modes occupied.
+    comp_c = torch.tensor([[-5.0, 0.0], [5.0, 0.0]])
+    ledger = HamiltonCommitmentLedger()
+    x_settled = torch.cat((comp_c[0].expand(6, 2), comp_c[1].expand(4, 2)), dim=0)
+    rows = torch.arange(10)
+    out0 = ledger.update(x_settled, rows, comp_c, torch.tensor([0.6, 0.4]), num_particles=10)
+    assert out0.occupancy.tolist() == [6, 4]
+    # Wobble weights slightly so exact quota shifts [5, 5], but settled count 6 <= floor(10*0.52 + 0.80)=6 -> kept!
+    out1 = ledger.update(x_settled, rows, comp_c, torch.tensor([0.52, 0.48]), num_particles=10)
+    assert out1.occupancy.tolist() == [6, 4]
+    # If a component is empty, exact quotas are enforced immediately.
+    ledger_empty = HamiltonCommitmentLedger()
+    out_empty = ledger_empty.update(x_settled, rows, comp_c, torch.tensor([0.52, 0.48]), num_particles=10)
+    assert out_empty.occupancy.tolist() == [5, 5]
+
+
+@pytest.mark.cuda
+def test_cuda_deterministic_algorithms_atlas_update_and_ledger() -> None:
+    if not torch.cuda.is_available():
+        pytest.skip("CUDA not available")
+    prev = torch.are_deterministic_algorithms_enabled()
+    torch.use_deterministic_algorithms(True)
+    try:
+        dev = torch.device("cuda:0")
+        gen = torch.Generator(device=dev).manual_seed(0)
+        modes = torch.tensor([[-4.0, -4.0], [4.0, -4.0], [-4.0, 4.0], [4.0, 4.0]], device=dev)
+        at = PrototypeAtlas(max_prototypes=32, device=dev)
+        for step in range(12):
+            idx = torch.randint(0, 4 if step >= 2 else 2, (64,), device=dev, generator=gen)
+            yb = modes[idx] + 0.1 * torch.randn(64, 2, device=dev, generator=gen)
+            at.update(yb)
+            coal = at.coalesce(yb)
+        assert bool(coal.all_iso.item()) and float(torch.cdist(modes, coal.comp_c).amin(1).amax()) < 0.25
+        led = at.commit_particles(yb[:16], torch.arange(16, device=dev), 32, coalesced=coal)
+        assert led is not None and int(led.occupancy.sum().item()) > 0
+        torch.cuda.synchronize()
+    finally:
+        torch.use_deterministic_algorithms(prev)
