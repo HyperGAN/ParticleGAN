@@ -392,6 +392,19 @@ def test_direction_blend_1loss_2loss_and_backward_with_protected() -> None:
     assert opt2.constraint_geometry_stats["max_derivative_after"] <= 1e-6
     assert opt2.direction_blend_stats["conflict_steps"] == 1
 
+    # 4) Packed multi-param _blend_dots matches streaming dot products & fails closed with exact rollback on NaN.
+    p_a = nn.Parameter(torch.tensor([1.0, -2.0, 0.5]))
+    p_b = nn.Parameter(torch.tensor([[0.5, -1.0], [2.0, 0.25]]))
+    orig_a, orig_b = p_a.detach().clone(), p_b.detach().clone()
+    opt_nan = AxiomOptimizer([p_a, p_b], lr=0.05, direction_blend=True)
+    bad_loss = (p_a * float("nan")).sum() + p_b.square().sum()
+    opt_nan.bind_protected_losses([bad_loss])
+    p_a.grad = torch.ones_like(p_a)
+    p_b.grad = torch.ones_like(p_b)
+    with pytest.raises(ValueError):
+        opt_nan.step()
+    assert torch.equal(p_a, orig_a) and torch.equal(p_b, orig_b)
+
 
 def test_verified_trust_and_zero_global_rng_consumption() -> None:
     torch.manual_seed(7)

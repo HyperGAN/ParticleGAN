@@ -48,7 +48,7 @@ def smoothstep01(x):
 
 
 @torch.no_grad()
-def me_unit_rows(x: torch.Tensor):
+def me_unit_rows(x: torch.Tensor, *, need_log2: bool = True):
     """Scale-free IEEE-754 mantissa-exponent row normalization."""
     if x.ndim != 2:
         raise ValueError("expected 2D")
@@ -56,22 +56,23 @@ def me_unit_rows(x: torch.Tensor):
     if rows == 0 or cols == 0:
         return (
             x.new_zeros((rows, cols), dtype=_F32),
-            x.new_zeros((rows, 1), dtype=_F32),
+            x.new_zeros((rows, 1), dtype=_F32) if need_log2 else None,
             x.new_zeros((rows, 1), dtype=_BOOL),
         )
-    xf = x.float()
+    xf = x if x.dtype == _F32 else x.float()
     finite = torch.isfinite(xf).all(dim=1, keepdim=True)
     safe = torch.where(finite, xf, 0.0)
     peak = safe.abs().amax(dim=1, keepdim=True)
     active = finite & (peak > 0.0)
-    ones = torch.ones_like(peak)
-    _, exp = torch.frexp(torch.where(active, peak, ones))
-    half = (-exp) // 2
-    mant = (safe * torch.ldexp(ones, half)) * torch.ldexp(ones, (-exp) - half)
+    _, exp = torch.frexp(torch.where(active, peak, 1.0))
+    neg_exp = -exp
+    half = neg_exp // 2
+    mant = torch.ldexp(torch.ldexp(safe, half), neg_exp - half)
     norm = mant.norm(dim=1, keepdim=True)
     valid = active & (norm > 0.0) & torch.isfinite(norm)
     clamped = norm.clamp_min(1e-30)
-    return torch.where(valid, mant / clamped, 0.0), torch.where(valid, exp.float() + torch.log2(clamped), 0.0), valid
+    log2_norm = torch.where(valid, exp.float() + torch.log2(clamped), 0.0) if need_log2 else None
+    return torch.where(valid, mant / clamped, 0.0), log2_norm, valid
 
 
 @torch.no_grad()
@@ -100,9 +101,10 @@ def weyl_rademacher(shape, *, phase=0.0, salt=0, device=None, dtype=_F32):
 
 
 def _weyl_unit(dim, seed, dev, dtype):
+    if dim == 1:
+        return torch.ones((1,), device=dev, dtype=dtype)
     raw = torch.remainder(torch.arange(1, dim + 1, device=dev, dtype=dtype) * PHI1 + (seed + 0.5) * PHI2, 1.0) - 0.5
-    norm = raw.norm()
-    return torch.where(norm > 1e-8, raw / norm.clamp_min(1e-12), torch.full((dim,), dim**-0.5, device=dev, dtype=dtype))
+    return raw / raw.norm()
 
 
 @torch.no_grad()
@@ -131,32 +133,64 @@ def _init_pow_vec(init_v, batch_n, cols, unbatched, dev):
     )
 
 
+def _stable_rank_2d(mat, iters, init_v, return_v, pre_normalized, frob_norm):
+    rows, cols = mat.shape
+    if frob_norm is not None:
+        unit, valid, inv_f2 = (mat if mat.dtype == _F32 else mat.float()), None, 1.0 / (float(frob_norm) ** 2)
+    elif pre_normalized:
+        unit, valid, inv_f2 = (mat if mat.dtype == _F32 else mat.float()), None, 1.0
+    else:
+        unit_flat, _, valid_f = me_unit_rows(mat.reshape(1, rows * cols), need_log2=False)
+        unit, valid, inv_f2 = unit_flat.view(rows, cols), valid_f.reshape(()), 1.0
+    wide = unit.T if rows > cols else unit
+    short_d, long_d = wide.shape
+    if init_v is None:
+        vec = _weyl_unit(long_d, 0, wide.device, _F32)
+    else:
+        fallback = _weyl_unit(long_d, 0, wide.device, _F32)
+        vec = _unit_vec(init_v.detach().to(wide.device, _F32).reshape(long_d), fallback, 0, 1e-12)
+    for _ in range(max(1, int(iters))):
+        left = torch.mv(wide, vec)
+        left = left / left.norm().clamp_min(1e-20)
+        vec = torch.mv(wide.T, left)
+        vec = vec / vec.norm().clamp_min(1e-20)
+    s1_sq = torch.mv(wide, vec).square().sum() * inv_f2
+    raw_rank = (1.0 / s1_sq.clamp_min(1e-30)).clamp(1.0, float(short_d))
+    rank = raw_rank if valid is None else torch.where(valid, raw_rank, float(short_d))
+    return (rank, vec) if return_v else rank
+
+
 @torch.no_grad()
-def stable_rank_power(mat: torch.Tensor, *, iters=2, init_v=None, return_v=False):
+def stable_rank_power(mat: torch.Tensor, *, iters=2, init_v=None, return_v=False, pre_normalized=False, frob_norm=None):
     """Estimate matrix stable rank via power iteration."""
     if mat.ndim not in (2, 3):
         raise ValueError("expected 2D/3D")
     unbatched = mat.ndim == 2
-    batch = mat.unsqueeze(0) if unbatched else mat
-    batch_n, rows, cols = batch.shape
-    if batch.numel() == 0:
-        empty = mat.new_zeros(() if unbatched else (batch_n,), dtype=_F32)
+    if mat.numel() == 0:
+        rows, cols = mat.shape[-2], mat.shape[-1]
+        empty = mat.new_zeros(() if unbatched else (mat.shape[0],), dtype=_F32)
         if not return_v:
             return empty
-        return empty, mat.new_zeros((max(rows, cols),) if unbatched else (batch_n, max(rows, cols)), dtype=_F32)
-    unit_flat, _, valid = me_unit_rows(batch.float().reshape(batch_n, rows * cols))
-    unit = unit_flat.view(batch_n, rows, cols)
+        return empty, mat.new_zeros((max(rows, cols),) if unbatched else (mat.shape[0], max(rows, cols)), dtype=_F32)
+    if unbatched:
+        return _stable_rank_2d(mat, iters, init_v, return_v, pre_normalized, frob_norm)
+    batch_n, rows, cols = mat.shape
+    if pre_normalized:
+        unit, valid = (mat if mat.dtype == _F32 else mat.float()), None
+    else:
+        unit_flat, _, valid_f = me_unit_rows(mat.reshape(batch_n, rows * cols), need_log2=False)
+        unit, valid = unit_flat.view(batch_n, rows, cols), valid_f.squeeze(1)
     wide = unit.transpose(1, 2) if rows > cols else unit
     short_d, long_d = wide.shape[1], wide.shape[2]
-    vec = _init_pow_vec(init_v, batch_n, long_d, unbatched, wide.device)
+    vec = _init_pow_vec(init_v, batch_n, long_d, False, wide.device)
     for _ in range(max(1, int(iters))):
         left = torch.bmm(wide, vec.unsqueeze(-1)).squeeze(-1)
-        left = _unit_vec(left, left, 1, 1e-20)
-        vec = _unit_vec(torch.bmm(wide.transpose(1, 2), left.unsqueeze(-1)).squeeze(-1), vec, 1, 1e-20)
+        left = left / left.norm(dim=1, keepdim=True).clamp_min(1e-20)
+        vec = torch.bmm(wide.transpose(1, 2), left.unsqueeze(-1)).squeeze(-1)
+        vec = vec / vec.norm(dim=1, keepdim=True).clamp_min(1e-20)
     s1_sq = torch.bmm(wide, vec.unsqueeze(-1)).squeeze(-1).square().sum(dim=1)
-    rank = torch.where(valid.squeeze(1), (1.0 / s1_sq.clamp_min(1e-30)).clamp(1.0, float(short_d)), float(short_d))
-    if unbatched:
-        rank, vec = rank.squeeze(0), vec.squeeze(0)
+    raw_rank = (1.0 / s1_sq.clamp_min(1e-30)).clamp(1.0, float(short_d))
+    rank = raw_rank if valid is None else torch.where(valid, raw_rank, float(short_d))
     return (rank, vec) if return_v else rank
 
 
@@ -225,24 +259,68 @@ def solve_spd_cholesky(gram: torch.Tensor, rhs: torch.Tensor, *, ridge=0.0, retu
     return out, (0.5 * (inv + inv.transpose(-1, -2))).to(gram.dtype)
 
 
-def _ns_smooth(rel_smooth, dev, batch_n):
+def _ns_scale_1d(unit, rel_smooth):
     if isinstance(rel_smooth, torch.Tensor):
-        return rel_smooth.to(dev, _F32).reshape(batch_n, 1, 1).clamp_min(0.0), True
+        sm = rel_smooth.to(unit.device, _F32).reshape(unit.shape[0], 1, 1).clamp_min(0.0)
+        return unit * torch.rsqrt(1.0 + sm.square())
+    if isinstance(rel_smooth, (list, tuple)):
+        inv = [1.0 / math.hypot(1.0, max(0.0, float(v))) for v in rel_smooth]
+        return torch.stack([unit[j] * sc for j, sc in enumerate(inv)])
     val = max(0.0, float(rel_smooth))
-    return torch.full((batch_n, 1, 1), val, device=dev, dtype=_F32), val > 0.0
+    return unit if val <= 0.0 else unit / math.hypot(1.0, val)
+
+
+def _ns_augment_seq(wide, smooths, dtype):
+    batch_n, short_d, cols = wide.shape
+    vals = [max(0.0, float(v)) for v in smooths]
+    if max(vals) <= 0.0:
+        scaled = wide / 1.02
+        return (scaled if scaled.dtype == dtype else scaled.to(dtype)), None
+    if short_d > 512:
+        post = wide.new_empty((batch_n, 1, 1), dtype=_F32)
+        for j, val in enumerate(vals):
+            post[j].fill_(1.0 / math.hypot(1.0, val))
+        return (wide / 1.02).to(dtype), post
+    out = wide.new_zeros((batch_n, short_d, cols + short_d), dtype=dtype)
+    diag = out.diagonal(offset=cols, dim1=1, dim2=2)
+    inv_sqrt_m = 1.0 / math.sqrt(short_d)
+    for j, val in enumerate(vals):
+        inv_a = 1.0 / (math.hypot(1.0, val) * 1.02)
+        scaled = wide[j] * inv_a
+        out[j, :, :cols] = scaled if scaled.dtype == dtype else scaled.to(dtype)
+        if val > 0.0:
+            diag[j].fill_(val * inv_sqrt_m * inv_a)
+    return out, None
 
 
 def _ns_augment(wide, rel_smooth):
-    batch_n, short_d = wide.shape[0], wide.shape[1]
-    smooth, has_sm = _ns_smooth(rel_smooth, wide.device, batch_n)
+    batch_n, short_d, cols = wide.shape
     dtype = torch.bfloat16 if (wide.is_cuda and short_d > 256) else _F32
-    if not has_sm:
-        return (wide / 1.02).to(dtype), None
+    if isinstance(rel_smooth, (list, tuple)):
+        return _ns_augment_seq(wide, rel_smooth, dtype)
+    if not isinstance(rel_smooth, torch.Tensor):
+        val = max(0.0, float(rel_smooth))
+        if val <= 0.0:
+            scaled = wide / 1.02
+            return (scaled if scaled.dtype == dtype else scaled.to(dtype)), None
+        if short_d > 512:
+            return (wide / 1.02).to(dtype), wide.new_full((batch_n, 1, 1), 1.0 / math.hypot(1.0, val), dtype=_F32)
+        inv_a = 1.0 / (math.hypot(1.0, val) * 1.02)
+        out = wide.new_zeros((batch_n, short_d, cols + short_d), dtype=dtype)
+        scaled = wide * inv_a
+        out[:, :, :cols] = scaled if scaled.dtype == dtype else scaled.to(dtype)
+        out.diagonal(offset=cols, dim1=1, dim2=2).fill_((val / math.sqrt(short_d)) * inv_a)
+        return out, None
+    smooth = rel_smooth.to(wide.device, _F32).reshape(batch_n, 1, 1).clamp_min(0.0)
     if short_d > 512:
         return (wide / 1.02).to(dtype), torch.rsqrt(1.0 + smooth.square())
     inv_a = 1.0 / (torch.sqrt(1.0 + smooth.square()).clamp_min(1e-30) * 1.02)
-    eye = torch.eye(short_d, device=wide.device, dtype=dtype).unsqueeze(0).expand(batch_n, short_d, short_d)
-    return torch.cat(((wide * inv_a).to(dtype), eye * ((smooth / math.sqrt(short_d)) * inv_a).to(dtype)), dim=2), None
+    out = wide.new_zeros((batch_n, short_d, cols + short_d), dtype=dtype)
+    scaled = wide * inv_a
+    out[:, :, :cols] = scaled if scaled.dtype == dtype else scaled.to(dtype)
+    ridge = ((smooth / math.sqrt(short_d)) * inv_a).to(dtype).squeeze(2).expand(batch_n, short_d)
+    out.diagonal(offset=cols, dim1=1, dim2=2).copy_(ridge)
+    return out, None
 
 
 @torch.no_grad()
@@ -255,14 +333,14 @@ def fp32_tikhonov_ns_batched(mats: torch.Tensor, steps=5, *, rel_smooth=0.0, pre
     if mats.numel() == 0:
         return torch.zeros_like(mats)
     if pre_normalized:
-        unit, valid = mats.float(), None
+        unit, valid = (mats if mats.dtype == _F32 else mats.float()), None
     else:
-        unit_flat, _, valid_f = me_unit_rows(mats.float().reshape(batch_n, rows * cols))
+        unit_flat, _, valid_f = me_unit_rows(mats.reshape(batch_n, rows * cols), need_log2=False)
         unit, valid = unit_flat.view(batch_n, rows, cols), valid_f.view(batch_n, 1, 1)
     if min(rows, cols) == 1:
-        smooth, _ = _ns_smooth(rel_smooth, mats.device, batch_n)
-        scaled = unit * torch.rsqrt(1.0 + smooth.square())
-        return (scaled if valid is None else torch.where(valid, scaled, 0.0)).to(orig_dt)
+        scaled = _ns_scale_1d(unit, rel_smooth)
+        res = scaled if valid is None else torch.where(valid, scaled, 0.0)
+        return res if res.dtype == orig_dt else res.to(orig_dt)
     trans = rows > cols
     wide = unit.transpose(1, 2) if trans else unit
     short_d, long_d = wide.shape[1], wide.shape[2]
@@ -270,13 +348,15 @@ def fp32_tikhonov_ns_batched(mats: torch.Tensor, steps=5, *, rel_smooth=0.0, pre
     for idx in range(max(0, int(steps))):
         ca, cb, cc = _QUINTIC[min(idx, len(_QUINTIC) - 1)]
         gram = torch.bmm(z_mat, z_mat.transpose(1, 2))
-        z_mat = ca * z_mat + torch.bmm(cb * gram + cc * torch.bmm(gram, gram), z_mat)
-    z_f32 = z_mat.float()
+        poly = torch.baddbmm(gram, gram, gram, beta=cb, alpha=cc)
+        z_mat = torch.baddbmm(z_mat, poly, z_mat, beta=ca, alpha=1.0)
+    z_f32 = z_mat if z_mat.dtype == _F32 else z_mat.float()
     gain = (math.sqrt(short_d) / _batch_norm(z_f32).clamp_min(1e-8)).clamp_max(1.15)
     out = z_f32[:, :, :long_d] * (gain if post_sc is None else gain * post_sc)
     out = out.transpose(1, 2) if trans else out
     fin = torch.isfinite(out).all(dim=(1, 2), keepdim=True)
-    return torch.where(fin if valid is None else valid & fin, out, 0.0).to(orig_dt)
+    res = torch.where(fin if valid is None else valid & fin, out, 0.0)
+    return res if res.dtype == orig_dt else res.to(orig_dt)
 
 
 @torch.no_grad()
@@ -288,8 +368,22 @@ def fp32_tikhonov_ns_2d(mat: torch.Tensor, steps=5, *, rel_smooth=0.0):
     return fp32_tikhonov_ns_batched(mat.unsqueeze(0), steps=steps, rel_smooth=sm).squeeze(0)
 
 
+def _rate_scale(rates, weights, batch_n):
+    if isinstance(rates, torch.Tensor):
+        return rates.to(weights.device, _F32).reshape(batch_n, 1, 1)
+    if isinstance(rates, (list, tuple)):
+        vals = [float(r) for r in rates]
+        if min(vals) == max(vals):
+            return vals[0]
+        rate_v = weights.new_empty((batch_n, 1, 1), dtype=_F32)
+        for j, val in enumerate(vals):
+            rate_v[j].fill_(val)
+        return rate_v
+    return float(rates)
+
+
 @torch.no_grad()
-def schatten6_decay_batched(weights: torch.Tensor, rates: torch.Tensor, *, lam=0.25, tau=2.0):
+def schatten6_decay_batched(weights: torch.Tensor, rates, *, lam=0.25, tau=2.0):
     """Exact-deadband Schatten-6 spectral ceiling decay above ``tau``."""
     if weights.ndim != 3:
         raise ValueError("expected 3D")
@@ -298,22 +392,25 @@ def schatten6_decay_batched(weights: torch.Tensor, rates: torch.Tensor, *, lam=0
         return torch.zeros_like(weights, dtype=_F32)
     trans = rows > cols
     wide = weights.transpose(1, 2) if trans else weights
-    scaled_w = wide.float() / tau
-    dtype = torch.bfloat16 if (weights.is_cuda and wide.shape[1] >= 64) else _F32
-    work_w = scaled_w.to(dtype)
+    scaled_w = (wide if wide.dtype == _F32 else wide.float()) / tau
+    dtype = torch.bfloat16 if (weights.is_cuda and wide.shape[1] > 256) else _F32
+    work_w = scaled_w if dtype == _F32 else scaled_w.to(dtype)
     gram1 = torch.bmm(work_w, work_w.transpose(1, 2))
     gram2 = torch.bmm(gram1, gram1)
-    gram2_f = gram2.float()
+    gram2_f = gram2 if dtype == _F32 else gram2.float()
     peak = gram2_f.abs().amax(dim=(1, 2), keepdim=True).clamp_min(1e-30)
     gram2_u = gram2_f / peak
-    gram4 = torch.bmm(gram2_u.to(dtype), gram2_u.to(dtype)).float()
-    ratio = _batch_norm(gram4) / _batch_norm(gram2_u).clamp_min(1e-12)
+    g2_work = gram2_u if dtype == _F32 else gram2_u.to(dtype)
+    gram4 = torch.bmm(g2_work, g2_work)
+    gram4_f = gram4 if dtype == _F32 else gram4.float()
+    ratio = _batch_norm(gram4_f) / _batch_norm(gram2_u).clamp_min(1e-12)
     gate = smoothstep01(((ratio * peak).clamp_min(0.0).pow(0.25) - 1.0) / 0.25)
-    pow5 = torch.bmm(gram2, work_w).float()
-    norm_r = (_batch_norm(pow5) / _batch_norm(scaled_w).clamp_min(1e-12)).clamp_min(1e-6)
-    rate_v = rates.to(weights.device, _F32).reshape(batch_n, 1, 1)
-    eff = torch.minimum((lam / tau) * rate_v * gate, 0.25 / norm_r)
-    out = -pow5 * (eff * tau)
+    pow5 = torch.bmm(gram2, work_w)
+    pow5_f = pow5 if dtype == _F32 else pow5.float()
+    norm_r = (_batch_norm(pow5_f) / _batch_norm(scaled_w).clamp_min(1e-12)).clamp_min(1e-6)
+    rate_v = _rate_scale(rates, weights, batch_n)
+    eff = torch.minimum(gate * ((lam / tau) * rate_v), 0.25 / norm_r)
+    out = -pow5_f * (eff * tau)
     valid = torch.isfinite(out).all(dim=(1, 2), keepdim=True) & torch.isfinite(eff) & (gate > 0.0)
     out = torch.where(valid, out, 0.0)
     return out.transpose(1, 2) if trans else out
@@ -484,7 +581,9 @@ def born_infeld_cost(x: torch.Tensor, y: torch.Tensor, ell, *, aligned=False, fp
     """Cancellation-free Born-Infeld cost ``sqrt(ell^2 + ||x-y||^2) - ell``."""
     dtype = _F64 if fp64 else _F32
     xf, yf = x.reshape(x.shape[0], -1).to(dtype), y.reshape(y.shape[0], -1).to(dtype)
-    ell_t = ell.detach().to(xf.device, dtype) if isinstance(ell, torch.Tensor) else xf.new_tensor(float(ell))
+    ell_t = (
+        ell.detach().to(xf.device, dtype) if isinstance(ell, torch.Tensor) else xf.new_full((), float(ell), dtype=dtype)
+    )
     scale = _max_scale(xf, yf, ell_t)
     xu, yu, eu = xf / scale, yf / scale, (ell_t / scale).clamp_min(1e-12 if fp64 else 1e-7)
     if aligned:
@@ -497,11 +596,13 @@ def born_infeld_cost(x: torch.Tensor, y: torch.Tensor, ell, *, aligned=False, fp
     return (cost * scale).to(x.dtype), (cost.detach() / eu.clamp_min(1e-30)).to(_F32)
 
 
+_LOG_MIN: float = math.log(1e-30)
+
+
 def _lse_dual(log_k, dual, dim, target, buf):
     torch.add(log_k, dual.unsqueeze(1 - dim), out=buf)
-    peak = buf.amax(dim=dim, keepdim=True)
-    peak = torch.where(torch.isfinite(peak), peak, 0.0)
-    return target - (peak.squeeze(dim) + buf.sub_(peak).exp_().sum(dim=dim).clamp_min(1e-30).log_())
+    lse = torch.logsumexp(buf, dim=dim)
+    return target - torch.where(torch.isfinite(lse), lse, _LOG_MIN)
 
 
 @torch.no_grad()
@@ -543,7 +644,7 @@ def _rank_by(order, key):
 
 
 def _add_rem(quotas, order, total):
-    rem = torch.tensor(int(total), dtype=_LONG, device=quotas.device) - quotas.sum()
+    rem = int(total) - quotas.sum()
     return quotas.scatter_add_(
         0, order, (torch.arange(quotas.numel(), device=quotas.device, dtype=_LONG) < rem.clamp_min(0)).to(_LONG)
     )

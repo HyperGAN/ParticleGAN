@@ -85,15 +85,6 @@ def _is_loss(val):
     return isinstance(val, torch.Tensor) and val.ndim == 0 and bool(val.requires_grad)
 
 
-def _normals_finite(normals):
-    by_dev = {}
-    for group in normals:
-        for tensor in group:
-            if tensor is not None and tensor.numel() > 0:
-                by_dev.setdefault(tensor.device, []).append(torch.isfinite(tensor).all())
-    return all(bool(torch.stack(flags).all().item()) for flags in by_dev.values())
-
-
 def _mask_rows(src, rows):
     hit = src.new_zeros(len(src), dtype=_F32)
     hit.index_add_(0, rows, rows.new_ones(len(rows), dtype=_F32))
@@ -138,7 +129,47 @@ def _reachable_ids(loss, param_ids):
     return touched
 
 
+def _pack_normal_vec(normal_group, disps, dtype):
+    parts = [
+        (g.reshape(-1) if g.dtype == dtype else g.reshape(-1).to(dtype))
+        if g is not None
+        else d.new_zeros(d.numel(), dtype=dtype)
+        for g, d in zip(normal_group, disps)
+    ]
+    return torch.cat(parts)
+
+
+def _blend_dots_packed(params, origs, normals):
+    disps = torch._foreach_sub(params, origs)
+    dtype = _F64 if disps[0].dtype == _F64 else _F32
+    d_vec = torch.cat([d.reshape(-1) if d.dtype == dtype else d.reshape(-1).to(dtype) for d in disps])
+    a0_vec = _pack_normal_vec(normals[0], disps, dtype)
+    d_sq, n0_sq, n0_d = tensor_dot(d_vec, d_vec), tensor_dot(a0_vec, a0_vec), tensor_dot(a0_vec, d_vec)
+    if len(normals) == 1:
+        v0, vd, dd = torch.stack((n0_sq, n0_d, d_sq)).tolist()
+        return [vd], [v0], 0.0, dd
+    a1_vec = _pack_normal_vec(normals[1], disps, dtype)
+    v = torch.stack(
+        (n0_sq, tensor_dot(a1_vec, a1_vec), n0_d, tensor_dot(a1_vec, d_vec), tensor_dot(a0_vec, a1_vec), d_sq)
+    ).tolist()
+    return [v[2], v[3]], [v[0], v[1]], v[4], v[5]
+
+
+def _can_pack_blend(params):
+    if len(params) <= 1:
+        return False
+    dev, dt = params[0].device, params[0].dtype
+    total = 0
+    for param in params:
+        if param.device != dev or param.dtype != dt:
+            return False
+        total += param.numel()
+    return 0 < total <= 262_144
+
+
 def _blend_dots(params, origs, normals):
+    if _can_pack_blend(params):
+        return _blend_dots_packed(params, origs, normals)
     zero = params[0].new_zeros((), dtype=_F64)
     n0, n1 = normals[0], (normals[1] if len(normals) == 2 else None)
     n0_sq = n1_sq = n0_d = n1_d = n01 = d_sq = zero
@@ -211,6 +242,16 @@ def _resolve_norms(param, grad, pair, need_unit=True):
     lp = l2_p.item()
     has_w = bool(ok_p.item()) and lp > _W_LOG2_FLOOR
     return g_unit, l2_g.item(), (lp if has_w else 0.0), has_w
+
+
+def _fast_norm_lists(net_items, dev):
+    fast_idx, fast_ps, fast_gs = [], [], []
+    for i, (p, g, *_) in enumerate(net_items):
+        if p.dtype == g.dtype == _F32 and p.device == dev and g.numel() > 0:
+            fast_idx.append(i)
+            fast_ps.append(p)
+            fast_gs.append(g)
+    return fast_idx, fast_ps, fast_gs
 
 
 def _copy_params(dsts, srcs):
@@ -448,11 +489,10 @@ class AxiomOptimizer(Optimizer):
                     param.grad = None
                 if trainable:
                     loss_k.backward(retain_graph=True, inputs=trainable)
-                normals.append(self._collect_normal(clone=True))
+                normals.append(self._collect_normal())
         finally:
             for param, grad in zip(params, saved):
                 param.grad = grad
-        _require(_normals_finite(normals))
         self._protected = normals
 
     def backward_with_protected(self, loss_gan, aux_loss=None):
@@ -494,12 +534,15 @@ class AxiomOptimizer(Optimizer):
             ).detach()
             if (numel := flat.numel()) >= _SKETCH_DIM:
                 stride = max(1, numel // _SKETCH_DIM)
-                rows.append(flat[:: stride - (stride > 1 and stride % 2 == 0)][:_SKETCH_DIM].float())
+                sample = flat[:: stride - (stride > 1 and stride % 2 == 0)][:_SKETCH_DIM]
+                rows.append(sample if sample.dtype == _F32 else sample.float())
             else:
-                rows.append(torch.cat((flat.float(), flat.new_zeros(_SKETCH_DIM - numel, dtype=_F32))))
+                sample = flat if flat.dtype == _F32 else flat.float()
+                rows.append(torch.cat((sample, sample.new_zeros(_SKETCH_DIM - numel, dtype=_F32))))
         if not rows:
             return torch.zeros(_SKETCH_DIM, dtype=_F32, device=dev), torch.zeros((), dtype=_BOOL, device=dev)
-        acc = me_unit_rows(torch.stack(rows).to(dev))[0].sum(dim=0)
+        stacked = torch.stack(rows) if all(r.device == dev for r in rows) else torch.stack([r.to(dev) for r in rows])
+        acc = me_unit_rows(stacked, need_log2=False)[0].sum(dim=0)
         norm = acc.norm()
         ok = torch.isfinite(norm) & (norm > 0.0)
         return torch.where(ok, acc / norm.clamp_min(1e-30), 0.0), ok
@@ -525,15 +568,26 @@ class AxiomOptimizer(Optimizer):
         return min(torch.stack(ranks).tolist()) < 1.05
 
     @staticmethod
-    def _critic_gammas(critic_2d):
+    def _critic_gammas(critic_2d, norm_map):
         buckets, out = {}, [None] * len(critic_2d)
-        for pos, (_, (_, g, *_, (rows, cols, min_d), _)) in enumerate(critic_2d):
-            buckets.setdefault((rows, cols, g.device), []).append((pos, g.reshape(rows, cols), min_d))
-        for items in buckets.values():
-            ranks = stable_rank_power(torch.stack([item[1] for item in items]))
-            gammas = torch.minimum(ranks.new_full(ranks.shape, sqrt(items[0][2])), 2.0 * ranks.sqrt()).double()
-            for j, (pos, _, _) in enumerate(items):
-                out[pos] = gammas[j]
+        for pos, (net_idx, (_, g, *_, (rows, cols, min_d), _)) in enumerate(critic_2d):
+            pair = norm_map.get(net_idx)
+            g_norm = pair[0] if (pair is not None and 1e-17 < pair[0] < 1e17) else None
+            buckets.setdefault((rows, cols, g.device, g_norm is not None), []).append(
+                (pos, g.reshape(rows, cols), min_d, g_norm)
+            )
+        for (_, _, _, pre), items in buckets.items():
+            cap = sqrt(items[0][2])
+            if len(items) == 1:
+                pos, mat, _, g_norm = items[0]
+                rank = stable_rank_power(mat, frob_norm=g_norm)
+                out[pos] = (2.0 * rank.sqrt()).clamp_max(cap)
+            else:
+                stacked = torch.stack([m / gn if pre else m for _, m, _, gn in items])
+                ranks = stable_rank_power(stacked, pre_normalized=pre)
+                gammas = (2.0 * ranks.sqrt()).clamp_max(cap)
+                for j, (pos, *_) in enumerate(items):
+                    out[pos] = gammas[j]
         return out
 
     def _two_obj_pyth(self):
@@ -624,7 +678,7 @@ class AxiomOptimizer(Optimizer):
         s6_b, critic_2d = {}, [(i, item) for i, item in enumerate(net_items) if item[8]]
         if not critic_2d or self._critic_pathological([(i, it) for i, it in critic_2d if it[7][2] >= 4], norm_map, dev):
             return s6_b
-        for (i, item), gamma_t in zip(critic_2d, self._critic_gammas(critic_2d)):
+        for (i, item), gamma_t in zip(critic_2d, self._critic_gammas(critic_2d, norm_map)):
             p, g, lr_p, fac, half_l2, beta1, is_gen, (rows, cols, _), _ = item
             net_items[i] = (p, g, lr_p, fac, half_l2, beta1, is_gen, gamma_t, False)
             if s_therm > 0.0:
@@ -671,36 +725,48 @@ class AxiomOptimizer(Optimizer):
 
     def _apply_updates(self, fast_p, fast_g, fast_a, fast_gt, upd_p, upd_d, ns_b, dev):
         if fast_p:
-            if any(t is not None for t in fast_gt):
-                scales = torch.tensor(fast_a, dtype=_F64, device=dev)
-                one = scales.new_ones(())
-                scales = (scales * torch.stack([one if t is None else t for t in fast_gt])).float()
-            else:
-                scales = torch.tensor(fast_a, dtype=_F32, device=dev)
             self.fast_path_steps += 1
-            torch._foreach_addcmul_(fast_p, fast_g, list(scales.unbind(0)))
+            for param, grad, alpha, gamma_t in zip(fast_p, fast_g, fast_a, fast_gt):
+                if gamma_t is None:
+                    param.add_(grad, alpha=alpha)
+                else:
+                    gt = gamma_t if gamma_t.dtype == param.dtype else gamma_t.to(param.dtype)
+                    param.addcmul_(grad, gt, value=alpha)
         for bucket in ns_b.values():
             self.ns_2d_activations += len(bucket)
-            mats, smooths = torch.stack([b[1] for b in bucket]), [b[4] for b in bucket]
+            mats = bucket[0][1].unsqueeze(0) if len(bucket) == 1 else torch.stack([b[1] for b in bucket])
+            smooths = [b[4] for b in bucket]
             lo, hi = min(smooths), max(smooths)
-            rel_sm = 0.0 if hi <= 0.0 else (lo if lo == hi else torch.tensor(smooths, dtype=_F32, device=mats.device))
-            orth = fp32_tikhonov_ns_batched(mats, rel_smooth=rel_sm, pre_normalized=True).float()
+            rel_sm = 0.0 if hi <= 0.0 else (lo if lo == hi else smooths)
+            orth = fp32_tikhonov_ns_batched(mats, rel_smooth=rel_sm, pre_normalized=True)
+            if orth.dtype != _F32:
+                orth = orth.float()
             for j, (param, _, trans, mult, _) in enumerate(bucket):
-                upd_p.append(param)
-                upd_d.append((orth[j].transpose(0, int(trans)) * (-mult)).reshape_as(param).to(param.dtype))
+                delta = orth[j].transpose(0, int(trans)).reshape(param.shape)
+                param.add_(delta if delta.dtype == param.dtype else delta.to(param.dtype), alpha=-mult)
         _add_deltas(upd_p, upd_d, dev)
 
     @staticmethod
-    def _apply_schatten6(s6_b, d_mult, dev):
+    def _apply_schatten6(s6_b, d_mult_val):
         if not s6_b:
             return
-        d_mult_t = _scalar_t(d_mult, dev, _F32)
         for bucket in s6_b.values():
-            ws = torch.stack([p.float().reshape(r, c).transpose(0, int(tr)) / fac for p, fac, tr, r, c, _ in bucket])
-            rates = torch.tensor([rate for *_, rate in bucket], dtype=_F32, device=ws.device) * d_mult_t.to(ws.device)
+            if len(bucket) == 1:
+                param, fac, trans, rows, cols, rate = bucket[0]
+                mat = (param if param.dtype == _F32 else param.float()).reshape(rows, cols).transpose(0, int(trans))
+                ws, rates = (mat / fac).unsqueeze(0), rate * d_mult_val
+            else:
+                ws = torch.stack(
+                    [
+                        (p if p.dtype == _F32 else p.float()).reshape(r, c).transpose(0, int(tr)) / fac
+                        for p, fac, tr, r, c, _ in bucket
+                    ]
+                )
+                rates = [rate * d_mult_val for *_, rate in bucket]
             decays = schatten6_decay_batched(ws, rates)
             for j, (param, fac, trans, _, _, _) in enumerate(bucket):
-                param.add_((decays[j].transpose(0, int(trans)) * fac).reshape_as(param).to(param.dtype))
+                delta = decays[j].transpose(0, int(trans)).reshape(param.shape)
+                param.add_(delta if delta.dtype == param.dtype else delta.to(param.dtype), alpha=fac)
 
     @staticmethod
     def _flush_trust(rec, y_probe, y_pre, pre_gain):
@@ -886,6 +952,20 @@ class AxiomOptimizer(Optimizer):
         )
         return step_sc, s_therm, is_simp, is_cond, gen_probe
 
+    def _resolve_modulations(self, is_critic, rec, dev):
+        fg_val = 1.0 if self.ema_func_gain >= 0.75 else self.ema_func_gain
+        wb, gs = self._wakeup_boost, self._g_scale
+        pre_gain = (
+            (wb.to(dev, _F64).reshape(()) * fg_val).clamp_max(1.0)
+            if isinstance(wb, torch.Tensor)
+            else min(1.0, wb * fg_val)
+        )
+        if isinstance(gs, torch.Tensor) or isinstance(pre_gain, torch.Tensor):
+            g_mult = _scalar_t(gs, dev) * _scalar_t(pre_gain, dev)
+        else:
+            g_mult = gs * pre_gain
+        return pre_gain, g_mult, self._critic_coupling(is_critic, rec, dev)
+
     def _sync_step_pack(self, pairs, prior_items, net_items, g_mult, d_mult, dev):
         has_hist = self._prev_sketch is not None
         sketch, ok_sk = self._gradient_sketch(pairs, dev)
@@ -895,17 +975,19 @@ class AxiomOptimizer(Optimizer):
             else ok_sk.new_zeros((), dtype=_F64)
         )
         pre_priors = [(lr_p, self._prep_prior(p, g, grp, b1_p)) for p, g, lr_p, b1_p, grp in prior_items]
-        head = [ok_sk.double(), cos_t, g_mult, _scalar_t(d_mult, dev)]
+        head = [ok_sk.double(), cos_t]
+        g_idx = d_idx = -1
+        if isinstance(g_mult, torch.Tensor):
+            g_idx = len(head)
+            head.append(g_mult)
+        if isinstance(d_mult, torch.Tensor):
+            d_idx = len(head)
+            head.append(d_mult.to(dev, _F64).reshape(()))
         prior_off = len(head)
         for _, item in pre_priors:
             if item is not None:
                 head.extend((item[6], item[7]))
-        fast_idx, fast_ps, fast_gs = [], [], []
-        for i, (p, g, *_) in enumerate(net_items):
-            if p.dtype == g.dtype == _F32 and p.device == dev and g.numel() > 0:
-                fast_idx.append(i)
-                fast_ps.append(p)
-                fast_gs.append(g)
+        fast_idx, fast_ps, fast_gs = _fast_norm_lists(net_items, dev)
         norm_off = len(head)
         head_t = torch.stack(head)
         synced = (
@@ -920,6 +1002,8 @@ class AxiomOptimizer(Optimizer):
             prior_off,
             pre_priors,
             dict(zip(fast_idx, zip(synced[norm_off : norm_off + n_fast], synced[norm_off + n_fast :]))),
+            synced[g_idx] if g_idx >= 0 else float(g_mult),
+            synced[d_idx] if d_idx >= 0 else float(d_mult),
         )
 
     def _step_core(self, active_idx, active_params, active_origs):
@@ -934,10 +1018,9 @@ class AxiomOptimizer(Optimizer):
                 rec._g_probe_cache = None
             return False
         ema_fg = self.ema_func_gain
-        pre_gain = (_scalar_t(self._wakeup_boost, dev) * (1.0 if ema_fg >= 0.75 else ema_fg)).clamp_max(1.0)
-        g_mult, d_mult = _scalar_t(self._g_scale, dev) * pre_gain, self._critic_coupling(is_critic, rec, dev)
+        pre_gain, g_mult, d_mult = self._resolve_modulations(is_critic, rec, dev)
         decay = 0.005 if s_therm >= 0.5 else 0.0
-        has_hist, synced, prior_off, pre_priors, norm_map = self._sync_step_pack(
+        has_hist, synced, prior_off, pre_priors, norm_map, gm_val, dm_val = self._sync_step_pack(
             pairs, prior_items, net_items, g_mult, d_mult, dev
         )
         ema_cos = (0.90 * self.ema_step_cos + 0.10 * synced[1]) if (has_hist and synced[0] > 0.5) else self.ema_step_cos
@@ -954,11 +1037,11 @@ class AxiomOptimizer(Optimizer):
         self._step_network(
             net_items,
             norm_map,
-            (coh, s_osc, s_base, s_spike, g_eq, decay, has_hist, synced[2], synced[3]),
+            (coh, s_osc, s_base, s_spike, g_eq, decay, has_hist, gm_val, dm_val),
             gen_probe,
             dev,
         )
-        self._apply_schatten6(s6_b, d_mult, dev)
+        self._apply_schatten6(s6_b, dm_val)
         gain, used = self._finish_trust(
             rec, is_critic, gen_probe, tracked, (pre_gain, step_sc, s_therm, is_simp), stiff
         )

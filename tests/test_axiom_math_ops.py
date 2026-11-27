@@ -40,9 +40,7 @@ from particlegan._axiom.math_ops import (
 MATH_OPS_PATH = Path(math_ops.__file__).resolve()
 
 
-def _random_orthogonal(
-    dim: int, seed: int, dtype: torch.dtype = torch.float64
-) -> torch.Tensor:
+def _random_orthogonal(dim: int, seed: int, dtype: torch.dtype = torch.float64) -> torch.Tensor:
     gen = torch.Generator().manual_seed(seed)
     q, _ = torch.linalg.qr(torch.randn(dim, dim, generator=gen, dtype=dtype))
     return q
@@ -65,17 +63,11 @@ def test_static_l0_imports_and_forbidden_ops() -> None:
     forbidden_attrs = {"svd", "svdvals", "eigh", "eigvalsh", "pinv", "compile"}
     for node in ast.walk(tree):
         if isinstance(node, ast.Attribute):
-            assert node.attr not in forbidden_attrs, (
-                f"Forbidden op {node.attr!r} found in math_ops.py"
-            )
+            assert node.attr not in forbidden_attrs, f"Forbidden op {node.attr!r} found in math_ops.py"
             is_autograd_grad = (
-                node.attr == "grad"
-                and isinstance(node.value, ast.Attribute)
-                and node.value.attr == "autograd"
+                node.attr == "grad" and isinstance(node.value, ast.Attribute) and node.value.attr == "autograd"
             )
-            assert not is_autograd_grad, (
-                "Forbidden torch.autograd.grad found in math_ops.py"
-            )
+            assert not is_autograd_grad, "Forbidden torch.autograd.grad found in math_ops.py"
 
 
 def test_static_l0_no_global_caches_and_style() -> None:
@@ -85,12 +77,8 @@ def test_static_l0_no_global_caches_and_style() -> None:
     for name, value in vars(math_ops).items():
         if name.startswith("__"):
             continue
-        assert not isinstance(value, torch.Tensor), (
-            f"Module-global tensor {name!r} forbidden"
-        )
-        assert not isinstance(value, (dict, list, set)), (
-            f"Mutable module-global cache {name!r} forbidden"
-        )
+        assert not isinstance(value, torch.Tensor), f"Module-global tensor {name!r} forbidden"
+        assert not isinstance(value, (dict, list, set)), f"Mutable module-global cache {name!r} forbidden"
 
     # Line length and zero semicolon-packed lines.
     for lineno, line in enumerate(source.splitlines(), start=1):
@@ -133,16 +121,12 @@ def test_mantissa_exponent_normalize_and_me_unit_rows_extreme_scales() -> None:
         u_s, l2_s, ok_s = mantissa_exponent_normalize(base * scale)
         assert bool(ok_s.item()), f"Failed at scale 1e{exp_10}"
         assert torch.allclose(u_s, u_ref, rtol=1e-6, atol=1e-6)
-        assert math.isclose(
-            float(l2_s.item()) - float(l2_ref.item()), math.log2(scale), abs_tol=1e-4
-        )
+        assert math.isclose(float(l2_s.item()) - float(l2_ref.item()), math.log2(scale), abs_tol=1e-4)
 
     # Subnormal range safety (1e-42 in float32).
     sub = torch.tensor([1e-42, -2e-42, 0.0], dtype=torch.float32)
     u_sub, l2_sub, ok_sub = mantissa_exponent_normalize(sub)
-    assert (
-        bool(ok_sub.item()) and torch.isfinite(u_sub).all() and torch.isfinite(l2_sub)
-    )
+    assert bool(ok_sub.item()) and torch.isfinite(u_sub).all() and torch.isfinite(l2_sub)
     assert math.isclose(float(u_sub.norm().item()), 1.0, rel_tol=1e-4)
 
     # Zero, NaN, Inf, and empty handling.
@@ -173,9 +157,7 @@ def test_mantissa_exponent_normalize_and_me_unit_rows_extreme_scales() -> None:
     assert torch.allclose(u_rows[1], u_ref, rtol=1e-6, atol=1e-6)
     assert torch.equal(u_rows[2], torch.zeros_like(base))
     assert torch.equal(u_rows[3], torch.zeros_like(base))
-    assert math.isclose(
-        float(l2_rows[1].item() - l2_rows[0].item()), math.log2(1e60), abs_tol=1e-3
-    )
+    assert math.isclose(float(l2_rows[1].item() - l2_rows[0].item()), math.log2(1e60), abs_tol=1e-3)
 
 
 def test_weyl_rademacher_properties_and_determinism() -> None:
@@ -190,16 +172,11 @@ def test_weyl_rademacher_properties_and_determinism() -> None:
     dim = 16
     n_probes = 512
     probes = torch.stack(
-        [
-            weyl_rademacher((dim,), phase=(t * PHI1) % 1.0, salt=0, dtype=torch.float64)
-            for t in range(n_probes)
-        ],
+        [weyl_rademacher((dim,), phase=(t * PHI1) % 1.0, salt=0, dtype=torch.float64) for t in range(n_probes)],
         dim=0,
     )
     cov = (probes.T @ probes) / float(n_probes)
-    assert torch.allclose(
-        cov.diagonal(), torch.ones(dim, dtype=torch.float64), atol=1e-12
-    )
+    assert torch.allclose(cov.diagonal(), torch.ones(dim, dtype=torch.float64), atol=1e-12)
     off_diag = cov - torch.diag(cov.diagonal())
     assert float(off_diag.abs().amax().item()) < 0.18
 
@@ -207,9 +184,7 @@ def test_weyl_rademacher_properties_and_determinism() -> None:
 def test_power_principal_axis_and_ltc_split_preservation() -> None:
     for dim in (1, 2, 4, 8, 16):
         q = _random_orthogonal(dim, seed=100 + dim)
-        eigs = torch.tensor(
-            [100.0] + [1.0 / (k + 1) for k in range(dim - 1)], dtype=torch.float64
-        )
+        eigs = torch.tensor([100.0] + [1.0 / (k + 1) for k in range(dim - 1)], dtype=torch.float64)
         cov = q @ torch.diag(eigs) @ q.T
         lam1, u1 = power_principal_axis(cov, iters=6, seed=0)
         assert math.isclose(float(lam1.item()), 100.0, rel_tol=1e-9)
@@ -224,12 +199,8 @@ def test_power_principal_axis_and_ltc_split_preservation() -> None:
 
     # Batched + extreme scales + zero slice.
     q4 = _random_orthogonal(4, seed=7)
-    base = (
-        q4 @ torch.diag(torch.tensor([25.0, 2.0, 1.0, 0.5], dtype=torch.float64)) @ q4.T
-    )
-    batch = torch.stack(
-        (base * 1e-24, base * 1e24, torch.zeros(4, 4, dtype=torch.float64)), dim=0
-    )
+    base = q4 @ torch.diag(torch.tensor([25.0, 2.0, 1.0, 0.5], dtype=torch.float64)) @ q4.T
+    batch = torch.stack((base * 1e-24, base * 1e24, torch.zeros(4, 4, dtype=torch.float64)), dim=0)
     lams, us = power_principal_axis(batch, iters=6)
     assert math.isclose(float(lams[0].item()), 25e-24, rel_tol=1e-6)
     assert math.isclose(float(lams[1].item()), 25e24, rel_tol=1e-6)
@@ -254,9 +225,7 @@ def test_stable_rank_power_accuracy_and_scale_invariance() -> None:
 
     # Orthogonal matrix -> exact stable_rank == m.
     eye8 = torch.eye(8)
-    assert math.isclose(
-        float(stable_rank_power(eye8, iters=2).item()), 8.0, rel_tol=1e-5
-    )
+    assert math.isclose(float(stable_rank_power(eye8, iters=2).item()), 8.0, rel_tol=1e-5)
 
     # Batched 3D parity with 2D + warm-start v + zero/NaN safety.
     m0 = torch.randn(8, 12, generator=gen)
@@ -273,6 +242,18 @@ def test_stable_rank_power_accuracy_and_scale_invariance() -> None:
     assert float(sr_0.item()) >= float(sr_warm.item()) - 1e-5
     assert float(sr_warm.item()) >= true_sr - 1e-4
     assert abs(float(sr_conv.item()) - true_sr) < 0.05
+
+    # Fast-path parity: pre_normalized=True (2D/3D) and frob_norm (2D mv) + me_unit_rows(need_log2=False).
+    frob_m0 = float(m0.norm().item())
+    sr_frob = stable_rank_power(m0, iters=2, frob_norm=frob_m0)
+    sr_pre_2d = stable_rank_power(m0 / frob_m0, iters=2, pre_normalized=True)
+    sr_pre_3d = stable_rank_power((m0 / frob_m0).unsqueeze(0), iters=2, pre_normalized=True).squeeze(0)
+    assert math.isclose(float(sr_frob.item()), float(sr_0.item()), rel_tol=1e-5)
+    assert math.isclose(float(sr_pre_2d.item()), float(sr_0.item()), rel_tol=1e-5)
+    assert math.isclose(float(sr_pre_3d.item()), float(sr_0.item()), rel_tol=1e-5)
+    u_full, _, v_full = me_unit_rows(m0)
+    u_fast, l2_none, v_fast = me_unit_rows(m0, need_log2=False)
+    assert l2_none is None and torch.equal(u_full, u_fast) and torch.equal(v_full, v_fast)
 
 
 def test_sym_eigensplit_halley_all_dimensions() -> None:
@@ -296,11 +277,7 @@ def test_sym_eigensplit_halley_all_dimensions() -> None:
 
     # Batched [B, d, d] including zero slice and pure-negative slice.
     q4 = _random_orthogonal(4, seed=99)
-    a_mix = (
-        q4
-        @ torch.diag(torch.tensor([-2.0, -0.5, 0.5, 3.0], dtype=torch.float64))
-        @ q4.T
-    )
+    a_mix = q4 @ torch.diag(torch.tensor([-2.0, -0.5, 0.5, 3.0], dtype=torch.float64)) @ q4.T
     a_neg = -torch.eye(4, dtype=torch.float64) * 2.5
     a_zero = torch.zeros(4, 4, dtype=torch.float64)
     ep, en = sym_eigensplit_halley(torch.stack((a_mix, a_neg, a_zero), dim=0))
@@ -314,9 +291,7 @@ def test_sym_inv_sqrt_ns_all_dimensions_and_conditioning() -> None:
     for dim in (1, 2, 3, 4, 8, 12, 16):
         q = _random_orthogonal(dim, seed=300 + dim)
         eigs = (
-            torch.logspace(-3.0, 1.0, dim, dtype=torch.float64)
-            if dim > 1
-            else torch.tensor([7.5], dtype=torch.float64)
+            torch.logspace(-3.0, 1.0, dim, dtype=torch.float64) if dim > 1 else torch.tensor([7.5], dtype=torch.float64)
         )
         mat = q @ torch.diag(eigs) @ q.T
         w = sym_inv_sqrt_ns(mat)
@@ -327,13 +302,7 @@ def test_sym_inv_sqrt_ns_all_dimensions_and_conditioning() -> None:
 
     # Extreme scales (1e-20 and 1e+20) and batched execution.
     q6 = _random_orthogonal(6, seed=314)
-    base = (
-        q6
-        @ torch.diag(
-            torch.tensor([1.0, 2.0, 4.0, 8.0, 16.0, 32.0], dtype=torch.float64)
-        )
-        @ q6.T
-    )
+    base = q6 @ torch.diag(torch.tensor([1.0, 2.0, 4.0, 8.0, 16.0, 32.0], dtype=torch.float64)) @ q6.T
     batch = torch.stack((base * 1e-20, base * 1e20), dim=0)
     w_b = sym_inv_sqrt_ns(batch)
     eye6 = torch.eye(6, dtype=torch.float64)
@@ -355,14 +324,8 @@ def test_sym_inv_sqrt_ns_all_dimensions_and_conditioning() -> None:
 
 def test_solve_spd_cholesky_exact_and_fallback() -> None:
     q = _random_orthogonal(6, seed=55)
-    gram = (
-        q
-        @ torch.diag(torch.tensor([0.2, 0.5, 1.0, 2.0, 5.0, 10.0], dtype=torch.float64))
-        @ q.T
-    )
-    rhs_mat = torch.randn(
-        6, 3, generator=torch.Generator().manual_seed(56), dtype=torch.float64
-    )
+    gram = q @ torch.diag(torch.tensor([0.2, 0.5, 1.0, 2.0, 5.0, 10.0], dtype=torch.float64)) @ q.T
+    rhs_mat = torch.randn(6, 3, generator=torch.Generator().manual_seed(56), dtype=torch.float64)
     ridge_vec = torch.tensor([1e-3, 1e-3, 2e-2, 2e-2, 2e-2, 2e-2], dtype=torch.float64)
 
     sol, inv = solve_spd_cholesky(gram, rhs_mat, ridge=ridge_vec, return_inv=True)
@@ -375,22 +338,12 @@ def test_solve_spd_cholesky_exact_and_fallback() -> None:
     rhs_vec = rhs_mat[:, 0]
     sol_v, inv_none = solve_spd_cholesky(gram, rhs_vec, ridge=1e-2, return_inv=False)
     assert inv_none is None
-    assert torch.allclose(
-        (gram + 1e-2 * torch.eye(6, dtype=torch.float64)) @ sol_v, rhs_vec, atol=1e-11
-    )
+    assert torch.allclose((gram + 1e-2 * torch.eye(6, dtype=torch.float64)) @ sol_v, rhs_vec, atol=1e-11)
 
     # Indefinite / non-SPD matrix triggers Halley-PSD fallback cleanly without raising.
-    bad_gram = (
-        q
-        @ torch.diag(torch.tensor([-0.5, 0.0, 1.0, 2.0, 3.0, 4.0], dtype=torch.float64))
-        @ q.T
-    )
+    bad_gram = q @ torch.diag(torch.tensor([-0.5, 0.0, 1.0, 2.0, 3.0, 4.0], dtype=torch.float64)) @ q.T
     sol_fb, inv_fb = solve_spd_cholesky(bad_gram, rhs_vec, return_inv=True)
-    assert (
-        inv_fb is not None
-        and torch.isfinite(sol_fb).all()
-        and torch.isfinite(inv_fb).all()
-    )
+    assert inv_fb is not None and torch.isfinite(sol_fb).all() and torch.isfinite(inv_fb).all()
 
 
 def test_fp32_tikhonov_ns_convergence_and_rank1_bounds() -> None:
@@ -405,9 +358,7 @@ def test_fp32_tikhonov_ns_convergence_and_rank1_bounds() -> None:
 
     # Rank-1 matrices: bounded sigma_1 <= 1.15 and < 1e-4 orthogonal leakage.
     for shape in ((64, 64), (32, 64), (64, 32)):
-        r1 = torch.randn(shape[0], 1, generator=gen) @ torch.randn(
-            1, shape[1], generator=gen
-        )
+        r1 = torch.randn(shape[0], 1, generator=gen) @ torch.randn(1, shape[1], generator=gen)
         for rs in (0.0, 0.05):
             out = fp32_tikhonov_ns_2d(r1, steps=5, rel_smooth=rs)
             sv = torch.linalg.svdvals(out)
@@ -431,18 +382,28 @@ def test_fp32_tikhonov_ns_convergence_and_rank1_bounds() -> None:
     )
     out_0 = fp32_tikhonov_ns_2d(m0, steps=5, rel_smooth=0.05)
     assert torch.allclose(out_b[0], out_0, rtol=1e-5, atol=1e-6)
-    assert torch.equal(out_b[1], torch.zeros_like(m1)) and torch.equal(
-        out_b[2], torch.zeros_like(m2)
-    )
+    assert torch.equal(out_b[1], torch.zeros_like(m1)) and torch.equal(out_b[2], torch.zeros_like(m2))
 
     m0_unit = m0 / m0.norm()
-    out_pre = fp32_tikhonov_ns_batched(
-        m0_unit.unsqueeze(0), steps=5, rel_smooth=0.05, pre_normalized=True
-    ).squeeze(0)
+    out_pre = fp32_tikhonov_ns_batched(m0_unit.unsqueeze(0), steps=5, rel_smooth=0.05, pre_normalized=True).squeeze(0)
     assert torch.allclose(out_pre, out_0, rtol=1e-5, atol=1e-6)
 
     vec_out = fp32_tikhonov_ns_2d(torch.tensor([[3.0, 4.0]]), rel_smooth=0.0)
     assert torch.allclose(vec_out, torch.tensor([[0.6, 0.8]]), atol=1e-6)
+
+    # Zero-H2D list/scalar rel_smooth parity against Tensor rel_smooth (2D + 1D shapes).
+    pair = torch.stack((m0, torch.randn(12, 18, generator=gen)), dim=0)
+    sm_list = [0.03, 0.09]
+    out_t = fp32_tikhonov_ns_batched(pair, steps=5, rel_smooth=torch.tensor(sm_list))
+    out_l = fp32_tikhonov_ns_batched(pair, steps=5, rel_smooth=sm_list)
+    assert torch.allclose(out_l, out_t, rtol=1e-5, atol=1e-6)
+    pair_1d = torch.randn(2, 1, 8, generator=gen)
+    assert torch.allclose(
+        fp32_tikhonov_ns_batched(pair_1d, rel_smooth=sm_list),
+        fp32_tikhonov_ns_batched(pair_1d, rel_smooth=torch.tensor(sm_list)),
+        rtol=1e-5,
+        atol=1e-6,
+    )
 
 
 def test_schatten6_decay_exact_deadband_and_contraction() -> None:
@@ -450,13 +411,9 @@ def test_schatten6_decay_exact_deadband_and_contraction() -> None:
     # Inside deadband (sigma_1 = 1.8 < tau = 2.0): exact zero decay.
     w_safe = q @ torch.diag(torch.linspace(0.5, 1.8, 8)) @ q.T
     # Outside deadband (sigma_1 = 4.0 > tau = 2.0): strictly active contraction along top singular direction.
-    w_high = (
-        q @ torch.diag(torch.tensor([0.5, 0.6, 0.7, 0.8, 1.0, 1.2, 1.5, 4.0])) @ q.T
-    )
+    w_high = q @ torch.diag(torch.tensor([0.5, 0.6, 0.7, 0.8, 1.0, 1.2, 1.5, 4.0])) @ q.T
     rates = torch.tensor([0.05, 0.05])
-    decay = schatten6_decay_batched(
-        torch.stack((w_safe, w_high), dim=0), rates, lam=0.25, tau=2.0
-    )
+    decay = schatten6_decay_batched(torch.stack((w_safe, w_high), dim=0), rates, lam=0.25, tau=2.0)
 
     assert torch.equal(decay[0], torch.zeros_like(w_safe))
     assert float(decay[1].norm().item()) > 0.0
@@ -464,36 +421,33 @@ def test_schatten6_decay_exact_deadband_and_contraction() -> None:
     s_after = float(torch.linalg.svdvals(w_high + decay[1])[0].item())
     assert s_after < s_before
 
+    # Scalar & Python-sequence rates parity against Tensor rates.
+    stack_w = torch.stack((w_safe, w_high), dim=0)
+    assert torch.allclose(schatten6_decay_batched(stack_w, 0.05, lam=0.25, tau=2.0), decay, rtol=1e-6, atol=1e-7)
+    mixed_t = schatten6_decay_batched(stack_w, torch.tensor([0.02, 0.07]), lam=0.25, tau=2.0)
+    mixed_l = schatten6_decay_batched(stack_w, [0.02, 0.07], lam=0.25, tau=2.0)
+    assert torch.allclose(mixed_l, mixed_t, rtol=1e-6, atol=1e-7)
+
 
 def test_zero_pinv_project_nonascent_kkt_dense_and_streaming() -> None:
     gen = torch.Generator().manual_seed(77)
 
     # Exact closed-form checks (1-loss, 2-loss acute, antiparallel, polar-cone zero).
     d = torch.tensor([1.0, 1.0, 0.5], dtype=torch.float64)
-    p1 = zero_pinv_project_nonascent(
-        d, torch.tensor([[1.0, 0.0, 0.0]], dtype=torch.float64)
-    )
-    assert torch.allclose(
-        p1, torch.tensor([0.0, 1.0, 0.5], dtype=torch.float64), atol=1e-12
-    )
+    p1 = zero_pinv_project_nonascent(d, torch.tensor([[1.0, 0.0, 0.0]], dtype=torch.float64))
+    assert torch.allclose(p1, torch.tensor([0.0, 1.0, 0.5], dtype=torch.float64), atol=1e-12)
 
     n2 = torch.tensor([[1.0, 0.3, 0.0], [0.2, 1.0, 0.0]], dtype=torch.float64)
     p2 = zero_pinv_project_nonascent(d, n2)
-    assert torch.allclose(
-        p2, torch.tensor([0.0, 0.0, 0.5], dtype=torch.float64), atol=1e-12
-    )
+    assert torch.allclose(p2, torch.tensor([0.0, 0.0, 0.5], dtype=torch.float64), atol=1e-12)
 
     n_opp = torch.tensor([[1.0, 0.0, 0.0], [-1.0, 0.0, 0.0]], dtype=torch.float64)
     p_opp = zero_pinv_project_nonascent(d, n_opp)
-    assert torch.allclose(
-        p_opp, torch.tensor([0.0, 1.0, 0.5], dtype=torch.float64), atol=1e-12
-    )
+    assert torch.allclose(p_opp, torch.tensor([0.0, 1.0, 0.5], dtype=torch.float64), atol=1e-12)
 
     # d strictly inside positive cone spanned by normals -> exact zero projection.
     n_cone = torch.tensor([[1.0, 0.0], [0.0, 1.0]], dtype=torch.float64)
-    p_zero = zero_pinv_project_nonascent(
-        torch.tensor([2.0, 3.0], dtype=torch.float64), n_cone
-    )
+    p_zero = zero_pinv_project_nonascent(torch.tensor([2.0, 3.0], dtype=torch.float64), n_cone)
     assert torch.equal(p_zero, torch.zeros(2, dtype=torch.float64))
 
     # Variational-inequality KKT check across 40 random 1- and 2-constraint instances.
@@ -532,12 +486,8 @@ def test_safe_cdist_born_infeld_and_sinkhorn() -> None:
 
     # safe_cdist extreme scale invariance + diag_inf.
     d_ref = safe_cdist(x, y)
-    assert torch.allclose(
-        safe_cdist(x * 1e-24, y * 1e-24) * 1e24, d_ref, rtol=1e-5, atol=1e-6
-    )
-    assert torch.allclose(
-        safe_cdist(x * 1e24, y * 1e24) * 1e-24, d_ref, rtol=1e-5, atol=1e-6
-    )
+    assert torch.allclose(safe_cdist(x * 1e-24, y * 1e-24) * 1e24, d_ref, rtol=1e-5, atol=1e-6)
+    assert torch.allclose(safe_cdist(x * 1e24, y * 1e24) * 1e-24, d_ref, rtol=1e-5, atol=1e-6)
     d_self = safe_cdist(x, diag_inf=True)
     assert torch.isinf(d_self.diagonal()).all()
 
@@ -552,9 +502,7 @@ def test_safe_cdist_born_infeld_and_sinkhorn() -> None:
     cost.sum().backward()
     assert xa.grad is not None
     diff = xa.detach() - ya
-    expected_grad = diff / torch.sqrt(
-        ell * ell + diff.square().sum(dim=-1, keepdim=True)
-    )
+    expected_grad = diff / torch.sqrt(ell * ell + diff.square().sum(dim=-1, keepdim=True))
     assert torch.allclose(xa.grad, expected_grad, rtol=1e-9, atol=1e-12)
 
     # log_sinkhorn exact marginal convergence.
@@ -564,6 +512,10 @@ def test_safe_cdist_born_infeld_and_sinkhorn() -> None:
     pi = log_sinkhorn(-c_mat / 0.25, log_a, log_b, iters=40).exp()
     assert torch.allclose(pi.sum(dim=1), torch.full((8,), 1.0 / 8.0), atol=1e-5)
     assert torch.allclose(pi.sum(dim=0), torch.full((10,), 1.0 / 10.0), atol=1e-5)
+    lk_masked = -c_mat / 0.25
+    lk_masked[0, :] = float("-inf")
+    pi_masked = log_sinkhorn(lk_masked, log_a, log_b, iters=10).exp()
+    assert torch.isfinite(pi_masked).all() and float(pi_masked[0].abs().max().item()) == 0.0
 
     # sinkhorn_with_slack respects masks and produces valid marginals.
     mask = torch.ones((8, 10), dtype=torch.bool)
@@ -581,9 +533,7 @@ def test_safe_cdist_born_infeld_and_sinkhorn() -> None:
     assert pi_s.shape == (9, 11)
     assert float(pi_s[0, 0].item()) == 0.0
     assert torch.allclose(pi_s[:8].sum(dim=1), torch.full((8,), 1.0 / 8.0), atol=1e-4)
-    assert torch.allclose(
-        pi_s[:, :10].sum(dim=0), torch.full((10,), 1.0 / 10.0), atol=1e-4
-    )
+    assert torch.allclose(pi_s[:, :10].sum(dim=0), torch.full((10,), 1.0 / 10.0), atol=1e-4)
 
 
 def test_hamilton_and_deficit_quotas() -> None:
@@ -599,11 +549,7 @@ def test_hamilton_and_deficit_quotas() -> None:
 
     # Equal weights + zero weights fallback.
     q_eq = hamilton_quotas(13, torch.ones(5))
-    assert (
-        int(q_eq.sum().item()) == 13
-        and int(q_eq.min().item()) == 2
-        and int(q_eq.max().item()) == 3
-    )
+    assert int(q_eq.sum().item()) == 13 and int(q_eq.min().item()) == 2 and int(q_eq.max().item()) == 3
     q_zero = hamilton_quotas(7, torch.zeros(4))
     assert int(q_zero.sum().item()) == 7 and bool((q_zero >= 1).all().item())
 
@@ -652,16 +598,10 @@ def test_zero_global_rng_consumption() -> None:
     _ = zero_pinv_project_nonascent(x[0], x[1:3])
     c_mat = safe_cdist(x, y)
     _ = born_infeld_cost(x, y, 1.0)
-    _ = log_sinkhorn(
-        -c_mat, torch.full((4,), -math.log(4)), torch.full((4,), -math.log(4))
-    )
-    _ = sinkhorn_with_slack(
-        c_mat, torch.zeros(4), torch.zeros(4), rho=1.0, tau=0.1, eps=0.2
-    )
+    _ = log_sinkhorn(-c_mat, torch.full((4,), -math.log(4)), torch.full((4,), -math.log(4)))
+    _ = sinkhorn_with_slack(c_mat, torch.zeros(4), torch.zeros(4), rho=1.0, tau=0.1, eps=0.2)
     _ = hamilton_quotas(16, torch.ones(4))
-    _ = allocate_deficit_quotas(
-        torch.ones(4) * 0.25, torch.tensor([0.4, 0.3, 0.2, 0.1]), 6
-    )
+    _ = allocate_deficit_quotas(torch.ones(4) * 0.25, torch.tensor([0.4, 0.3, 0.2, 0.1]), 6)
 
     assert torch.equal(torch.get_rng_state(), cpu_before)
     assert random.getstate() == py_before
@@ -677,23 +617,13 @@ def test_cuda_parity_and_zero_sync_quotas() -> None:
     dev = torch.device("cuda:0")
     gen = torch.Generator().manual_seed(9)
     q = _random_orthogonal(8, seed=9).to(dev)
-    mat_eig = (
-        q
-        @ torch.diag(torch.linspace(-2.0, 3.0, 8, device=dev, dtype=torch.float64))
-        @ q.T
-    )
+    mat_eig = q @ torch.diag(torch.linspace(-2.0, 3.0, 8, device=dev, dtype=torch.float64)) @ q.T
     ep, en = sym_eigensplit_halley(mat_eig)
     assert torch.allclose(ep + en, mat_eig, atol=1e-11)
 
-    mat_spd = (
-        q
-        @ torch.diag(torch.logspace(-2.0, 1.0, 8, device=dev, dtype=torch.float64))
-        @ q.T
-    )
+    mat_spd = q @ torch.diag(torch.logspace(-2.0, 1.0, 8, device=dev, dtype=torch.float64)) @ q.T
     w = sym_inv_sqrt_ns(mat_spd)
-    assert torch.allclose(
-        w @ mat_spd @ w, torch.eye(8, device=dev, dtype=torch.float64), atol=1e-10
-    )
+    assert torch.allclose(w @ mat_spd @ w, torch.eye(8, device=dev, dtype=torch.float64), atol=1e-10)
 
     # Verify GPU hamilton_quotas & allocate_deficit_quotas incur zero .item() host syncs.
     weights = torch.rand(64, generator=gen).to(dev)
@@ -713,8 +643,6 @@ def test_cuda_parity_and_zero_sync_quotas() -> None:
     finally:
         torch.Tensor.item = orig_item  # type: ignore[method-assign]
 
-    assert syncs[0] == 0, (
-        f"Expected zero GPU host syncs in quota ops, observed {syncs[0]}"
-    )
+    assert syncs[0] == 0, f"Expected zero GPU host syncs in quota ops, observed {syncs[0]}"
     assert int(qh.sum().item()) == 128 and bool((qh >= 1).all().item())
     assert int(qd.sum().item()) == 32
