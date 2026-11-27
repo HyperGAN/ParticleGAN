@@ -956,8 +956,9 @@ class UpdatePolicy:
             return
         surprise = self.surprise
         if reopen and record.last_ratio is not None:
+            if surprise.anchor_event is None:
+                surprise.anchor_events += 1
             surprise.anchor_event = [False]
-            surprise.anchor_events += 1
         if surprise.anchor_event is None:
             return
         ratio = record.last_ratio

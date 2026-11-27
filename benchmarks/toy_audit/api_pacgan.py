@@ -724,7 +724,7 @@ class _PacGANBaseFixture:
             fake_packed_g = fake_x_g.reshape(b // m, m * 2)
 
             d_fake_g = self.D(fake_packed_g)
-            d_real_g = self.D(real_packed).detach() if self.recipe.loss == "relativistic" else None
+            d_real_g = self.D(real_packed).detach()
             loss_adv = self.loss.g_loss(d_fake_g, d_real_g)
 
             base_prior = unwrap_prior(self.prior)

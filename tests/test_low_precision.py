@@ -252,6 +252,28 @@ def test_trainer_load_state_dict_preflights_emulated_precision_atomically():
         assert torch.equal(v, before_d[k]), f"D.{k} mutated on rejected load"
 
 
+def test_emulated_linear_direct_and_container_load_state_dict_atomic():
+    base_nv = torch.nn.Sequential(torch.nn.Linear(4, 6), torch.nn.ReLU(), torch.nn.Linear(6, 2))
+    base_mx = torch.nn.Sequential(torch.nn.Linear(4, 6), torch.nn.ReLU(), torch.nn.Linear(6, 2))
+    emulate_linear_training_(base_nv, "nvfp4", seed_for=lambda _: 0)
+    emulate_linear_training_(base_mx, "mxfp8", seed_for=lambda _: 0)
+
+    # Direct single-layer load refuses without mutating weight/bias
+    el_nv, el_mx = base_nv[0], base_mx[0]
+    w0, b0 = el_nv.weight.detach().clone(), el_nv.bias.detach().clone()
+    with pytest.raises(ValueError, match="precision differs"):
+        el_nv.load_state_dict(el_mx.state_dict())
+    assert torch.equal(el_nv.weight, w0) and torch.equal(el_nv.bias, b0)
+
+    # Container load refuses without mutating any layer weight/bias
+    before = {k: v.detach().clone() for k, v in base_nv.named_parameters()}
+    with pytest.raises(ValueError, match="precision differs"):
+        base_nv.load_state_dict(base_mx.state_dict())
+    for k, v in base_nv.named_parameters():
+        assert torch.equal(v, before[k]), f"{k} mutated on rejected container load"
+
+
+@pytest.mark.cuda
 @pytest.mark.skipif(not torch.cuda.is_available(), reason="CUDA required for device move test")
 @pytest.mark.parametrize("format", ["nvfp4", "mxfp8"])
 def test_emulated_linear_apply_updates_rounding_rng_on_cuda_roundtrip(format):

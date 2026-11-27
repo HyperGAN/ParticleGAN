@@ -136,7 +136,7 @@
       "experiments/forge/word_tasks.py": "79dd0d4c04989e07e168347255c0db3adc62cc5d0b657c27b9b71b0055761814",
       "particlegan/conditional_transport.py": "4ffa96e7688825b83e618edbc1f0e2a6bc1ac6fb2e3e5d04d7f27274069e24ee",
       "particlegan/kinetic_transport.py": "8922627370b55e9e6b47e4c946f94cbd23f87bf17a94c6b9410fcf3c3967c1ee",
-      "particlegan/policy.py": "17f41d827c883d0a3d96051d1468634ae800a9fc0d961a5d477088d38d0f7bbd"
+      "particlegan/policy.py": "fbf889d59bbf6c986b9e7dbc277cc1a058b5878867b882a2a1e28b6b0ab9e6c7"
     },
     "evaluator_revision": {
       "id": "pr-474-develop-integration-20261108",

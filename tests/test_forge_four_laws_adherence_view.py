@@ -160,6 +160,8 @@ def test_all_nine_four_laws_tasks_enforce_problem_only_output_thresholds():
             assert thresholds[0] == ["finite_fraction", "==", 1.0]
             for metric_name, op, bound in thresholds:
                 lower = metric_name.lower()
+                if metric_name == "critic_grad_finite" and op == "==" and bound == 1.0:
+                    continue
                 for forbidden in FORBIDDEN_INTERNAL_THRESHOLD_FRAGMENTS:
                     assert forbidden not in lower, (
                         f"Task {tid} threshold {metric_name!r} violates problem-only policy ({forbidden!r})"

@@ -1296,19 +1296,21 @@ def axiom_pullback_step(
                 far_m = is_f & (dist_u > (2.8 * math.sqrt(float(dim)) * sc_u.float()))
                 d_z_u = int(c_u.shape[1])
                 if d_z_u <= 8 and bool(far_m.any()):
-                    fi = torch.nonzero(far_m, as_tuple=False).squeeze(-1)
-                    ii = torch.nonzero(is_f & (~far_m), as_tuple=False).squeeze(-1)[:64]
-                    ref_i = ii if ii.numel() >= 4 else torch.arange(min(64, len(s_idx)), device=dev, dtype=torch.long)
+                    n_s = len(s_idx)
+                    k_f = min(64, n_s)
+                    fi = torch.topk(dist_u.masked_fill(~far_m, -1.0), k=k_f, sorted=False).indices
+                    fi_valid = far_m[fi]
+                    ref_i = torch.topk((is_f & (~far_m)).to(torch.float32), k=k_f, sorted=False).indices
                     pi_idx = torch.cat((fi, ref_i), dim=0)
                     cp = c_u[pi_idx].detach()
                     xp = xu_det[pi_idx]
                     step_sign = torch.where(cp >= 0.0, 1.0, -1.0)
                     c_pert = (cp[:, None] + (1e-3 * step_sign)[:, :, None] * torch.eye(d_z_u, device=dev, dtype=c_u.dtype)[None]).reshape(-1, d_z_u)
                     csen = (gen_clean(c_pert).float().reshape(len(pi_idx), d_z_u, dim) - xp[:, None]).norm(dim=-1) / 1e-3
-                    med_sen = torch.quantile(csen[len(fi) :], 0.5, dim=0, keepdim=True).clamp_min(1e-12)
-                    dead_f = csen[: len(fi)] < (0.04 * med_sen)
-                    pull_dir = torch.sign(mu_raw_u[fi].detach() - c_u[pi_idx[len(fi) :]].detach().mean(0, keepdim=True)).float()
-                    pull_mag = torch.maximum(g_rows[fi].float().norm(dim=-1, keepdim=True), torch.ones((len(fi), 1), device=dev))
+                    med_sen = torch.quantile(csen[k_f:], 0.5, dim=0, keepdim=True).clamp_min(1e-12)
+                    dead_f = (csen[:k_f] < (0.04 * med_sen)) & fi_valid[:, None]
+                    pull_dir = torch.sign(mu_raw_u[fi].detach() - c_u[ref_i].detach().mean(0, keepdim=True)).float()
+                    pull_mag = torch.maximum(g_rows[fi].float().norm(dim=-1, keepdim=True), torch.ones((k_f, 1), device=dev))
                     g_rows[fi] = torch.where(dead_f, (pull_dir * pull_mag).to(g_rows.dtype), g_rows[fi])
                     part_scale[fi] = torch.where(dead_f.any(1, keepdim=True), torch.ones_like(part_scale[fi]), part_scale[fi])
 

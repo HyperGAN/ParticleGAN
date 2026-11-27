@@ -274,6 +274,17 @@ class EmulatedLinear(nn.Linear):
         rng_bytes = self.validate_extra_state(state)
         self.rounding_rng.set_state(rng_bytes)
 
+    def _load_from_state_dict(self, state_dict, prefix, local_metadata, strict,
+                              missing_keys, unexpected_keys, error_msgs):
+        suffix = getattr(torch.nn.modules.module, "_EXTRA_STATE_KEY_SUFFIX", "_extra_state")
+        extra_key = f"{prefix}{suffix}"
+        if extra_key in state_dict:
+            self.validate_extra_state(state_dict[extra_key])
+        super()._load_from_state_dict(
+            state_dict, prefix, local_metadata, strict,
+            missing_keys, unexpected_keys, error_msgs,
+        )
+
 
 def validate_emulated_extra_states(module, state_dict, *, prefix=""):
     """Preflight all ``EmulatedLinear`` precision tags and RNG bytes before mutating weights."""
@@ -314,4 +325,15 @@ def emulate_linear_training_(module, format, *, seed_for=lambda name: 0, signs=N
                     setattr(parent, name, replace(child, path))
         converted[id(parent)] = result
         return result
-    return replace(module)
+    out = replace(module)
+    if out is not None and not isinstance(out, EmulatedLinear):
+        def _preflight_container(mod, state_dict, prefix, *_args):
+            suffix = getattr(torch.nn.modules.module, "_EXTRA_STATE_KEY_SUFFIX", "_extra_state")
+            for name, child in mod.named_modules():
+                if not isinstance(child, EmulatedLinear):
+                    continue
+                key = f"{prefix}{name}.{suffix}" if name else f"{prefix}{suffix}"
+                if key in state_dict:
+                    child.validate_extra_state(state_dict[key])
+        out.register_load_state_dict_pre_hook(_preflight_container)
+    return out

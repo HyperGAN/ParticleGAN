@@ -290,12 +290,12 @@ Shared experiments appear once in this list; the family numerator/denominator co
 | --- | --- | --- | --- |
 | [ae_gan_hold](atlas.md#cohort-cuda-daa283c8a640-experiment-ae_gan_hold) | [adaptation](atlas.md#cohort-cuda-daa283c8a640-adaptation-tier-1), [clockfree_continuous](atlas.md#cohort-cuda-daa283c8a640-clockfree_continuous-tier-1), [discriminator_stability](atlas.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-1), [formulation_comparison](atlas.md#cohort-cuda-daa283c8a640-formulation_comparison-tier-1), [host_profile_transfer](atlas.md#cohort-cuda-daa283c8a640-host_profile_transfer-tier-1), [quality_coverage](atlas.md#cohort-cuda-daa283c8a640-quality_coverage-tier-1) | PASS | matches recorded run |
 | [clockfree_audit_measurement_v1](atlas.md#cohort-cuda-daa283c8a640-experiment-clockfree_audit_measurement_v1) | [clockfree_continuous](atlas.md#cohort-cuda-daa283c8a640-clockfree_continuous-tier-1) | PASS | matches recorded run |
-| [five_word_joint_smoke](atlas.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_smoke) | [discriminator_stability](atlas.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-1) | PASS | matches recorded run |
+| [five_word_joint_smoke](atlas.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_smoke) | [discriminator_stability](atlas.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-1) | PASS | changed since run |
 | [gaussian1d_smoke](atlas.md#cohort-cuda-daa283c8a640-experiment-gaussian1d_smoke) | [discriminator_stability](atlas.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-1) | PASS | matches recorded run |
-| [model_ae_gan_multimodal](atlas.md#cohort-cuda-daa283c8a640-experiment-model_ae_gan_multimodal) | [discriminator_stability](atlas.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-1) | FAIL | matches recorded run |
-| [model_ae_reconstruction](atlas.md#cohort-cuda-daa283c8a640-experiment-model_ae_reconstruction) | [discriminator_stability](atlas.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-1) | PASS | matches recorded run |
-| [model_vae_categorical](atlas.md#cohort-cuda-daa283c8a640-experiment-model_vae_categorical) | [discriminator_stability](atlas.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-1) | FAIL | matches recorded run |
-| [model_vae_hard](atlas.md#cohort-cuda-daa283c8a640-experiment-model_vae_hard) | [discriminator_stability](atlas.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-1) | FAIL | matches recorded run |
+| [model_ae_gan_multimodal](atlas.md#cohort-cuda-daa283c8a640-experiment-model_ae_gan_multimodal) | [discriminator_stability](atlas.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-1) | FAIL | changed since run |
+| [model_ae_reconstruction](atlas.md#cohort-cuda-daa283c8a640-experiment-model_ae_reconstruction) | [discriminator_stability](atlas.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-1) | PASS | changed since run |
+| [model_vae_categorical](atlas.md#cohort-cuda-daa283c8a640-experiment-model_vae_categorical) | [discriminator_stability](atlas.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-1) | FAIL | changed since run |
+| [model_vae_hard](atlas.md#cohort-cuda-daa283c8a640-experiment-model_vae_hard) | [discriminator_stability](atlas.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-1) | FAIL | changed since run |
 | [ring16_acquisition](atlas.md#cohort-cuda-daa283c8a640-experiment-ring16_acquisition) | [discriminator_stability](atlas.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-1) | FAIL | matches recorded run |
 | [two_pole](atlas.md#cohort-cuda-daa283c8a640-experiment-two_pole) | [adaptation](atlas.md#cohort-cuda-daa283c8a640-adaptation-tier-1), [clockfree_continuous](atlas.md#cohort-cuda-daa283c8a640-clockfree_continuous-tier-1), [discriminator_stability](atlas.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-1), [formulation_comparison](atlas.md#cohort-cuda-daa283c8a640-formulation_comparison-tier-1), [host_profile_transfer](atlas.md#cohort-cuda-daa283c8a640-host_profile_transfer-tier-1), [quality_coverage](atlas.md#cohort-cuda-daa283c8a640-quality_coverage-tier-1) | FAIL | matches recorded run |
 | [unused_token_hold](atlas.md#cohort-cuda-daa283c8a640-experiment-unused_token_hold) | [adaptation](atlas.md#cohort-cuda-daa283c8a640-adaptation-tier-1), [clockfree_continuous](atlas.md#cohort-cuda-daa283c8a640-clockfree_continuous-tier-1), [discriminator_stability](atlas.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-1), [formulation_comparison](atlas.md#cohort-cuda-daa283c8a640-formulation_comparison-tier-1), [host_profile_transfer](atlas.md#cohort-cuda-daa283c8a640-host_profile_transfer-tier-1), [quality_coverage](atlas.md#cohort-cuda-daa283c8a640-quality_coverage-tier-1) | PASS | matches recorded run |
@@ -319,16 +319,16 @@ Shared experiments appear once in this list; the family numerator/denominator co
 | Experiment | Required by | Recorded result | Test definition |
 | --- | --- | --- | --- |
 | [cover_leftover](atlas.md#cohort-cuda-daa283c8a640-experiment-cover_leftover) | [adaptation](atlas.md#cohort-cuda-daa283c8a640-adaptation-tier-2), [clockfree_continuous](atlas.md#cohort-cuda-daa283c8a640-clockfree_continuous-tier-2), [discriminator_stability](atlas.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2), [formulation_comparison](atlas.md#cohort-cuda-daa283c8a640-formulation_comparison-tier-2), [host_profile_transfer](atlas.md#cohort-cuda-daa283c8a640-host_profile_transfer-tier-2), [quality_coverage](atlas.md#cohort-cuda-daa283c8a640-quality_coverage-tier-2) | DIAG_PASS | matches recorded run |
-| [five_word_joint_hold](atlas.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_hold) | [discriminator_stability](atlas.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2) | UNKNOWN | matches recorded run |
+| [five_word_joint_hold](atlas.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_hold) | [discriminator_stability](atlas.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2) | UNKNOWN | changed since run |
 | [gaussian1d_stability](atlas.md#cohort-cuda-daa283c8a640-experiment-gaussian1d_stability) | [discriminator_stability](atlas.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2) | UNKNOWN | matches recorded run |
 | [grid100](atlas.md#cohort-cuda-daa283c8a640-experiment-grid100) | [adaptation](atlas.md#cohort-cuda-daa283c8a640-adaptation-tier-2), [clockfree_continuous](atlas.md#cohort-cuda-daa283c8a640-clockfree_continuous-tier-2), [discriminator_stability](atlas.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2), [formulation_comparison](atlas.md#cohort-cuda-daa283c8a640-formulation_comparison-tier-2), [host_profile_transfer](atlas.md#cohort-cuda-daa283c8a640-host_profile_transfer-tier-2), [quality_coverage](atlas.md#cohort-cuda-daa283c8a640-quality_coverage-tier-2) | UNKNOWN | matches recorded run |
 | [img_stripes2](atlas.md#cohort-cuda-daa283c8a640-experiment-img_stripes2) | [adaptation](atlas.md#cohort-cuda-daa283c8a640-adaptation-tier-2), [clockfree_continuous](atlas.md#cohort-cuda-daa283c8a640-clockfree_continuous-tier-2), [discriminator_stability](atlas.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2), [formulation_comparison](atlas.md#cohort-cuda-daa283c8a640-formulation_comparison-tier-2), [host_profile_transfer](atlas.md#cohort-cuda-daa283c8a640-host_profile_transfer-tier-2), [quality_coverage](atlas.md#cohort-cuda-daa283c8a640-quality_coverage-tier-2) | UNKNOWN | matches recorded run |
 | [mid_scale_identity](atlas.md#cohort-cuda-daa283c8a640-experiment-mid_scale_identity) | [adaptation](atlas.md#cohort-cuda-daa283c8a640-adaptation-tier-2), [clockfree_continuous](atlas.md#cohort-cuda-daa283c8a640-clockfree_continuous-tier-2), [discriminator_stability](atlas.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2), [formulation_comparison](atlas.md#cohort-cuda-daa283c8a640-formulation_comparison-tier-2), [host_profile_transfer](atlas.md#cohort-cuda-daa283c8a640-host_profile_transfer-tier-2), [quality_coverage](atlas.md#cohort-cuda-daa283c8a640-quality_coverage-tier-2) | DIAG_PASS | matches recorded run |
 | [mode_hold](atlas.md#cohort-cuda-daa283c8a640-experiment-mode_hold) | [adaptation](atlas.md#cohort-cuda-daa283c8a640-adaptation-tier-2), [clockfree_continuous](atlas.md#cohort-cuda-daa283c8a640-clockfree_continuous-tier-2), [discriminator_stability](atlas.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2), [formulation_comparison](atlas.md#cohort-cuda-daa283c8a640-formulation_comparison-tier-2), [host_profile_transfer](atlas.md#cohort-cuda-daa283c8a640-host_profile_transfer-tier-2), [quality_coverage](atlas.md#cohort-cuda-daa283c8a640-quality_coverage-tier-2) | DIAG_PASS | matches recorded run |
-| [model_ae_ddgan_bimodal_chain](atlas.md#cohort-cuda-daa283c8a640-experiment-model_ae_ddgan_bimodal_chain) | [discriminator_stability](atlas.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2) | UNKNOWN | matches recorded run |
-| [model_ae_ddgan_gaussian_chain](atlas.md#cohort-cuda-daa283c8a640-experiment-model_ae_ddgan_gaussian_chain) | [discriminator_stability](atlas.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2) | UNKNOWN | matches recorded run |
-| [model_ddgan_bimodal_chain](atlas.md#cohort-cuda-daa283c8a640-experiment-model_ddgan_bimodal_chain) | [discriminator_stability](atlas.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2) | UNKNOWN | matches recorded run |
-| [model_ddgan_gaussian_chain](atlas.md#cohort-cuda-daa283c8a640-experiment-model_ddgan_gaussian_chain) | [discriminator_stability](atlas.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2) | UNKNOWN | matches recorded run |
+| [model_ae_ddgan_bimodal_chain](atlas.md#cohort-cuda-daa283c8a640-experiment-model_ae_ddgan_bimodal_chain) | [discriminator_stability](atlas.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2) | UNKNOWN | changed since run |
+| [model_ae_ddgan_gaussian_chain](atlas.md#cohort-cuda-daa283c8a640-experiment-model_ae_ddgan_gaussian_chain) | [discriminator_stability](atlas.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2) | UNKNOWN | changed since run |
+| [model_ddgan_bimodal_chain](atlas.md#cohort-cuda-daa283c8a640-experiment-model_ddgan_bimodal_chain) | [discriminator_stability](atlas.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2) | UNKNOWN | changed since run |
+| [model_ddgan_gaussian_chain](atlas.md#cohort-cuda-daa283c8a640-experiment-model_ddgan_gaussian_chain) | [discriminator_stability](atlas.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2) | UNKNOWN | changed since run |
 | [residual_student](atlas.md#cohort-cuda-daa283c8a640-experiment-residual_student) | [adaptation](atlas.md#cohort-cuda-daa283c8a640-adaptation-tier-2), [clockfree_continuous](atlas.md#cohort-cuda-daa283c8a640-clockfree_continuous-tier-2), [discriminator_stability](atlas.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2), [formulation_comparison](atlas.md#cohort-cuda-daa283c8a640-formulation_comparison-tier-2), [host_profile_transfer](atlas.md#cohort-cuda-daa283c8a640-host_profile_transfer-tier-2), [quality_coverage](atlas.md#cohort-cuda-daa283c8a640-quality_coverage-tier-2) | DIAG_PASS | matches recorded run |
 | [rotated100](atlas.md#cohort-cuda-daa283c8a640-experiment-rotated100) | [adaptation](atlas.md#cohort-cuda-daa283c8a640-adaptation-tier-2), [clockfree_continuous](atlas.md#cohort-cuda-daa283c8a640-clockfree_continuous-tier-2), [discriminator_stability](atlas.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2), [formulation_comparison](atlas.md#cohort-cuda-daa283c8a640-formulation_comparison-tier-2), [host_profile_transfer](atlas.md#cohort-cuda-daa283c8a640-host_profile_transfer-tier-2), [quality_coverage](atlas.md#cohort-cuda-daa283c8a640-quality_coverage-tier-2) | UNKNOWN | matches recorded run |
 | [staggered100](atlas.md#cohort-cuda-daa283c8a640-experiment-staggered100) | [adaptation](atlas.md#cohort-cuda-daa283c8a640-adaptation-tier-2), [clockfree_continuous](atlas.md#cohort-cuda-daa283c8a640-clockfree_continuous-tier-2), [discriminator_stability](atlas.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2), [formulation_comparison](atlas.md#cohort-cuda-daa283c8a640-formulation_comparison-tier-2), [host_profile_transfer](atlas.md#cohort-cuda-daa283c8a640-host_profile_transfer-tier-2), [quality_coverage](atlas.md#cohort-cuda-daa283c8a640-quality_coverage-tier-2) | UNKNOWN | matches recorded run |
@@ -341,7 +341,7 @@ Held at this tier (measured and shown, not counted):
 
 | Experiment | Held in | Recorded result | Test definition |
 | --- | --- | --- | --- |
-| [bytegan_hypercube8](atlas.md#cohort-cuda-daa283c8a640-experiment-bytegan_hypercube8) | [discriminator_stability](atlas.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2) | UNKNOWN | matches recorded run |
+| [bytegan_hypercube8](atlas.md#cohort-cuda-daa283c8a640-experiment-bytegan_hypercube8) | [discriminator_stability](atlas.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2) | UNKNOWN | changed since run |
 | [img_bars4](atlas.md#cohort-cuda-daa283c8a640-experiment-img_bars4) | [adaptation](atlas.md#cohort-cuda-daa283c8a640-adaptation-tier-2), [clockfree_continuous](atlas.md#cohort-cuda-daa283c8a640-clockfree_continuous-tier-2), [discriminator_stability](atlas.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2), [formulation_comparison](atlas.md#cohort-cuda-daa283c8a640-formulation_comparison-tier-2), [host_profile_transfer](atlas.md#cohort-cuda-daa283c8a640-host_profile_transfer-tier-2), [quality_coverage](atlas.md#cohort-cuda-daa283c8a640-quality_coverage-tier-2) | UNKNOWN | matches recorded run |
 | [img_blobs4](atlas.md#cohort-cuda-daa283c8a640-experiment-img_blobs4) | [adaptation](atlas.md#cohort-cuda-daa283c8a640-adaptation-tier-2), [clockfree_continuous](atlas.md#cohort-cuda-daa283c8a640-clockfree_continuous-tier-2), [discriminator_stability](atlas.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2), [formulation_comparison](atlas.md#cohort-cuda-daa283c8a640-formulation_comparison-tier-2), [host_profile_transfer](atlas.md#cohort-cuda-daa283c8a640-host_profile_transfer-tier-2), [quality_coverage](atlas.md#cohort-cuda-daa283c8a640-quality_coverage-tier-2) | UNKNOWN | matches recorded run |
 | [img_intensity2](atlas.md#cohort-cuda-daa283c8a640-experiment-img_intensity2) | [adaptation](atlas.md#cohort-cuda-daa283c8a640-adaptation-tier-2), [clockfree_continuous](atlas.md#cohort-cuda-daa283c8a640-clockfree_continuous-tier-2), [discriminator_stability](atlas.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2), [formulation_comparison](atlas.md#cohort-cuda-daa283c8a640-formulation_comparison-tier-2), [host_profile_transfer](atlas.md#cohort-cuda-daa283c8a640-host_profile_transfer-tier-2), [quality_coverage](atlas.md#cohort-cuda-daa283c8a640-quality_coverage-tier-2) | DIAG_PASS | matches recorded run |
@@ -397,7 +397,7 @@ Held at this tier (measured and shown, not counted):
 | Experiment | Held in | Recorded result | Test definition |
 | --- | --- | --- | --- |
 | [alice_spiral_bigan](atlas.md#cohort-cuda-daa283c8a640-experiment-alice_spiral_bigan) | [discriminator_stability](atlas.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-4) | BLOCKED | matches recorded run |
-| [bytegan_bigan_dictionary](atlas.md#cohort-cuda-daa283c8a640-experiment-bytegan_bigan_dictionary) | [discriminator_stability](atlas.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-4) | UNKNOWN | matches recorded run |
+| [bytegan_bigan_dictionary](atlas.md#cohort-cuda-daa283c8a640-experiment-bytegan_bigan_dictionary) | [discriminator_stability](atlas.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-4) | UNKNOWN | changed since run |
 | [cgan_overlapping_classes](atlas.md#cohort-cuda-daa283c8a640-experiment-cgan_overlapping_classes) | [discriminator_stability](atlas.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-4) | BLOCKED | matches recorded run |
 | [cramer_energy_overlap](atlas.md#cohort-cuda-daa283c8a640-experiment-cramer_energy_overlap) | [discriminator_stability](atlas.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-4) | BLOCKED | matches recorded run |
 | [cyclegan_unpaired_constellation](atlas.md#cohort-cuda-daa283c8a640-experiment-cyclegan_unpaired_constellation) | [discriminator_stability](atlas.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-4) | BLOCKED | matches recorded run |
@@ -617,9 +617,9 @@ Calibration: **provisional**. Revision8 acquisition/hold separation is provision
 | [unused_token_hold](atlas.md#cohort-cuda-daa283c8a640-experiment-unused_token_hold) | diagnostic | PASS | matches recorded run |
 | [ae_gan_hold](atlas.md#cohort-cuda-daa283c8a640-experiment-ae_gan_hold) | diagnostic | PASS | matches recorded run |
 | [ring16_acquisition](atlas.md#cohort-cuda-daa283c8a640-experiment-ring16_acquisition) | diagnostic | FAIL | matches recorded run |
-| [five_word_joint_smoke](atlas.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_smoke) | diagnostic | PASS | matches recorded run |
+| [five_word_joint_smoke](atlas.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_smoke) | diagnostic | PASS | changed since run |
 | [gaussian1d_stability](atlas.md#cohort-cuda-daa283c8a640-experiment-gaussian1d_stability) | diagnostic | UNKNOWN | matches recorded run |
-| [five_word_joint_hold](atlas.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_hold) | diagnostic | UNKNOWN | matches recorded run |
+| [five_word_joint_hold](atlas.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_hold) | diagnostic | UNKNOWN | changed since run |
 | [trajectory](atlas.md#cohort-cuda-daa283c8a640-experiment-trajectory) | diagnostic | UNKNOWN | matches recorded run |
 | [residual_student](atlas.md#cohort-cuda-daa283c8a640-experiment-residual_student) | diagnostic | DIAG_PASS | matches recorded run |
 | [vector_unequal_mass](atlas.md#cohort-cuda-daa283c8a640-experiment-vector_unequal_mass) | diagnostic | DIAG_PASS | matches recorded run |
@@ -877,8 +877,8 @@ Calibration: **provisional**. Two zero-sigma 256-byte codebook stretch toys do n
 
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
-| [bytegan_hypercube8](atlas.md#cohort-cuda-daa283c8a640-experiment-bytegan_hypercube8) | diagnostic | UNKNOWN | matches recorded run |
-| [bytegan_bigan_dictionary](atlas.md#cohort-cuda-daa283c8a640-experiment-bytegan_bigan_dictionary) | diagnostic | UNKNOWN | matches recorded run |
+| [bytegan_hypercube8](atlas.md#cohort-cuda-daa283c8a640-experiment-bytegan_hypercube8) | diagnostic | UNKNOWN | changed since run |
+| [bytegan_bigan_dictionary](atlas.md#cohort-cuda-daa283c8a640-experiment-bytegan_bigan_dictionary) | diagnostic | UNKNOWN | changed since run |
 
 </details>
 
@@ -1142,12 +1142,12 @@ Calibration: **provisional**. Revision9 recipe-owned prior comparisons are provi
 | [unused_token_hold](atlas.md#cohort-cuda-daa283c8a640-experiment-unused_token_hold) | required | PASS | matches recorded run |
 | [ae_gan_hold](atlas.md#cohort-cuda-daa283c8a640-experiment-ae_gan_hold) | required | PASS | matches recorded run |
 | [ring16_acquisition](atlas.md#cohort-cuda-daa283c8a640-experiment-ring16_acquisition) | required | FAIL | matches recorded run |
-| [five_word_joint_smoke](atlas.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_smoke) | required | PASS | matches recorded run |
+| [five_word_joint_smoke](atlas.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_smoke) | required | PASS | changed since run |
 | [zero_tanh_smoke](atlas.md#cohort-cuda-daa283c8a640-experiment-zero_tanh_smoke) | required | PASS | matches recorded run |
-| [model_ae_gan_multimodal](atlas.md#cohort-cuda-daa283c8a640-experiment-model_ae_gan_multimodal) | required | FAIL | matches recorded run |
-| [model_ae_reconstruction](atlas.md#cohort-cuda-daa283c8a640-experiment-model_ae_reconstruction) | required | PASS | matches recorded run |
-| [model_vae_categorical](atlas.md#cohort-cuda-daa283c8a640-experiment-model_vae_categorical) | required | FAIL | matches recorded run |
-| [model_vae_hard](atlas.md#cohort-cuda-daa283c8a640-experiment-model_vae_hard) | required | FAIL | matches recorded run |
+| [model_ae_gan_multimodal](atlas.md#cohort-cuda-daa283c8a640-experiment-model_ae_gan_multimodal) | required | FAIL | changed since run |
+| [model_ae_reconstruction](atlas.md#cohort-cuda-daa283c8a640-experiment-model_ae_reconstruction) | required | PASS | changed since run |
+| [model_vae_categorical](atlas.md#cohort-cuda-daa283c8a640-experiment-model_vae_categorical) | required | FAIL | changed since run |
+| [model_vae_hard](atlas.md#cohort-cuda-daa283c8a640-experiment-model_vae_hard) | required | FAIL | changed since run |
 | [clockfree_audit_measurement_v1](atlas.md#cohort-cuda-daa283c8a640-experiment-clockfree_audit_measurement_v1) | diagnostic | PASS | matches recorded run |
 | [precision_gaussian_fp32](atlas.md#cohort-cuda-daa283c8a640-experiment-precision_gaussian_fp32) | diagnostic | FAIL | matches recorded run |
 | [precision_gaussian_mxfp8](atlas.md#cohort-cuda-daa283c8a640-experiment-precision_gaussian_mxfp8) | [stretch: frontier stretch benchmark beyond the required suite](../precision-stretch/README.md#precision-stretch) | FAIL | matches recorded run |
@@ -1167,17 +1167,17 @@ Calibration: **provisional**. Revision9 recipe-owned prior comparisons are provi
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
 | [gaussian1d_stability](atlas.md#cohort-cuda-daa283c8a640-experiment-gaussian1d_stability) | required | UNKNOWN | matches recorded run |
-| [five_word_joint_hold](atlas.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_hold) | required | UNKNOWN | matches recorded run |
+| [five_word_joint_hold](atlas.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_hold) | required | UNKNOWN | changed since run |
 | [trajectory](atlas.md#cohort-cuda-daa283c8a640-experiment-trajectory) | required | UNKNOWN | matches recorded run |
 | [residual_student](atlas.md#cohort-cuda-daa283c8a640-experiment-residual_student) | required | DIAG_PASS | matches recorded run |
 | [unipolar](atlas.md#cohort-cuda-daa283c8a640-experiment-unipolar) | required | DIAG_PASS | matches recorded run |
 | [cover_leftover](atlas.md#cohort-cuda-daa283c8a640-experiment-cover_leftover) | required | DIAG_PASS | matches recorded run |
 | [mid_scale_identity](atlas.md#cohort-cuda-daa283c8a640-experiment-mid_scale_identity) | required | DIAG_PASS | matches recorded run |
 | [mode_hold](atlas.md#cohort-cuda-daa283c8a640-experiment-mode_hold) | required | DIAG_PASS | matches recorded run |
-| [model_ae_ddgan_gaussian_chain](atlas.md#cohort-cuda-daa283c8a640-experiment-model_ae_ddgan_gaussian_chain) | required | UNKNOWN | matches recorded run |
+| [model_ae_ddgan_gaussian_chain](atlas.md#cohort-cuda-daa283c8a640-experiment-model_ae_ddgan_gaussian_chain) | required | UNKNOWN | changed since run |
 | [vector_two_broad](atlas.md#cohort-cuda-daa283c8a640-experiment-vector_two_broad) | required | DIAG_PASS | matches recorded run |
 | [vector_unequal_mass](atlas.md#cohort-cuda-daa283c8a640-experiment-vector_unequal_mass) | [held: no one recipe passes it together with the counted tests](../test-dispositions-20261015/README.md#vector_unequal_mass) | DIAG_PASS | matches recorded run |
-| [model_ddgan_gaussian_chain](atlas.md#cohort-cuda-daa283c8a640-experiment-model_ddgan_gaussian_chain) | required | UNKNOWN | matches recorded run |
+| [model_ddgan_gaussian_chain](atlas.md#cohort-cuda-daa283c8a640-experiment-model_ddgan_gaussian_chain) | required | UNKNOWN | changed since run |
 | [vector_unequal_width](atlas.md#cohort-cuda-daa283c8a640-experiment-vector_unequal_width) | [held: no one recipe passes it together with the counted tests](../test-dispositions-20261015/README.md#vector_unequal_width) | DIAG_PASS | matches recorded run |
 | [vector_anisotropic](atlas.md#cohort-cuda-daa283c8a640-experiment-vector_anisotropic) | [held: no one recipe passes it together with the counted tests](../test-dispositions-20261015/README.md#vector_anisotropic) | DIAG_PASS | matches recorded run |
 | [vector_overlap](atlas.md#cohort-cuda-daa283c8a640-experiment-vector_overlap) | [held: no one recipe passes it together with the counted tests](../test-dispositions-20261015/README.md#vector_overlap) | DIAG_PASS | matches recorded run |
@@ -1189,15 +1189,15 @@ Calibration: **provisional**. Revision9 recipe-owned prior comparisons are provi
 | [grid100](atlas.md#cohort-cuda-daa283c8a640-experiment-grid100) | required | UNKNOWN | matches recorded run |
 | [rotated100](atlas.md#cohort-cuda-daa283c8a640-experiment-rotated100) | required | UNKNOWN | matches recorded run |
 | [staggered100](atlas.md#cohort-cuda-daa283c8a640-experiment-staggered100) | required | UNKNOWN | matches recorded run |
-| [model_ae_ddgan_bimodal_chain](atlas.md#cohort-cuda-daa283c8a640-experiment-model_ae_ddgan_bimodal_chain) | required | UNKNOWN | matches recorded run |
-| [model_ddgan_bimodal_chain](atlas.md#cohort-cuda-daa283c8a640-experiment-model_ddgan_bimodal_chain) | required | UNKNOWN | matches recorded run |
+| [model_ae_ddgan_bimodal_chain](atlas.md#cohort-cuda-daa283c8a640-experiment-model_ae_ddgan_bimodal_chain) | required | UNKNOWN | changed since run |
+| [model_ddgan_bimodal_chain](atlas.md#cohort-cuda-daa283c8a640-experiment-model_ddgan_bimodal_chain) | required | UNKNOWN | changed since run |
 | [interp_img_patch_shift](atlas.md#cohort-cuda-daa283c8a640-experiment-interp_img_patch_shift) | [stretch: frontier stretch benchmark beyond the required suite](../particle-interpolation-stretch/README.md#interp_img_patch_shift) | DIAG_PASS | changed since run |
 | [interp_saddle_barycentric](atlas.md#cohort-cuda-daa283c8a640-experiment-interp_saddle_barycentric) | [stretch: frontier stretch benchmark beyond the required suite](../particle-interpolation-stretch/README.md#interp_saddle_barycentric) | UNKNOWN | changed since run |
 | [t3_iso_horizon_saddle_shift](atlas.md#cohort-cuda-daa283c8a640-experiment-t3_iso_horizon_saddle_shift) | [stretch: frontier stretch benchmark beyond the required suite](../studies/t3-third-piece-proof.md#t3_iso_horizon_saddle_shift) | BLOCKED | changed since run |
 | [nash_overpowered_critic_ring16](atlas.md#cohort-cuda-daa283c8a640-experiment-nash_overpowered_critic_ring16) | [stretch: frontier stretch benchmark beyond the required suite](../studies/t4-imbalance-nash.md#nash_overpowered_critic_ring16) | BLOCKED | matches recorded run |
 | [nash_overpowered_generator_ring16](atlas.md#cohort-cuda-daa283c8a640-experiment-nash_overpowered_generator_ring16) | [stretch: frontier stretch benchmark beyond the required suite](../studies/t4-imbalance-nash.md#nash_overpowered_generator_ring16) | BLOCKED | matches recorded run |
 | [nash_unequal_width_hostile_imbalance](atlas.md#cohort-cuda-daa283c8a640-experiment-nash_unequal_width_hostile_imbalance) | [stretch: frontier stretch benchmark beyond the required suite](../studies/t4-imbalance-nash.md#nash_unequal_width_hostile_imbalance) | BLOCKED | matches recorded run |
-| [bytegan_hypercube8](atlas.md#cohort-cuda-daa283c8a640-experiment-bytegan_hypercube8) | [stretch: frontier stretch benchmark beyond the required suite](../bytegan-stretch/README.md#bytegan_hypercube8) | UNKNOWN | matches recorded run |
+| [bytegan_hypercube8](atlas.md#cohort-cuda-daa283c8a640-experiment-bytegan_hypercube8) | [stretch: frontier stretch benchmark beyond the required suite](../bytegan-stretch/README.md#bytegan_hypercube8) | UNKNOWN | changed since run |
 
 </details>
 
@@ -1240,7 +1240,7 @@ Calibration: **provisional**. Revision9 recipe-owned prior comparisons are provi
 | [cramer_energy_overlap](atlas.md#cohort-cuda-daa283c8a640-experiment-cramer_energy_overlap) | [stretch: frontier stretch benchmark beyond the required suite](../test-dispositions-20261015/README.md#unresolved) | BLOCKED | matches recorded run |
 | [cyclegan_unpaired_constellation](atlas.md#cohort-cuda-daa283c8a640-experiment-cyclegan_unpaired_constellation) | [stretch: frontier stretch benchmark beyond the required suite](../test-dispositions-20261015/README.md#unresolved) | BLOCKED | matches recorded run |
 | [grid100_res16_scaled_tanh](atlas.md#cohort-cuda-daa283c8a640-experiment-grid100_res16_scaled_tanh) | [stretch: frontier stretch benchmark beyond the required suite](../test-dispositions-20261015/README.md#unresolved) | UNKNOWN | matches recorded run |
-| [bytegan_bigan_dictionary](atlas.md#cohort-cuda-daa283c8a640-experiment-bytegan_bigan_dictionary) | [stretch: frontier stretch benchmark beyond the required suite](../bytegan-stretch/README.md#bytegan_bigan_dictionary) | UNKNOWN | matches recorded run |
+| [bytegan_bigan_dictionary](atlas.md#cohort-cuda-daa283c8a640-experiment-bytegan_bigan_dictionary) | [stretch: frontier stretch benchmark beyond the required suite](../bytegan-stretch/README.md#bytegan_bigan_dictionary) | UNKNOWN | changed since run |
 
 </details>
 
@@ -1360,8 +1360,8 @@ Calibration: **provisional**. Four Laws Adherence diagnostic suite combines 20 c
 | [gaussian1d_smoke](atlas.md#cohort-cuda-daa283c8a640-experiment-gaussian1d_smoke) | diagnostic | PASS | matches recorded run |
 | [grid100](atlas.md#cohort-cuda-daa283c8a640-experiment-grid100) | diagnostic | UNKNOWN | matches recorded run |
 | [staggered100](atlas.md#cohort-cuda-daa283c8a640-experiment-staggered100) | diagnostic | UNKNOWN | matches recorded run |
-| [bytegan_hypercube8](atlas.md#cohort-cuda-daa283c8a640-experiment-bytegan_hypercube8) | diagnostic | UNKNOWN | matches recorded run |
-| [bytegan_bigan_dictionary](atlas.md#cohort-cuda-daa283c8a640-experiment-bytegan_bigan_dictionary) | diagnostic | UNKNOWN | matches recorded run |
+| [bytegan_hypercube8](atlas.md#cohort-cuda-daa283c8a640-experiment-bytegan_hypercube8) | diagnostic | UNKNOWN | changed since run |
+| [bytegan_bigan_dictionary](atlas.md#cohort-cuda-daa283c8a640-experiment-bytegan_bigan_dictionary) | diagnostic | UNKNOWN | changed since run |
 | [interp_sparse_arc](atlas.md#cohort-cuda-daa283c8a640-experiment-interp_sparse_arc) | diagnostic | FAIL | changed since run |
 | [interp_saddle_barycentric](atlas.md#cohort-cuda-daa283c8a640-experiment-interp_saddle_barycentric) | diagnostic | UNKNOWN | changed since run |
 | [fl_law1_aniso_unequal_modes](atlas.md#cohort-cuda-daa283c8a640-experiment-fl_law1_aniso_unequal_modes) | diagnostic | UNKNOWN | recorded definition unavailable |
@@ -1376,7 +1376,7 @@ Calibration: **provisional**. Four Laws Adherence diagnostic suite combines 20 c
 | [t3_iso_horizon_saddle_shift](atlas.md#cohort-cuda-daa283c8a640-experiment-t3_iso_horizon_saddle_shift) | diagnostic | BLOCKED | changed since run |
 | [ring_extension](atlas.md#cohort-cuda-daa283c8a640-experiment-ring_extension) | diagnostic | UNKNOWN | matches recorded run |
 | [target_shift_recovery](atlas.md#cohort-cuda-daa283c8a640-experiment-target_shift_recovery) | diagnostic | UNKNOWN | recorded definition unavailable |
-| [model_ae_ddgan_gaussian_chain](atlas.md#cohort-cuda-daa283c8a640-experiment-model_ae_ddgan_gaussian_chain) | diagnostic | UNKNOWN | matches recorded run |
+| [model_ae_ddgan_gaussian_chain](atlas.md#cohort-cuda-daa283c8a640-experiment-model_ae_ddgan_gaussian_chain) | diagnostic | UNKNOWN | changed since run |
 | [fl_law3_highd_orphan_d32](atlas.md#cohort-cuda-daa283c8a640-experiment-fl_law3_highd_orphan_d32) | diagnostic | UNKNOWN | recorded definition unavailable |
 | [grid100_mlp16](atlas.md#cohort-cuda-daa283c8a640-experiment-grid100_mlp16) | diagnostic | UNKNOWN | matches recorded run |
 | [grid100_res16_tanh](atlas.md#cohort-cuda-daa283c8a640-experiment-grid100_res16_tanh) | diagnostic | UNKNOWN | matches recorded run |
@@ -1433,8 +1433,8 @@ Calibration: **provisional**. Four Laws Adherence v2 diagnostic suite combines 2
 | [gaussian1d_smoke](atlas.md#cohort-cuda-daa283c8a640-experiment-gaussian1d_smoke) | diagnostic | PASS | matches recorded run |
 | [grid100](atlas.md#cohort-cuda-daa283c8a640-experiment-grid100) | diagnostic | UNKNOWN | matches recorded run |
 | [staggered100](atlas.md#cohort-cuda-daa283c8a640-experiment-staggered100) | diagnostic | UNKNOWN | matches recorded run |
-| [bytegan_hypercube8](atlas.md#cohort-cuda-daa283c8a640-experiment-bytegan_hypercube8) | diagnostic | UNKNOWN | matches recorded run |
-| [bytegan_bigan_dictionary](atlas.md#cohort-cuda-daa283c8a640-experiment-bytegan_bigan_dictionary) | diagnostic | UNKNOWN | matches recorded run |
+| [bytegan_hypercube8](atlas.md#cohort-cuda-daa283c8a640-experiment-bytegan_hypercube8) | diagnostic | UNKNOWN | changed since run |
+| [bytegan_bigan_dictionary](atlas.md#cohort-cuda-daa283c8a640-experiment-bytegan_bigan_dictionary) | diagnostic | UNKNOWN | changed since run |
 | [interp_sparse_arc](atlas.md#cohort-cuda-daa283c8a640-experiment-interp_sparse_arc) | diagnostic | FAIL | changed since run |
 | [interp_saddle_barycentric](atlas.md#cohort-cuda-daa283c8a640-experiment-interp_saddle_barycentric) | diagnostic | UNKNOWN | changed since run |
 | [fl_law1_aniso_unequal_modes](atlas.md#cohort-cuda-daa283c8a640-experiment-fl_law1_aniso_unequal_modes) | diagnostic | UNKNOWN | recorded definition unavailable |
@@ -1639,9 +1639,9 @@ Calibration: **undeclared**. Calibration and robustness are separate from record
 | [unused_token_hold](atlas.md#cohort-cuda-daa283c8a640-experiment-unused_token_hold) | diagnostic | PASS | matches recorded run |
 | [ae_gan_hold](atlas.md#cohort-cuda-daa283c8a640-experiment-ae_gan_hold) | diagnostic | PASS | matches recorded run |
 | [ring16_acquisition](atlas.md#cohort-cuda-daa283c8a640-experiment-ring16_acquisition) | diagnostic | FAIL | matches recorded run |
-| [five_word_joint_smoke](atlas.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_smoke) | diagnostic | PASS | matches recorded run |
+| [five_word_joint_smoke](atlas.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_smoke) | diagnostic | PASS | changed since run |
 | [gaussian1d_stability](atlas.md#cohort-cuda-daa283c8a640-experiment-gaussian1d_stability) | diagnostic | UNKNOWN | matches recorded run |
-| [five_word_joint_hold](atlas.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_hold) | diagnostic | UNKNOWN | matches recorded run |
+| [five_word_joint_hold](atlas.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_hold) | diagnostic | UNKNOWN | changed since run |
 | [trajectory](atlas.md#cohort-cuda-daa283c8a640-experiment-trajectory) | diagnostic | UNKNOWN | matches recorded run |
 | [residual_student](atlas.md#cohort-cuda-daa283c8a640-experiment-residual_student) | diagnostic | DIAG_PASS | matches recorded run |
 | [unipolar](atlas.md#cohort-cuda-daa283c8a640-experiment-unipolar) | diagnostic | DIAG_PASS | matches recorded run |
@@ -1971,18 +1971,18 @@ Calibration: **undeclared**. Calibration and robustness are separate from record
 | [unused_token_hold](atlas.md#cohort-cuda-daa283c8a640-experiment-unused_token_hold) | diagnostic | PASS | matches recorded run |
 | [ae_gan_hold](atlas.md#cohort-cuda-daa283c8a640-experiment-ae_gan_hold) | diagnostic | PASS | matches recorded run |
 | [ring16_acquisition](atlas.md#cohort-cuda-daa283c8a640-experiment-ring16_acquisition) | diagnostic | FAIL | matches recorded run |
-| [five_word_joint_smoke](atlas.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_smoke) | diagnostic | PASS | matches recorded run |
+| [five_word_joint_smoke](atlas.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_smoke) | diagnostic | PASS | changed since run |
 | [zero_tanh_smoke](atlas.md#cohort-cuda-daa283c8a640-experiment-zero_tanh_smoke) | diagnostic | PASS | matches recorded run |
-| [model_ae_ddgan_gaussian_chain](atlas.md#cohort-cuda-daa283c8a640-experiment-model_ae_ddgan_gaussian_chain) | diagnostic | UNKNOWN | matches recorded run |
-| [model_ae_gan_multimodal](atlas.md#cohort-cuda-daa283c8a640-experiment-model_ae_gan_multimodal) | diagnostic | FAIL | matches recorded run |
-| [model_ae_reconstruction](atlas.md#cohort-cuda-daa283c8a640-experiment-model_ae_reconstruction) | diagnostic | PASS | matches recorded run |
-| [model_ddgan_gaussian_chain](atlas.md#cohort-cuda-daa283c8a640-experiment-model_ddgan_gaussian_chain) | diagnostic | UNKNOWN | matches recorded run |
-| [model_vae_categorical](atlas.md#cohort-cuda-daa283c8a640-experiment-model_vae_categorical) | diagnostic | FAIL | matches recorded run |
-| [model_vae_hard](atlas.md#cohort-cuda-daa283c8a640-experiment-model_vae_hard) | diagnostic | FAIL | matches recorded run |
+| [model_ae_ddgan_gaussian_chain](atlas.md#cohort-cuda-daa283c8a640-experiment-model_ae_ddgan_gaussian_chain) | diagnostic | UNKNOWN | changed since run |
+| [model_ae_gan_multimodal](atlas.md#cohort-cuda-daa283c8a640-experiment-model_ae_gan_multimodal) | diagnostic | FAIL | changed since run |
+| [model_ae_reconstruction](atlas.md#cohort-cuda-daa283c8a640-experiment-model_ae_reconstruction) | diagnostic | PASS | changed since run |
+| [model_ddgan_gaussian_chain](atlas.md#cohort-cuda-daa283c8a640-experiment-model_ddgan_gaussian_chain) | diagnostic | UNKNOWN | changed since run |
+| [model_vae_categorical](atlas.md#cohort-cuda-daa283c8a640-experiment-model_vae_categorical) | diagnostic | FAIL | changed since run |
+| [model_vae_hard](atlas.md#cohort-cuda-daa283c8a640-experiment-model_vae_hard) | diagnostic | FAIL | changed since run |
 | [clockfree_audit_measurement_v1](atlas.md#cohort-cuda-daa283c8a640-experiment-clockfree_audit_measurement_v1) | diagnostic | PASS | matches recorded run |
 | [clockfree_audit](atlas.md#cohort-cuda-daa283c8a640-experiment-clockfree_audit) | diagnostic | DIAG_PASS | recorded definition unavailable |
 | [gaussian1d_stability](atlas.md#cohort-cuda-daa283c8a640-experiment-gaussian1d_stability) | diagnostic | UNKNOWN | matches recorded run |
-| [five_word_joint_hold](atlas.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_hold) | diagnostic | UNKNOWN | matches recorded run |
+| [five_word_joint_hold](atlas.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_hold) | diagnostic | UNKNOWN | changed since run |
 | [trajectory](atlas.md#cohort-cuda-daa283c8a640-experiment-trajectory) | diagnostic | UNKNOWN | matches recorded run |
 | [residual_student](atlas.md#cohort-cuda-daa283c8a640-experiment-residual_student) | diagnostic | DIAG_PASS | matches recorded run |
 | [unipolar](atlas.md#cohort-cuda-daa283c8a640-experiment-unipolar) | diagnostic | DIAG_PASS | matches recorded run |
@@ -2002,8 +2002,8 @@ Calibration: **undeclared**. Calibration and robustness are separate from record
 | [grid100](atlas.md#cohort-cuda-daa283c8a640-experiment-grid100) | diagnostic | UNKNOWN | matches recorded run |
 | [rotated100](atlas.md#cohort-cuda-daa283c8a640-experiment-rotated100) | diagnostic | UNKNOWN | matches recorded run |
 | [staggered100](atlas.md#cohort-cuda-daa283c8a640-experiment-staggered100) | diagnostic | UNKNOWN | matches recorded run |
-| [model_ae_ddgan_bimodal_chain](atlas.md#cohort-cuda-daa283c8a640-experiment-model_ae_ddgan_bimodal_chain) | diagnostic | UNKNOWN | matches recorded run |
-| [model_ddgan_bimodal_chain](atlas.md#cohort-cuda-daa283c8a640-experiment-model_ddgan_bimodal_chain) | diagnostic | UNKNOWN | matches recorded run |
+| [model_ae_ddgan_bimodal_chain](atlas.md#cohort-cuda-daa283c8a640-experiment-model_ae_ddgan_bimodal_chain) | diagnostic | UNKNOWN | changed since run |
+| [model_ddgan_bimodal_chain](atlas.md#cohort-cuda-daa283c8a640-experiment-model_ddgan_bimodal_chain) | diagnostic | UNKNOWN | changed since run |
 | [ring_hold](atlas.md#cohort-cuda-daa283c8a640-experiment-ring_hold) | diagnostic | UNKNOWN | matches recorded run |
 | [ring_extension](atlas.md#cohort-cuda-daa283c8a640-experiment-ring_extension) | diagnostic | UNKNOWN | matches recorded run |
 | [zero_tanh_rail_escape](atlas.md#cohort-cuda-daa283c8a640-experiment-zero_tanh_rail_escape) | diagnostic | UNKNOWN | matches recorded run |
@@ -2122,8 +2122,8 @@ Calibration: **provisional**. Own-checkpoint word retention only; no ordinary ti
 
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
-| [five_word_joint_smoke](atlas.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_smoke) | diagnostic | PASS | matches recorded run |
-| [five_word_joint_hold](atlas.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_hold) | diagnostic | UNKNOWN | matches recorded run |
+| [five_word_joint_smoke](atlas.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_smoke) | diagnostic | PASS | changed since run |
+| [five_word_joint_hold](atlas.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_hold) | diagnostic | UNKNOWN | changed since run |
 
 </details>
 
@@ -2170,8 +2170,8 @@ Calibration: **undeclared**. Calibration and robustness are separate from record
 | [clockfree_audit](atlas.md#cohort-cuda-daa283c8a640-experiment-clockfree_audit) | diagnostic | DIAG_PASS | recorded definition unavailable |
 | [zero_tanh_smoke](atlas.md#cohort-cuda-daa283c8a640-experiment-zero_tanh_smoke) | diagnostic | PASS | matches recorded run |
 | [zero_tanh_rail_escape](atlas.md#cohort-cuda-daa283c8a640-experiment-zero_tanh_rail_escape) | diagnostic | UNKNOWN | matches recorded run |
-| [five_word_joint_smoke](atlas.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_smoke) | diagnostic | PASS | matches recorded run |
-| [five_word_joint_hold](atlas.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_hold) | diagnostic | UNKNOWN | matches recorded run |
+| [five_word_joint_smoke](atlas.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_smoke) | diagnostic | PASS | changed since run |
+| [five_word_joint_hold](atlas.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_hold) | diagnostic | UNKNOWN | changed since run |
 | [mode_hold](atlas.md#cohort-cuda-daa283c8a640-experiment-mode_hold) | diagnostic | DIAG_PASS | matches recorded run |
 | [ring_hold](atlas.md#cohort-cuda-daa283c8a640-experiment-ring_hold) | diagnostic | UNKNOWN | matches recorded run |
 | [ring_extension](atlas.md#cohort-cuda-daa283c8a640-experiment-ring_extension) | diagnostic | UNKNOWN | matches recorded run |
@@ -2286,8 +2286,8 @@ Calibration: **provisional**. Fourteen surgical probes plus two prerequisite smo
 | [vector_unequal_mass](atlas.md#cohort-cuda-daa283c8a640-experiment-vector_unequal_mass) | diagnostic | DIAG_PASS | matches recorded run |
 | [img_bars4](atlas.md#cohort-cuda-daa283c8a640-experiment-img_bars4) | diagnostic | UNKNOWN | matches recorded run |
 | [grid100](atlas.md#cohort-cuda-daa283c8a640-experiment-grid100) | diagnostic | UNKNOWN | matches recorded run |
-| [model_ddgan_gaussian_chain](atlas.md#cohort-cuda-daa283c8a640-experiment-model_ddgan_gaussian_chain) | diagnostic | UNKNOWN | matches recorded run |
-| [five_word_joint_smoke](atlas.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_smoke) | diagnostic | PASS | matches recorded run |
+| [model_ddgan_gaussian_chain](atlas.md#cohort-cuda-daa283c8a640-experiment-model_ddgan_gaussian_chain) | diagnostic | UNKNOWN | changed since run |
+| [five_word_joint_smoke](atlas.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_smoke) | diagnostic | PASS | changed since run |
 | [zero_tanh_rail_escape](atlas.md#cohort-cuda-daa283c8a640-experiment-zero_tanh_rail_escape) | diagnostic | UNKNOWN | matches recorded run |
 | [grid100_mlp16](atlas.md#cohort-cuda-daa283c8a640-experiment-grid100_mlp16) | diagnostic | UNKNOWN | matches recorded run |
 | [nash_overpowered_critic_ring16](atlas.md#cohort-cuda-daa283c8a640-experiment-nash_overpowered_critic_ring16) | diagnostic | BLOCKED | matches recorded run |
@@ -2334,10 +2334,10 @@ Calibration: **provisional**. Revision9 recipe-owned prior comparisons are provi
 
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
-| [five_word_joint_smoke](atlas.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_smoke) | diagnostic | PASS | matches recorded run |
+| [five_word_joint_smoke](atlas.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_smoke) | diagnostic | PASS | changed since run |
 | [gaussian1d_smoke](atlas.md#cohort-cuda-daa283c8a640-experiment-gaussian1d_smoke) | diagnostic | PASS | matches recorded run |
 | [gaussian1d_stability](atlas.md#cohort-cuda-daa283c8a640-experiment-gaussian1d_stability) | diagnostic | UNKNOWN | matches recorded run |
-| [five_word_joint_hold](atlas.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_hold) | diagnostic | UNKNOWN | matches recorded run |
+| [five_word_joint_hold](atlas.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_hold) | diagnostic | UNKNOWN | changed since run |
 | [trajectory](atlas.md#cohort-cuda-daa283c8a640-experiment-trajectory) | diagnostic | UNKNOWN | matches recorded run |
 | [residual_student](atlas.md#cohort-cuda-daa283c8a640-experiment-residual_student) | diagnostic | DIAG_PASS | matches recorded run |
 | [unipolar](atlas.md#cohort-cuda-daa283c8a640-experiment-unipolar) | diagnostic | DIAG_PASS | matches recorded run |
@@ -2397,10 +2397,10 @@ Calibration: **provisional**. Revision9 recipe-owned prior comparisons are provi
 
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
-| [five_word_joint_smoke](atlas.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_smoke) | diagnostic | PASS | matches recorded run |
+| [five_word_joint_smoke](atlas.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_smoke) | diagnostic | PASS | changed since run |
 | [gaussian1d_smoke](atlas.md#cohort-cuda-daa283c8a640-experiment-gaussian1d_smoke) | diagnostic | PASS | matches recorded run |
 | [gaussian1d_stability](atlas.md#cohort-cuda-daa283c8a640-experiment-gaussian1d_stability) | diagnostic | UNKNOWN | matches recorded run |
-| [five_word_joint_hold](atlas.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_hold) | diagnostic | UNKNOWN | matches recorded run |
+| [five_word_joint_hold](atlas.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_hold) | diagnostic | UNKNOWN | changed since run |
 | [trajectory](atlas.md#cohort-cuda-daa283c8a640-experiment-trajectory) | diagnostic | UNKNOWN | matches recorded run |
 | [residual_student](atlas.md#cohort-cuda-daa283c8a640-experiment-residual_student) | diagnostic | DIAG_PASS | matches recorded run |
 | [unipolar](atlas.md#cohort-cuda-daa283c8a640-experiment-unipolar) | diagnostic | DIAG_PASS | matches recorded run |
@@ -2460,10 +2460,10 @@ Calibration: **provisional**. Revision9 recipe-owned prior comparisons are provi
 
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
-| [five_word_joint_smoke](atlas.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_smoke) | diagnostic | PASS | matches recorded run |
+| [five_word_joint_smoke](atlas.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_smoke) | diagnostic | PASS | changed since run |
 | [gaussian1d_smoke](atlas.md#cohort-cuda-daa283c8a640-experiment-gaussian1d_smoke) | diagnostic | PASS | matches recorded run |
 | [gaussian1d_stability](atlas.md#cohort-cuda-daa283c8a640-experiment-gaussian1d_stability) | diagnostic | UNKNOWN | matches recorded run |
-| [five_word_joint_hold](atlas.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_hold) | diagnostic | UNKNOWN | matches recorded run |
+| [five_word_joint_hold](atlas.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_hold) | diagnostic | UNKNOWN | changed since run |
 | [trajectory](atlas.md#cohort-cuda-daa283c8a640-experiment-trajectory) | diagnostic | UNKNOWN | matches recorded run |
 | [residual_student](atlas.md#cohort-cuda-daa283c8a640-experiment-residual_student) | diagnostic | DIAG_PASS | matches recorded run |
 | [unipolar](atlas.md#cohort-cuda-daa283c8a640-experiment-unipolar) | diagnostic | DIAG_PASS | matches recorded run |
@@ -2523,10 +2523,10 @@ Calibration: **provisional**. Revision9 recipe-owned prior comparisons are provi
 
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
-| [five_word_joint_smoke](atlas.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_smoke) | diagnostic | PASS | matches recorded run |
+| [five_word_joint_smoke](atlas.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_smoke) | diagnostic | PASS | changed since run |
 | [gaussian1d_smoke](atlas.md#cohort-cuda-daa283c8a640-experiment-gaussian1d_smoke) | diagnostic | PASS | matches recorded run |
 | [gaussian1d_stability](atlas.md#cohort-cuda-daa283c8a640-experiment-gaussian1d_stability) | diagnostic | UNKNOWN | matches recorded run |
-| [five_word_joint_hold](atlas.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_hold) | diagnostic | UNKNOWN | matches recorded run |
+| [five_word_joint_hold](atlas.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_hold) | diagnostic | UNKNOWN | changed since run |
 | [trajectory](atlas.md#cohort-cuda-daa283c8a640-experiment-trajectory) | diagnostic | UNKNOWN | matches recorded run |
 | [residual_student](atlas.md#cohort-cuda-daa283c8a640-experiment-residual_student) | diagnostic | DIAG_PASS | matches recorded run |
 | [unipolar](atlas.md#cohort-cuda-daa283c8a640-experiment-unipolar) | diagnostic | DIAG_PASS | matches recorded run |
@@ -2720,8 +2720,8 @@ Calibration: **provisional**. Bounded 8-task factorial ablation isolating RGDT P
 | [vector_unequal_mass](atlas.md#cohort-cuda-daa283c8a640-experiment-vector_unequal_mass) | diagnostic | DIAG_PASS | matches recorded run |
 | [vector_anisotropic](atlas.md#cohort-cuda-daa283c8a640-experiment-vector_anisotropic) | diagnostic | DIAG_PASS | matches recorded run |
 | [img_bars4](atlas.md#cohort-cuda-daa283c8a640-experiment-img_bars4) | diagnostic | UNKNOWN | matches recorded run |
-| [model_ddgan_gaussian_chain](atlas.md#cohort-cuda-daa283c8a640-experiment-model_ddgan_gaussian_chain) | diagnostic | UNKNOWN | matches recorded run |
-| [model_ae_ddgan_gaussian_chain](atlas.md#cohort-cuda-daa283c8a640-experiment-model_ae_ddgan_gaussian_chain) | diagnostic | UNKNOWN | matches recorded run |
+| [model_ddgan_gaussian_chain](atlas.md#cohort-cuda-daa283c8a640-experiment-model_ddgan_gaussian_chain) | diagnostic | UNKNOWN | changed since run |
+| [model_ae_ddgan_gaussian_chain](atlas.md#cohort-cuda-daa283c8a640-experiment-model_ae_ddgan_gaussian_chain) | diagnostic | UNKNOWN | changed since run |
 
 </details>
 
@@ -2901,8 +2901,8 @@ Calibration: **provisional**. Two toy gates do not establish screen calibration 
 
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
-| [model_vae_hard](atlas.md#cohort-cuda-daa283c8a640-experiment-model_vae_hard) | diagnostic | FAIL | matches recorded run |
-| [model_vae_categorical](atlas.md#cohort-cuda-daa283c8a640-experiment-model_vae_categorical) | diagnostic | FAIL | matches recorded run |
+| [model_vae_hard](atlas.md#cohort-cuda-daa283c8a640-experiment-model_vae_hard) | diagnostic | FAIL | changed since run |
+| [model_vae_categorical](atlas.md#cohort-cuda-daa283c8a640-experiment-model_vae_categorical) | diagnostic | FAIL | changed since run |
 
 </details>
 
@@ -3197,7 +3197,7 @@ Current measurement: mog prior (sigma 0.1); public_prior_without_output_noise; w
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
 
-Test definition: **matches recorded run**. Test definition matches the recorded conditions. no compatible result
+Test definition: **changed since run**. Test definition changed since this run: evaluation (gates or sampling law). Earlier verdict preserved. no compatible result
 
 Execution: **not run**.
 
@@ -3237,7 +3237,7 @@ Current measurement: particle_cloud prior (sigma 0); generated_and_paired_recons
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
 
-Test definition: **matches recorded run**. Test definition matches the recorded conditions. no compatible result
+Test definition: **changed since run**. Test definition changed since this run: evaluation (gates or sampling law). Earlier verdict preserved. no compatible result
 
 Execution: **not run**.
 
@@ -3963,7 +3963,7 @@ Current measurement: particle_cloud prior (sigma 0); tier1_selected_generated_an
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
 
-Test definition: **matches recorded run**. Test definition matches the recorded conditions. no compatible result
+Test definition: **changed since run**. Test definition changed since this run: evaluation (gates or sampling law). Earlier verdict preserved. no compatible result
 
 Execution: **not run**.
 
@@ -4043,7 +4043,7 @@ Dependencies: five_word_joint_smoke_policy_cloud_coverage_v1 (checkpoint).
 <details>
 <summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
 
-Test definition: **matches recorded run**. Test definition matches the recorded conditions. any scheduled full joint pass plus independent same-state confirmation
+Test definition: **changed since run**. Test definition changed since this run: evaluation (gates or sampling law). Earlier verdict preserved. any scheduled full joint pass plus independent same-state confirmation
 
 Actual task device: `0` (recorded execution receipt).
 
@@ -4291,6 +4291,7 @@ Current pass criteria:
 | Metric | Required bound |
 | --- | --- |
 | finite_fraction | == 1 |
+| critic_grad_finite | == 1 |
 | mode_coverage | >= 1 |
 | sprite_hq | >= 0.85 |
 | template_rmse | <= 0.12 |
@@ -4325,6 +4326,7 @@ Current pass criteria:
 | Metric | Required bound |
 | --- | --- |
 | finite_fraction | == 1 |
+| critic_grad_finite | == 1 |
 | mode_coverage | >= 1 |
 | sprite_hq | >= 0.85 |
 | template_rmse | <= 0.12 |
@@ -6637,7 +6639,7 @@ Current measurement: particle_cloud prior (sigma 0); policy_cloud_public_prior_w
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
 
-Test definition: **matches recorded run**. Test definition matches the recorded conditions. no compatible result
+Test definition: **changed since run**. Test definition changed since this run: evaluation (gates or sampling law). Earlier verdict preserved. no compatible result
 
 Execution: **not run**.
 
@@ -6720,7 +6722,7 @@ Dependencies: model_ae_ddgan_gaussian_chain (gate).
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
 
-Test definition: **matches recorded run**. Test definition matches the recorded conditions. no compatible result
+Test definition: **changed since run**. Test definition changed since this run: evaluation (gates or sampling law). Earlier verdict preserved. no compatible result
 
 Execution: **not run**.
 
@@ -6796,7 +6798,7 @@ Current measurement: mog prior (sigma 0.25); task_model_kernel_and_posterior_wit
 <details>
 <summary>Metrics, pass criteria &amp; provenance (FAIL)</summary>
 
-Test definition: **matches recorded run**. Test definition matches the recorded conditions. recomputed complete live curve and terminal suffix
+Test definition: **changed since run**. Test definition changed since this run: evaluation (gates or sampling law). Earlier verdict preserved. recomputed complete live curve and terminal suffix
 
 Actual task device: `1` (recorded execution receipt).
 
@@ -6855,7 +6857,7 @@ Current measurement: mog prior (sigma 0.025); task_model_kernel_and_posterior_wi
 <details>
 <summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
 
-Test definition: **matches recorded run**. Test definition matches the recorded conditions. recomputed complete live curve and terminal suffix
+Test definition: **changed since run**. Test definition changed since this run: evaluation (gates or sampling law). Earlier verdict preserved. recomputed complete live curve and terminal suffix
 
 Actual task device: `1` (recorded execution receipt).
 
@@ -6902,7 +6904,7 @@ Current measurement: mog prior (sigma 0.025); task_model_kernel_and_posterior_wi
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
 
-Test definition: **matches recorded run**. Test definition matches the recorded conditions. no compatible result
+Test definition: **changed since run**. Test definition changed since this run: evaluation (gates or sampling law). Earlier verdict preserved. no compatible result
 
 Execution: **not run**.
 
@@ -6981,7 +6983,7 @@ Dependencies: model_ddgan_gaussian_chain (gate).
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
 
-Test definition: **matches recorded run**. Test definition matches the recorded conditions. no compatible result
+Test definition: **changed since run**. Test definition changed since this run: evaluation (gates or sampling law). Earlier verdict preserved. no compatible result
 
 Execution: **not run**.
 
@@ -7097,7 +7099,7 @@ Current measurement: mog prior (sigma 0.025); task_model_kernel_and_posterior_wi
 <details>
 <summary>Metrics, pass criteria &amp; provenance (FAIL)</summary>
 
-Test definition: **matches recorded run**. Test definition matches the recorded conditions. recomputed complete live curve and terminal suffix
+Test definition: **changed since run**. Test definition changed since this run: evaluation (gates or sampling law). Earlier verdict preserved. recomputed complete live curve and terminal suffix
 
 Actual task device: `1` (recorded execution receipt).
 
@@ -7165,7 +7167,7 @@ Current measurement: mog prior (sigma 0.025); task_model_kernel_and_posterior_wi
 <details>
 <summary>Metrics, pass criteria &amp; provenance (FAIL)</summary>
 
-Test definition: **matches recorded run**. Test definition matches the recorded conditions. recomputed complete live curve and terminal suffix
+Test definition: **changed since run**. Test definition changed since this run: evaluation (gates or sampling law). Earlier verdict preserved. recomputed complete live curve and terminal suffix
 
 Actual task device: `1` (recorded execution receipt).
 
@@ -14219,6 +14221,7 @@ Current pass criteria:
 | Metric | Required bound |
 | --- | --- |
 | finite_fraction | == 1 |
+| critic_grad_finite | == 1 |
 | mode_coverage | >= 1 |
 | sprite_hq | >= 0.85 |
 | template_rmse | <= 0.12 |
@@ -14253,6 +14256,7 @@ Current pass criteria:
 | Metric | Required bound |
 | --- | --- |
 | finite_fraction | == 1 |
+| critic_grad_finite | == 1 |
 | mode_coverage | >= 1 |
 | sprite_hq | >= 0.85 |
 | template_rmse | <= 0.12 |
@@ -23889,6 +23893,7 @@ Current pass criteria:
 | Metric | Required bound |
 | --- | --- |
 | finite_fraction | == 1 |
+| critic_grad_finite | == 1 |
 | mode_coverage | >= 1 |
 | sprite_hq | >= 0.85 |
 | template_rmse | <= 0.12 |
@@ -23923,6 +23928,7 @@ Current pass criteria:
 | Metric | Required bound |
 | --- | --- |
 | finite_fraction | == 1 |
+| critic_grad_finite | == 1 |
 | mode_coverage | >= 1 |
 | sprite_hq | >= 0.85 |
 | template_rmse | <= 0.12 |

@@ -393,17 +393,15 @@ def test_micro_secant_quantization_underflow_and_chord_failure_modes() -> None:
 
 
 def test_emulated_linear_fwad_unsupported_while_ror_succeeds() -> None:
-    """Verify custom autograd.Function EmulatedLinear lacks jvp (breaking fwAD) while RoR succeeds."""
+    """Verify EmulatedLinear supports native STE fwAD + backward with zero autograd.grad (remediated)."""
     for fmt in ("mxfp8", "nvfp4"):
         layer = EmulatedLinear.from_linear(nn.Linear(16, 8), fmt, seed=0)
         x = torch.randn(8, 16)
         u = torch.randn_like(x)
-        with pytest.raises((NotImplementedError, RuntimeError)):
-            with fwAD.dual_level():
-                _ = layer(fwAD.make_dual(x, u))
-        xr = x.clone().requires_grad_(True)
-        gx = torch.autograd.grad(layer(xr).sum(), xr, create_graph=True)[0]
-        gx.square().mean().backward()
+        with fwAD.dual_level():
+            _, jvp = fwAD.unpack_dual(layer(fwAD.make_dual(x, u)))
+        assert jvp is not None and torch.isfinite(jvp).all()
+        jvp.square().mean().backward()
         assert layer.weight.grad is not None and torch.isfinite(layer.weight.grad).all()
 
 
