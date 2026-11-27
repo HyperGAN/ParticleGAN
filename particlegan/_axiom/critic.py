@@ -1,16 +1,7 @@
-"""Axiom L1 Critic Potential Geometry (Law 2) and Normal Dissipation (Law 4.5).
+"""Axiom L1 critic penalty."""
 
-Zero-``torch.autograd.grad`` scale-equivariant critic regularization using
-forward-mode AD (``fwAD``) as primary with capability-triggered precision-aware
-central secant fallback, continuous element-budget probing, exact-basis vs.
-linear zero-Jensen penalties, and live-endpoint zero-mean logit gauge.
-"""
-
-from __future__ import annotations
-
-from contextlib import contextmanager
+from contextlib import contextmanager, nullcontext
 import math
-from typing import Any, Callable, Dict, Iterator, List, Optional, Tuple
 
 import torch
 from torch import nn
@@ -30,649 +21,357 @@ from .state import (
     record_axiom_capture as _record_axiom_capture,
 )
 
-_ELEMENT_BUDGET: int = 32_768
-_SECANT_DELTA_REL: float = 0.02
-
-
-# ---------------------------------------------------------------------------
-# Law 2.1 & 2.2: Intrinsic Effective Dimension, Scale & Element-Budget Probes
-# ---------------------------------------------------------------------------
+_SECANT_DELTA_REL = 0.02
 
 
 @torch.no_grad()
-def effective_dimension(x: torch.Tensor) -> torch.Tensor:
-    """Unbiased U-statistic effective dimension ``d_eff in [1, d]`` from centered Gram matrix."""
-    batch_size = int(x.shape[0])
-    dim_x = max(1, int(x[0].numel()))
-    if batch_size < 4 or dim_x <= 1:
-        return x.new_full((), float(dim_x), dtype=torch.float64)
-    xc = x.detach().reshape(batch_size, dim_x).float()
-    xc = xc - xc.mean(dim=0, keepdim=True)
+def effective_dimension(x):
+    b, d = x.shape[0], max(1, x[0].numel())
+    if b < 4 or d <= 1:
+        return x.new_full((), float(d), dtype=torch.float64)
+    xc = x.detach().reshape(b, d).float()
+    xc = xc - xc.mean(0, True)
     sx = xc.abs().amax()
-    xu = xc / torch.where(sx > 0.0, sx, sx.new_ones(()))
+    xu = xc / torch.where(sx > 0, sx, sx.new_ones(()))
     gram = (xu @ xu.T).double()
     diag = gram.diagonal()
     s1, s11, s2 = diag.sum(), diag.square().sum(), gram.square().sum()
-    a = float((batch_size - 1) * (batch_size - 2))
-    c = float(batch_size * (batch_size - 1))
-    num = a * s1 * s1 - c * s11 + 2.0 * s2
-    den = a * s2 - c * s11 + s1 * s1
-    valid = (sx > 0.0) & (num > 0.0) & (den > 0.0)
-    d_est = (num / den.clamp_min(1e-30)).clamp(1.0, float(dim_x))
-    return torch.where(valid, d_est, s1.new_full((), float(dim_x)))
+    a, c = (b - 1) * (b - 2), b * (b - 1)
+    num, den = a * s1 * s1 - c * s11 + 2.0 * s2, a * s2 - c * s11 + s1 * s1
+    d_est = (num / den.clamp_min(1e-30)).clamp(1.0, d)
+    return torch.where((sx > 0) & (num > 0) & (den > 0), d_est, s1.new_full((), float(d)))
 
 
-def probe_schedule(batch_size: int, dim: int) -> Tuple[int, int]:
-    """Continuous element-budget ``(K(d), b_reg(B, d))`` with zero modality/dimension cliffs."""
-    d_safe = max(1, int(dim))
-    b_safe = max(1, int(batch_size))
-    k_probes = min(d_safe, max(1, 16 // d_safe))
-    raw_b = _ELEMENT_BUDGET // (d_safe * k_probes)
-    b_lo = min(b_safe, max(2, b_safe // 4))
-    b_reg = min(b_safe, max(b_lo, raw_b))
-    return k_probes, b_reg
+def probe_schedule(batch_size, dim):
+    d, b = max(1, int(dim)), max(1, int(batch_size))
+    k = min(d, max(1, 16 // d))
+    return k, min(b, max(min(b, max(2, b // 4)), 32_768 // (d * k)))
 
 
 @torch.no_grad()
-def _coord_scale(
-    x_real: torch.Tensor, x_fake: torch.Tensor, record: AxiomStepRecord
-) -> torch.Tensor:
-    """Degree-1 homogeneous coordinate scale ``s_scale`` via uniform ``d_eff`` and shock-tracked EMA."""
-    dev = x_real.device
-    d_eff = effective_dimension(x_real)
-    xr = x_real.detach().reshape(int(x_real.shape[0]), -1).double()
-    xf = x_fake.detach().reshape(int(x_fake.shape[0]), -1).double()
+def _coord_scale(x_real, x_fake, record):
+    dev, sd = x_real.device, effective_dimension(x_real).sqrt()
+    xr, xf = (t.detach().reshape(t.shape[0], -1).double() for t in (x_real, x_fake))
     xm = torch.maximum(xr.abs().amax(), xf.abs().amax())
-    sx = torch.where(xm > 0.0, xm, xm.new_ones(()))
+    sx = torch.where(xm > 0, xm, xm.new_ones(()))
     xru, xfu = xr / sx, xf / sx
-    mr, mf = xru.mean(dim=0, keepdim=True), xfu.mean(dim=0, keepdim=True)
-    var_r = (xru - mr).square().sum(dim=-1).mean()
-    var_f = (xfu - mf).square().sum(dim=-1).mean()
-    mean_sq = (mr - mf).square().sum()
-    spread_sq = torch.maximum(torch.maximum(var_r, 0.25 * var_f), mean_sq)
-    tot_sq = torch.where(spread_sq > 0.0, spread_sq, xru.square().sum(dim=-1).mean())
-    s_cur = ((tot_sq.sqrt() * sx) / d_eff.sqrt()).clamp(1e-30, 1e30)
-    ds = record.dev_ema("ema_data_scale", dev)
-    mi = record.dev_ema("margin_initialized", dev)
-    s_ema = (ds / d_eff.sqrt()).clamp(1e-30, 1e30)
-    sc = torch.where(mi > 0.5, s_ema, torch.where(xm > 0.0, s_cur, s_ema.new_ones(())))
-    return sc.float()
+    mr, mf = xru.mean(0, True), xfu.mean(0, True)
+    vr, vf = ((t - m).square().sum(-1).mean() for t, m in ((xru, mr), (xfu, mf)))
+    sp = torch.maximum(torch.maximum(vr, 0.25 * vf), (mr - mf).square().sum())
+    tot = torch.where(sp > 0, sp, xru.square().sum(-1).mean())
+    s_cur = torch.where(xm > 0, tot.sqrt() * sx, sd)
+    raw = torch.where(record.dev_ema("margin_initialized", dev) > 0.5, record.dev_ema("ema_data_scale", dev), s_cur)
+    return (raw / sd).clamp(1e-30, 1e30).float()
 
 
-def _cyclic_slice(val: Any, batch_size: int, start: int, count: int) -> Any:
-    if (
-        not isinstance(val, torch.Tensor)
-        or val.ndim < 1
-        or val.shape[0] != batch_size
-        or count >= batch_size
-    ):
+def _cyclic_slice(val, b, start, count):
+    if not isinstance(val, torch.Tensor) or val.ndim < 1 or val.shape[0] != b or count >= b:
         return val
     end = start + count
-    if end <= batch_size:
-        return val[start:end]
-    return torch.cat((val[start:], val[: end - batch_size]), dim=0)
+    return val[start:end] if end <= b else torch.cat((val[start:], val[: end - b]))
 
 
-def _slice_call_args(
-    args: Tuple[Any, ...],
-    kwargs: Dict[str, Any],
-    batch_size: int,
-    start: int,
-    count: int,
-) -> Tuple[Tuple[Any, ...], Dict[str, Any]]:
-    sliced_a = tuple(_cyclic_slice(item, batch_size, start, count) for item in args)
-    sliced_kw = {
-        key: _cyclic_slice(val, batch_size, start, count) for key, val in kwargs.items()
-    }
-    return sliced_a, sliced_kw
+def _slice_args(args, kwargs, b, start, count):
+    return (
+        tuple(_cyclic_slice(v, b, start, count) for v in args),
+        {k: _cyclic_slice(v, b, start, count) for k, v in kwargs.items()},
+    )
 
 
-# ---------------------------------------------------------------------------
-# Deterministic Zero-RNG Probe Direction Generators (fwAD & Sparse Secant)
-# ---------------------------------------------------------------------------
+def _secant_sparsity(dim, delta_rel, dtype):
+    eps = torch.finfo(dtype if dtype.is_floating_point else torch.float32).eps
+    r = delta_rel / max(4.0 * eps, 1e-30)
+    return min(dim, max(1, int(math.floor(r * r))))
 
 
 @torch.no_grad()
-def _build_fwad_directions(
-    x: torch.Tensor, k_probes: int, phase: float, salt: int, dtype: torch.dtype
-) -> List[torch.Tensor]:
-    """Build ``K`` deterministic O(1)-entry ``fwAD`` tangents (exact basis for ``K == d``)."""
-    batch_size = int(x.shape[0])
-    dim = max(1, int(x[0].numel()))
-    dev = x.device
-    if k_probes == dim:
-        eye = torch.eye(dim, device=dev, dtype=dtype)
-        return [
-            eye[k].unsqueeze(0).expand(batch_size, dim).reshape_as(x)
-            for k in range(dim)
-        ]
-    v0 = weyl_rademacher(
-        (batch_size, dim), phase=phase, salt=salt, device=dev, dtype=torch.float32
-    )
-    if k_probes == 1:
-        return [v0.to(dtype=dtype).reshape_as(x)]
-    u0 = v0 / math.sqrt(float(dim))
-    v1 = weyl_rademacher(
-        (batch_size, dim), phase=phase, salt=salt + 17, device=dev, dtype=torch.float32
-    )
-    proj = (v1 * u0).sum(dim=1, keepdim=True)
-    v1_orth = v1 - proj * u0
-    nrm = v1_orth.norm(dim=1, keepdim=True)
-    u1 = torch.where(
-        nrm > 1e-6, v1_orth / nrm.clamp_min(1e-6), v1 / math.sqrt(float(dim))
-    )
-    sqrt_d = math.sqrt(float(dim))
-    return [
-        (u0 * sqrt_d).to(dtype=dtype).reshape_as(x),
-        (u1 * sqrt_d).to(dtype=dtype).reshape_as(x),
-    ]
-
-
-def _secant_sparsity(dim: int, delta_rel: float, dtype: torch.dtype) -> int:
-    """Precision-aware coordinate sparsity preventing ULP underflow in ``x +/- delta * u``."""
-    eps_dt = (
-        float(torch.finfo(dtype).eps)
-        if dtype.is_floating_point
-        else float(torch.finfo(torch.float32).eps)
-    )
-    ratio = float(delta_rel) / max(4.0 * eps_dt, 1e-30)
-    return min(dim, max(1, int(math.floor(ratio * ratio))))
-
-
-def _coprime_stride(dim: int) -> int:
-    stride = max(1, int(round(dim * PHI1))) % dim
-    if stride == 0:
-        stride = 1
-    while math.gcd(stride, dim) != 1:
-        stride = (stride + 1) % dim or 1
-    return stride
+def _sparse_rademacher(b, d, s, phase, salt, dev):
+    if s >= d:
+        return weyl_rademacher((b, d), phase=phase, salt=salt, device=dev, dtype=torch.float32) / math.sqrt(d)
+    st = max(1, int(round(d * PHI1))) % d or 1
+    while math.gcd(st, d) != 1:
+        st = (st + 1) % d or 1
+    b0 = int(math.floor((phase % 1.0) * d)) + salt * 104_729
+    r = (torch.arange(b, device=dev) * 7_919 + b0) % d
+    c = (r[:, None] + torch.arange(s, device=dev)[None, :] * st) % d
+    sg = weyl_rademacher((b, s), phase=phase, salt=salt + 31, device=dev, dtype=torch.float32)
+    return torch.zeros((b, d), device=dev).scatter_(1, c, sg / math.sqrt(s))
 
 
 @torch.no_grad()
-def _sparse_unit_rademacher(
-    batch_size: int,
-    dim: int,
-    sparsity: int,
-    phase: float,
-    salt: int,
-    device: torch.device,
-) -> torch.Tensor:
-    """Unit-norm ``s``-sparse Rademacher probe ``u`` with ``||u||_2 = 1`` and ``E[u u^T] = I/d``."""
-    if sparsity >= dim:
-        raw = weyl_rademacher(
-            (batch_size, dim),
-            phase=phase,
-            salt=salt,
-            device=device,
-            dtype=torch.float32,
-        )
-        return raw / math.sqrt(float(dim))
-    stride = _coprime_stride(dim)
-    base = int(math.floor((phase % 1.0) * dim)) + salt * 104_729
-    row_off = (
-        torch.arange(batch_size, device=device, dtype=torch.int64) * 7_919 + base
-    ) % dim
-    cols = (
-        row_off[:, None]
-        + torch.arange(sparsity, device=device, dtype=torch.int64)[None, :] * stride
-    ) % dim
-    signs = weyl_rademacher(
-        (batch_size, sparsity),
-        phase=phase,
-        salt=salt + 31,
-        device=device,
-        dtype=torch.float32,
-    )
-    out = torch.zeros((batch_size, dim), device=device, dtype=torch.float32)
-    out.scatter_(1, cols, signs / math.sqrt(float(sparsity)))
+def _probe_dirs(x, k, phase, salt, sec, dtype):
+    b, d, dev = x.shape[0], max(1, x[0].numel()), x.device
+    dt = torch.float32 if sec else dtype
+    if k == d:
+        eye = torch.eye(d, device=dev, dtype=dt)
+        return [eye[i].expand(b, d).reshape_as(x) for i in range(d)]
+    s = _secant_sparsity(d, _SECANT_DELTA_REL, x.dtype) if sec else d
+    u0 = _sparse_rademacher(b, d, s, phase, salt, dev)
+    sc = 1.0 if sec else math.sqrt(d)
+    if k == 1:
+        return [(u0 * sc).to(dt).reshape_as(x)]
+    u1 = _sparse_rademacher(b, d, s, phase, salt + (19 if sec else 17), dev)
+    if s >= d:
+        v = u1 - (u1 * u0).sum(1, keepdim=True) * u0
+        n = v.norm(dim=1, keepdim=True)
+        u1 = torch.where(n > 1e-6, v / n.clamp_min(1e-6), u1)
+    return [(u * sc).to(dt).reshape_as(x) for u in (u0, u1)]
+
+
+def _bn_dual_bf16_hook(_m, _i, out):
+    if isinstance(out, torch.Tensor):
+        p, t = fwAD.unpack_dual(out)
+        if t is not None and (p.dtype != torch.bfloat16 or t.dtype != torch.bfloat16):
+            return fwAD.make_dual(p.to(torch.bfloat16), t.to(torch.bfloat16))
     return out
 
 
-@torch.no_grad()
-def _build_secant_directions(
-    x: torch.Tensor, k_probes: int, phase: float, salt: int
-) -> List[torch.Tensor]:
-    """Build ``K`` unit-norm precision-aware central-secant probe directions."""
-    batch_size = int(x.shape[0])
-    dim = max(1, int(x[0].numel()))
-    dev = x.device
-    if k_probes == dim:
-        eye = torch.eye(dim, device=dev, dtype=torch.float32)
-        return [
-            eye[k].unsqueeze(0).expand(batch_size, dim).reshape_as(x)
-            for k in range(dim)
-        ]
-    sparsity = _secant_sparsity(dim, _SECANT_DELTA_REL, x.dtype)
-    u0 = _sparse_unit_rademacher(batch_size, dim, sparsity, phase, salt, dev)
-    if k_probes == 1:
-        return [u0.reshape_as(x)]
-    u1 = _sparse_unit_rademacher(batch_size, dim, sparsity, phase, salt + 19, dev)
-    if sparsity >= dim:
-        v1_orth = u1 - (u1 * u0).sum(dim=1, keepdim=True) * u0
-        nrm = v1_orth.norm(dim=1, keepdim=True)
-        u1 = torch.where(nrm > 1e-6, v1_orth / nrm.clamp_min(1e-6), u1)
-    return [u0.reshape_as(x), u1.reshape_as(x)]
-
-
-# ---------------------------------------------------------------------------
-# BN / BF16 Dual Evaluation Context
-# ---------------------------------------------------------------------------
-
-
-def _bn_dual_bf16_hook(
-    _module: nn.Module, _inputs: Tuple[Any, ...], output: Any
-) -> Any:
-    if not isinstance(output, torch.Tensor):
-        return output
-    primal, tangent = fwAD.unpack_dual(output)
-    if tangent is None:
-        return output
-    if primal.dtype != torch.bfloat16 or tangent.dtype != torch.bfloat16:
-        return fwAD.make_dual(primal.to(torch.bfloat16), tangent.to(torch.bfloat16))
-    return output
-
-
-def _is_bf16_critic(x: torch.Tensor, mod: Optional[nn.Module]) -> bool:
-    if not x.is_cuda or not isinstance(mod, nn.Module):
-        return False
-    autocast_bf16 = (
-        torch.is_autocast_enabled("cuda")
-        and torch.get_autocast_dtype("cuda") == torch.bfloat16
-    )
-    return bool(getattr(mod, "bf16", False) or autocast_bf16)
+def _is_bf16(x, mod):
+    ac = torch.is_autocast_enabled("cuda") and torch.get_autocast_dtype("cuda") == torch.bfloat16
+    return bool(x.is_cuda and isinstance(mod, nn.Module) and (getattr(mod, "bf16", False) or ac))
 
 
 @contextmanager
-def _penalty_eval_context(
-    mod: Optional[nn.Module], record: AxiomStepRecord, *, bf16_dual: bool = False
-) -> Iterator[None]:
-    """Preserve BN running stats/modes and register BF16 dual hooks during penalty forwards."""
-    bn_states: List[Tuple[nn.Module, bool]] = []
-    hooks: List[Any] = []
+def _penalty_eval_context(mod, record, *, bf16_dual=False):
+    bns, hooks = [], []
     if isinstance(mod, nn.Module):
         for sub in mod.modules():
-            if isinstance(sub, nn.modules.batchnorm._BatchNorm):
-                bn_states.append((sub, sub.training))
+            is_bn = isinstance(sub, nn.modules.batchnorm._BatchNorm)
+            if is_bn:
+                bns.append((sub, sub.training))
                 sub.eval()
-                if bf16_dual:
-                    hooks.append(sub.register_forward_hook(_bn_dual_bf16_hook))
-            elif bf16_dual and isinstance(sub, nn.modules.instancenorm._InstanceNorm):
+            if bf16_dual and (is_bn or isinstance(sub, nn.modules.instancenorm._InstanceNorm)):
                 hooks.append(sub.register_forward_hook(_bn_dual_bf16_hook))
-    prev_pen = record._in_penalty
+    prev = record._in_penalty
     record._in_penalty = True
     try:
         yield
     finally:
-        record._in_penalty = prev_pen
-        for handle in hooks:
-            handle.remove()
-        for sub, was_training in bn_states:
-            sub.training = was_training
+        record._in_penalty = prev
+        for h in hooks:
+            h.remove()
+        for sub, wt in bns:
+            sub.training = wt
 
 
-# ---------------------------------------------------------------------------
-# Law 2 + 4.5 Penalty Kernel & Public Wrapper
-# ---------------------------------------------------------------------------
+def _scale_grad(t, s):
+    return (t * s + t.detach() * (1.0 - s)) if t.requires_grad else t
 
 
 class AxiomPenaltyKernel:
-    """Zero-``autograd.grad`` scale-equivariant ``fwAD`` + secant Law 2/4.5 critic penalty."""
-
     def __init__(
         self,
         *,
-        record: Optional[AxiomStepRecord] = None,
-        coeff: float = 1.0,
-        kappa: float = 1.0,
-        lambda_floor: float = 0.025,
-        beta_ema: float = 1.5,
-        gamma_gauge: float = 0.03,
-        max_lambda: float = 4.0,
-    ) -> None:
-        self.record = AxiomStepRecord() if record is None else record
-        self.coeff = check_scalar(coeff, "coeff", lo=0.0)
-        self.kappa = check_scalar(kappa, "kappa", lo=0.0, strict_lo=True)
-        self.lambda_floor = check_scalar(
-            lambda_floor, "lambda_floor", lo=0.0, strict_lo=True
-        )
-        self.beta_ema = check_scalar(beta_ema, "beta_ema", lo=0.0)
-        self.gamma_gauge = check_scalar(gamma_gauge, "gamma_gauge", lo=0.0)
+        record=None,
+        coeff=1.0,
+        kappa=1.0,
+        lambda_floor=0.025,
+        beta_ema=1.5,
+        gamma_gauge=0.03,
+        max_lambda=4.0,
+    ):
+        self.record = record or AxiomStepRecord()
+        for name, val, sl in (
+            ("coeff", coeff, 0),
+            ("kappa", kappa, 1),
+            ("lambda_floor", lambda_floor, 1),
+            ("beta_ema", beta_ema, 0),
+            ("gamma_gauge", gamma_gauge, 0),
+        ):
+            setattr(self, name, check_scalar(val, name, lo=0.0, strict_lo=sl))
         self.max_lambda = check_scalar(max_lambda, "max_lambda", lo=self.lambda_floor)
         self._c_max = math.log(max(1.0, self.max_lambda / self.lambda_floor))
-        self._fwad_unsupported: set[int] = set()
+        self._fwad_unsupported = set()
 
-    def _fwad_batch(
-        self,
-        live: Callable[..., torch.Tensor],
-        x: torch.Tensor,
-        args: Tuple[Any, ...],
-        kwargs: Dict[str, Any],
-        k_probes: int,
-        phi: float,
-        salt: int,
-        bf16: bool,
-        sc_t: torch.Tensor,
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
-        batch_size = int(x.shape[0])
-        dim = max(1, int(x[0].numel()))
-        in_dt = torch.bfloat16 if bf16 else x.dtype
-        xd = x.detach().to(dtype=in_dt)
-        dirs = _build_fwad_directions(x, k_probes, phi, salt, in_dt)
-        scale_w = 1.0 if k_probes == dim else (1.0 / float(k_probes))
-        y_primal: Optional[torch.Tensor] = None
-        sq_acc: Optional[torch.Tensor] = None
-        with fwAD.dual_level():
-            for vec in dirs:
-                y_raw, j_raw = fwAD.unpack_dual(
-                    live(fwAD.make_dual(xd, vec), *args, **kwargs)
-                )
-                if j_raw is None:
-                    raise NotImplementedError("forward-mode AD dropped dual tangent")
-                y2 = format_logits_2d(y_raw, batch_size)
-                j2 = format_logits_2d(j_raw, batch_size).float() * sc_t
-                term = j2.square().mean(dim=-1)
-                sq_acc = term if sq_acc is None else (sq_acc + term)
-                if y_primal is None:
-                    y_primal = y2
-        assert y_primal is not None and sq_acc is not None
-        return y_primal, sq_acc * scale_w
+    def _probe_batch(self, live, x, args, kwargs, k, phi, salt, sc_t, sec, bf16):
+        b, d = x.shape[0], max(1, x[0].numel())
+        dt_in = torch.bfloat16 if (bf16 and not sec) else x.dtype
+        xd = x.detach().to(dt_in)
+        dt = (sc_t * _SECANT_DELTA_REL).clamp_min(1e-30) if sec else None
+        dx, inv = (dt.to(xd.dtype), (0.5 * sc_t) / dt) if sec else (None, None)
+        y_out = sq = None
+        with nullcontext() if sec else fwAD.dual_level():
+            for vec in _probe_dirs(xd, k, phi, salt, sec, dt_in):
+                if sec:
+                    st = vec.to(xd.dtype) * dx
+                    yp, ym = (format_logits_2d(live(z, *args, **kwargs), b) for z in (xd + st, xd - st))
+                    y2, j2 = 0.5 * (yp + ym), (yp.float() - ym.float()) * inv
+                else:
+                    yr, jr = fwAD.unpack_dual(live(fwAD.make_dual(xd, vec), *args, **kwargs))
+                    if jr is None:
+                        raise NotImplementedError("fwAD dropped tangent")
+                    y2, j2 = format_logits_2d(yr, b), format_logits_2d(jr, b).float() * sc_t
+                term = j2.square().mean(-1)
+                sq = term if sq is None else sq + term
+                if y_out is None:
+                    y_out = y2
+        return y_out, sq * (1.0 if k == d else (d if sec else 1.0) / k)
 
-    def _secant_batch(
-        self,
-        live: Callable[..., torch.Tensor],
-        x: torch.Tensor,
-        args: Tuple[Any, ...],
-        kwargs: Dict[str, Any],
-        k_probes: int,
-        phi: float,
-        salt: int,
-        sc_t: torch.Tensor,
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
-        batch_size = int(x.shape[0])
-        dim = max(1, int(x[0].numel()))
-        xd = x.detach()
-        delta_t = (sc_t * _SECANT_DELTA_REL).clamp_min(1e-30)
-        delta_x = delta_t.to(dtype=xd.dtype)
-        inv_2d = (0.5 * sc_t) / delta_t
-        dirs = _build_secant_directions(xd, k_probes, phi, salt)
-        scale_w = 1.0 if k_probes == dim else (float(dim) / float(k_probes))
-        y_mid: Optional[torch.Tensor] = None
-        sq_acc: Optional[torch.Tensor] = None
-        for u_vec in dirs:
-            step = (u_vec.to(dtype=xd.dtype)) * delta_x
-            yp = format_logits_2d(live(xd + step, *args, **kwargs), batch_size)
-            ym = format_logits_2d(live(xd - step, *args, **kwargs), batch_size)
-            tau_scaled = (yp.float() - ym.float()) * inv_2d
-            term = tau_scaled.square().mean(dim=-1)
-            sq_acc = term if sq_acc is None else (sq_acc + term)
-            if y_mid is None:
-                y_mid = 0.5 * (yp + ym)
-        assert y_mid is not None and sq_acc is not None
-        return y_mid, sq_acc * scale_w
-
-    def _eval_pair(
-        self,
-        batch_fn: Callable[..., Tuple[torch.Tensor, torch.Tensor]],
-        x_real: torch.Tensor,
-        x_fake: torch.Tensor,
-        args: Tuple[Any, ...],
-        kwargs: Dict[str, Any],
-        b_reg: int,
-        phi: float,
-    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
-        br, bf = int(x_real.shape[0]), int(x_fake.shape[0])
-        sr = int(phi * br) % br
-        sf = int(((phi + 0.5) % 1.0) * bf) % bf
-        full_batch = b_reg >= min(br, bf)
-        if not args and not kwargs and br == bf and x_real.shape == x_fake.shape:
-            br_s = br if full_batch else max(1, b_reg // 2)
-            bf_s = bf if full_batch else max(1, b_reg - br_s)
+    def _eval_pair(self, fn, xr, xf, args, kwargs, b_reg, phi):
+        br, bf = xr.shape[0], xf.shape[0]
+        sr, sf = int(phi * br) % br, int(((phi + 0.5) % 1.0) * bf) % bf
+        full = b_reg >= min(br, bf)
+        br_s = br if full else max(1, min(br, b_reg // 2))
+        bf_s = bf if full else max(1, min(bf, b_reg - br_s))
+        xr_s, xf_s = _cyclic_slice(xr.detach(), br, sr, br_s), _cyclic_slice(xf.detach(), bf, sf, bf_s)
+        if not args and not kwargs and br == bf and xr.shape == xf.shape:
             try:
-                x_cat = torch.cat(
-                    (
-                        _cyclic_slice(x_real.detach(), br, sr, br_s),
-                        _cyclic_slice(x_fake.detach(), bf, sf, bf_s),
-                    ),
-                    dim=0,
-                )
-                y_cat, sq_cat = batch_fn(x_cat, (), {}, 1)
-                return y_cat[:br_s], y_cat[br_s:], sq_cat[:br_s], sq_cat[br_s:]
+                yc, sc = fn(torch.cat((xr_s, xf_s)), (), {}, 1)
+                return yc[:br_s], yc[br_s:], sc[:br_s], sc[br_s:]
             except RuntimeError:
                 pass
-        br_s = br if full_batch else max(1, min(br, b_reg // 2))
-        bf_s = bf if full_batch else max(1, min(bf, b_reg - br_s))
-        try:
-            ar, kwr = _slice_call_args(args, kwargs, br, sr, br_s)
-            af, kwf = _slice_call_args(args, kwargs, bf, sf, bf_s)
-            yr, sqr = batch_fn(_cyclic_slice(x_real.detach(), br, sr, br_s), ar, kwr, 1)
-            yf, sqf = batch_fn(_cyclic_slice(x_fake.detach(), bf, sf, bf_s), af, kwf, 2)
+
+        def call(a, b):
+            yr, sqr = fn(*a, 1)
+            yf, sqf = fn(*b, 2)
             return yr, yf, sqr, sqf
+
+        try:
+            return call(
+                (xr_s, *_slice_args(args, kwargs, br, sr, br_s)), (xf_s, *_slice_args(args, kwargs, bf, sf, bf_s))
+            )
         except RuntimeError:
             if br_s == br and bf_s == bf:
                 raise
-            yr, sqr = batch_fn(x_real.detach(), args, kwargs, 1)
-            yf, sqf = batch_fn(x_fake.detach(), args, kwargs, 2)
-            return yr, yf, sqr, sqf
+            return call((xr.detach(), args, kwargs), (xf.detach(), args, kwargs))
 
-    def _assemble_penalty(
-        self,
-        dr: torch.Tensor,
-        df: torch.Tensor,
-        sqr: torch.Tensor,
-        sqf: torch.Tensor,
-        *,
-        exact_basis: bool,
-    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, float]:
+    def _assemble_penalty(self, dr, df, sqr, sqf, *, exact_basis):
         s_hat = 0.5 * (sqr.mean() + sqf.mean())
-        ema_sq = self.record.dev_ema("ema_grad_sq", s_hat.device)
-        excess = torch.relu(ema_sq - self.kappa * self.kappa)
-        lam = (
-            self.lambda_floor
-            * torch.exp((self.beta_ema * excess).clamp_max(self._c_max))
-        ).to(s_hat.dtype)
+        excess = torch.relu(self.record.dev_ema("ema_grad_sq", s_hat.device) - self.kappa * self.kappa)
+        lam = (self.lambda_floor * torch.exp((self.beta_ema * excess).clamp_max(self._c_max))).to(s_hat.dtype)
         self.record.observe_grad_sq_tensor(s_hat.detach())
-        slope_term = lam * s_hat
+        slope = lam * s_hat
         if exact_basis:
-            cap_r = torch.relu((sqr + 1e-12).sqrt() - self.kappa).square().mean()
-            cap_f = torch.relu((sqf + 1e-12).sqrt() - self.kappa).square().mean()
-            slope_term = slope_term + 0.5 * (cap_r + cap_f)
-        pen_slope = 0.5 * self.coeff * slope_term
-        mean_logit = (
-            0.5 * (dr.float().mean() + df.float().mean())
-            if self.gamma_gauge > 0.0
-            else s_hat.new_zeros(())
-        )
-        pen_gauge = (
-            0.5 * self.coeff * self.gamma_gauge * mean_logit.square()
-            if self.gamma_gauge > 0.0
-            else s_hat.new_zeros(())
-        )
-        s_th = float(self.record.thermal_scale)
+            slope = slope + 0.5 * sum(torch.relu((q + 1e-12).sqrt() - self.kappa).square().mean() for q in (sqr, sqf))
+        p_slope = 0.5 * self.coeff * slope
+        if self.gamma_gauge > 0.0:
+            ml = 0.5 * (dr.float().mean() + df.float().mean())
+            p_gauge = 0.5 * self.coeff * self.gamma_gauge * ml.square()
+        else:
+            ml = p_gauge = s_hat.new_zeros(())
+        s_th = self.record.thermal_scale
         if s_th < 1.0:
-            if pen_slope.requires_grad:
-                pen_slope = pen_slope * s_th + pen_slope.detach() * (1.0 - s_th)
-            if pen_gauge.requires_grad:
-                gu = smoothstep01((mean_logit.detach().abs() - 0.5) / 1.0)
-                s_gauge = s_th + gu * (math.sqrt(max(0.0, s_th)) - s_th)
-                pen_gauge = pen_gauge * s_gauge + pen_gauge.detach() * (1.0 - s_gauge)
-        return pen_slope + pen_gauge, s_hat, lam, s_th
+            p_slope = _scale_grad(p_slope, s_th)
+            sg = s_th + smoothstep01(ml.detach().abs() - 0.5) * (math.sqrt(max(0.0, s_th)) - s_th)
+            p_gauge = _scale_grad(p_gauge, sg)
+        return p_slope + p_gauge, s_hat, lam, s_th
 
-    def penalty(
-        self,
-        live: Callable[..., torch.Tensor],
-        x_real: torch.Tensor,
-        x_fake: torch.Tensor,
-        *args: Any,
-        collect_stats: bool = False,
-        critic_module: Optional[nn.Module] = None,
-        **kwargs: Any,
-    ) -> Tuple[torch.Tensor, Dict[str, Any]]:
-        """Evaluate zero-``autograd.grad`` Law 2/4.5 critic penalty and optional diagnostics."""
+    def penalty(self, live, x_real, x_fake, *args, collect_stats=False, critic_module=None, **kwargs):
         if self.coeff == 0.0:
             self.record.clear_transient_captures()
-            stats = (
-                {"applied": False, "pen": 0.0, "center": self.kappa}
-                if collect_stats
-                else {}
-            )
-            return x_real.new_zeros(()), stats
+            return x_real.new_zeros(()), ({"applied": False, "pen": 0.0, "center": self.kappa} if collect_stats else {})
         self.record.calls += 1
-        phi = float(self.record.chord_phase)
+        phi = self.record.chord_phase
         self.record.chord_phase = (phi + PHI1) % 1.0
-        mod = (
-            critic_module
-            if isinstance(critic_module, nn.Module)
-            else (live if isinstance(live, nn.Module) else None)
-        )
-        cid = id(mod) if mod is not None else id(live)
-        dim_x = max(1, int(x_real[0].numel()))
-        k_probes, b_reg = probe_schedule(
-            min(int(x_real.shape[0]), int(x_fake.shape[0])), dim_x
-        )
+        mod = critic_module if isinstance(critic_module, nn.Module) else (live if isinstance(live, nn.Module) else None)
+        cid = id(live if mod is None else mod)
+        d = max(1, x_real[0].numel())
+        k, b_reg = probe_schedule(min(x_real.shape[0], x_fake.shape[0]), d)
         sc_t = _coord_scale(x_real, x_fake, self.record)
-        dr_live = self.record.find_live_endpoint(x_real, args, kwargs)
-        df_live = self.record.find_live_endpoint(x_fake, args, kwargs)
-        reused = dr_live is not None and df_live is not None
-        use_secant = cid in self._fwad_unsupported
+        dr_l, df_l = (self.record.find_live_endpoint(x, args, kwargs) for x in (x_real, x_fake))
+        reused = dr_l is not None and df_l is not None
+        sec = cid in self._fwad_unsupported
+
+        def run(use_s):
+            bf16 = False if use_s else _is_bf16(x_real, mod)
+            with _penalty_eval_context(mod, self.record, bf16_dual=bf16):
+                return self._eval_pair(
+                    lambda x, a, kw, s: self._probe_batch(live, x, a, kw, k, phi, s, sc_t, use_s, bf16),
+                    x_real,
+                    x_fake,
+                    args,
+                    kwargs,
+                    b_reg,
+                    phi,
+                )
+
         try:
-            if not use_secant:
-                bf16 = _is_bf16_critic(x_real, mod)
+            if not sec:
                 try:
-                    with _penalty_eval_context(mod, self.record, bf16_dual=bf16):
-                        dr_s, df_s, sqr, sqf = self._eval_pair(
-                            lambda x, a, kw, s: self._fwad_batch(
-                                live, x, a, kw, k_probes, phi, s, bf16, sc_t
-                            ),
-                            x_real,
-                            x_fake,
-                            args,
-                            kwargs,
-                            b_reg,
-                            phi,
-                        )
+                    dr_s, df_s, sqr, sqf = run(False)
                 except (RuntimeError, NotImplementedError, TypeError):
                     self._fwad_unsupported.add(cid)
-                    use_secant = True
-            if use_secant:
-                with _penalty_eval_context(mod, self.record, bf16_dual=False):
-                    dr_s, df_s, sqr, sqf = self._eval_pair(
-                        lambda x, a, kw, s: self._secant_batch(
-                            live, x, a, kw, k_probes, phi, s, sc_t
-                        ),
-                        x_real,
-                        x_fake,
-                        args,
-                        kwargs,
-                        b_reg,
-                        phi,
-                    )
-            dr_use, df_use = (dr_live, df_live) if reused else (dr_s, df_s)
-            pen, s_hat, lam, s_th = self._assemble_penalty(
-                dr_use, df_use, sqr, sqf, exact_basis=(k_probes == dim_x)
-            )
+                    sec = True
+            if sec:
+                dr_s, df_s, sqr, sqf = run(True)
+            dr_u, df_u = (dr_l, df_l) if reused else (dr_s, df_s)
+            pen, s_hat, lam, s_th = self._assemble_penalty(dr_u, df_u, sqr, sqf, exact_basis=(k == d))
             if not collect_stats:
                 return pen, {}
-            pv, sv, lv = torch.stack(
-                (pen.detach().float(), s_hat.detach().float(), lam.detach().float())
-            ).tolist()
+            pv, sv, lv = torch.stack((pen.detach().float(), s_hat.detach().float(), lam.detach().float())).tolist()
             return pen, {
                 "applied": True,
-                "pen": float(pv),
-                "s_hat": float(sv),
-                "mean_grad_norm": math.sqrt(max(0.0, float(sv))),
-                "lambda_eff": float(lv),
+                "pen": pv,
+                "s_hat": sv,
+                "mean_grad_norm": math.sqrt(max(0.0, sv)),
+                "lambda_eff": lv,
                 "center": self.kappa,
-                "regime": "secant" if use_secant else "fwad",
-                "k_probes": k_probes,
+                "regime": "secant" if sec else "fwad",
+                "k_probes": k,
                 "b_reg": b_reg,
                 "s_thermal": s_th,
-                "live_endpoints_reused": bool(reused),
+                "live_endpoints_reused": reused,
             }
         finally:
             self.record.clear_transient_captures()
 
 
 class AxiomCriticPenalty:
-    """Public callable wrapper matching GANTrainer, WordFixture, DDGAN, and BehaviorComponents."""
-
     ema_critic = None
 
     def __init__(
         self,
-        optimizer_or_recipe: Any,
-        optimizer: Any = None,
+        optimizer_or_recipe,
+        optimizer=None,
         *,
-        coeff: Optional[float] = None,
-        kappa: Optional[float] = None,
-        output: Any = None,
-        collect_stats: bool = False,
-        **options: Any,
-    ) -> None:
-        self.recipe, self.optimizer = (
-            (None, optimizer_or_recipe)
-            if optimizer is None
-            else (optimizer_or_recipe, optimizer)
-        )
-        if not hasattr(self.optimizer, "param_groups"):
-            raise TypeError("AxiomCriticPenalty requires a critic optimizer")
-        rec = getattr(self.optimizer, "record", None) or AxiomStepRecord()
-        self.optimizer.record = rec
-        self.optimizer._axiom_record = rec
-        self.critic = getattr(self.optimizer, "critic", None)
+        coeff=None,
+        kappa=None,
+        output=None,
+        collect_stats=False,
+        **options,
+    ):
+        self.recipe, opt = (None, optimizer_or_recipe) if optimizer is None else (optimizer_or_recipe, optimizer)
+        if not hasattr(opt, "param_groups"):
+            raise TypeError("critic optimizer required")
+        rec = getattr(opt, "record", None) or AxiomStepRecord()
+        self.optimizer, opt.record, opt._axiom_record = opt, rec, rec
+        self.critic = getattr(opt, "critic", None)
         _attach_axiom_critic_hook(self.critic, rec)
-        k_opts: Dict[str, Any] = {
-            "coeff": float(getattr(self.recipe, "reg_coeff", 1.0))
-            if coeff is None
-            else float(coeff),
-            "kappa": float(getattr(self.recipe, "reg_kappa", 1.0))
-            if kappa is None
-            else float(kappa),
-        }
-        for key in (
-            "coeff",
-            "kappa",
-            "lambda_floor",
-            "beta_ema",
-            "gamma_gauge",
-            "max_lambda",
-        ):
-            if options.get(key) is not None:
-                k_opts[key] = options[key]
-        self.regularizer = AxiomPenaltyKernel(record=rec, **k_opts)
+        self.regularizer = AxiomPenaltyKernel(
+            record=rec,
+            coeff=float(getattr(self.recipe, "reg_coeff", 1.0) if coeff is None else coeff),
+            kappa=float(getattr(self.recipe, "reg_kappa", 1.0) if kappa is None else kappa),
+            **{
+                k: options[k]
+                for k in ("lambda_floor", "beta_ema", "gamma_gauge", "max_lambda")
+                if options.get(k) is not None
+            },
+        )
         self.initial_coeff = self.regularizer.coeff
-        self.output = first_tensor_output if output is None else output
+        self.output = output or first_tensor_output
         self.collect_stats = bool(collect_stats)
-        self.last_stats: Dict[str, Any] = {}
+        self.last_stats = {}
 
-    def __call__(
-        self,
-        critic: Callable[..., torch.Tensor],
-        x_real: torch.Tensor,
-        x_fake: torch.Tensor,
-        *args: Any,
-        **kwargs: Any,
-    ) -> torch.Tensor:
-        mod = critic if isinstance(critic, nn.Module) else self.critic
+    def __call__(self, critic, x_real, x_fake, *args, **kwargs):
         pen, self.last_stats = self.regularizer.penalty(
             lambda x, *a, **kw: self.output(critic(x, *a, **kw)),
             x_real,
             x_fake,
             *args,
             collect_stats=self.collect_stats,
-            critic_module=mod,
+            critic_module=critic if isinstance(critic, nn.Module) else self.critic,
             **kwargs,
         )
         return pen
 
-    def diagnostics(self) -> Dict[str, Any]:
-        """Return scalar critic regularizer diagnostics."""
-        rec = self.regularizer.record
+    def diagnostics(self):
+        r = self.regularizer.record
         return {
-            "axiom_calls": int(rec.calls),
-            "axiom_ema_grad_sq": float(rec.ema_grad_sq),
-            "axiom_chord_phase": float(rec.chord_phase),
-            "axiom_thermal_scale": float(rec.thermal_scale),
-            "axiom_step_scale": float(rec.step_scale),
+            "axiom_calls": int(r.calls),
+            **{
+                f"axiom_{k}": float(getattr(r, k))
+                for k in ("ema_grad_sq", "chord_phase", "thermal_scale", "step_scale")
+            },
         }
 
 
