@@ -814,6 +814,89 @@ def test_schema2_checkpoint_roundtrip_and_tamper_rejection() -> None:
 
 
 # ---------------------------------------------------------------------------
+# 10b. Cold-Start Discrete Regimes (disc_4mode, five_word, bytegan_256, grid100)
+# ---------------------------------------------------------------------------
+
+
+def test_cold_start_discrete_regimes_and_manifold_separation() -> None:
+    # 1. disc_4mode (D=2, B=64, sig=0.12): coalesces >10 protos/mode -> K_c=4, all_iso=True.
+    gen = torch.Generator().manual_seed(0)
+    c4 = torch.tensor([[-3.0, -3.0], [3.0, -3.0], [-3.0, 3.0], [3.0, 3.0]])
+    at4 = PrototypeAtlas(max_prototypes=256)
+    for _ in range(25):
+        y4 = c4[torch.randint(0, 4, (64,), generator=gen)] + 0.12 * torch.randn(
+            64, 2, generator=gen
+        )
+        at4.update(y4)
+        coal4 = at4.coalesce(y4)
+    assert int(coal4.comp_c.shape[0]) == 4 and bool(coal4.all_iso.item())
+    assert (
+        at4.commit_particles(y4[:16], torch.arange(16), 64, coalesced=coal4) is not None
+    )
+
+    # 2. five_word (5 exact atoms, B=64): deduplicates on step 0 -> K_p=K_c=5, all_iso=True.
+    gen = torch.Generator().manual_seed(0)
+    w5 = torch.eye(5) * 2.0
+    at5 = PrototypeAtlas(max_prototypes=256)
+    for step in range(25):
+        y5 = w5[torch.randint(0, 5, (64,), generator=gen)]
+        at5.update(y5)
+        coal5 = at5.coalesce(y5)
+        if step == 0:
+            assert int(at5.proto_c.shape[0]) == 5 and bool(coal5.all_iso.item())
+    assert int(coal5.comp_c.shape[0]) == 5 and bool(coal5.all_iso.item())
+    assert at5.rho_atom_ema < 1e-4 and at5.g_conn_ema < 1e-3
+    assert (
+        at5.commit_particles(y5[:16], torch.arange(16), 64, coalesced=coal5) is not None
+    )
+
+    # 3. bytegan_256 ({-1,+1}^8, B=64): discovers all 256 atoms with rho=0 & active ledger.
+    gen = torch.Generator().manual_seed(0)
+    b256 = torch.tensor(
+        [[((i >> b) & 1) * 2.0 - 1.0 for b in range(8)] for i in range(256)]
+    )
+    at256 = PrototypeAtlas(max_prototypes=256)
+    for _ in range(25):
+        yb = b256[torch.randint(0, 256, (64,), generator=gen)]
+        at256.update(yb)
+        coal256 = at256.coalesce(yb)
+        assert bool(coal256.all_iso.item())
+    assert int(at256.proto_c.shape[0]) == 256 and int(coal256.comp_c.shape[0]) == 256
+    assert at256.rho_atom_ema < 1e-4 and at256.g_conn_ema < 1e-3
+    assert (
+        at256.commit_particles(yb[:16], torch.arange(16), 256, coalesced=coal256)
+        is not None
+    )
+
+    # 4. grid100 (10x10 modes, sig=0.05, B=64): discovers & isolates all 100 modes.
+    gen = torch.Generator().manual_seed(0)
+    gx = torch.linspace(-4.5, 4.5, 10)
+    g100 = torch.stack(torch.meshgrid(gx, gx, indexing="ij"), dim=-1).reshape(100, 2)
+    at100 = PrototypeAtlas(max_prototypes=256)
+    for _ in range(40):
+        yg = g100[torch.randint(0, 100, (64,), generator=gen)] + 0.05 * torch.randn(
+            64, 2, generator=gen
+        )
+        at100.update(yg)
+        coal100 = at100.coalesce(yg)
+    assert int(coal100.comp_c.shape[0]) == 100 and bool(coal100.all_iso.item())
+    assert at100.g_conn_ema < 0.05
+
+    # 5. Connected spiral stays all_iso=False, g_conn_ema > 0.80, ledger disengaged.
+    gen = torch.Generator().manual_seed(0)
+    at_sp = PrototypeAtlas(max_prototypes=256)
+    for _ in range(25):
+        t = 0.5 + torch.rand(64, generator=gen) * (4.0 * math.pi - 0.5)
+        ys = torch.stack((t * t.cos(), t * t.sin()), dim=1) / (4.0 * math.pi)
+        at_sp.update(ys)
+        coal_sp = at_sp.coalesce(ys)
+    assert not bool(coal_sp.all_iso.item()) and at_sp.g_conn_ema > 0.80
+    assert (
+        at_sp.commit_particles(ys[:16], torch.arange(16), 64, coalesced=coal_sp) is None
+    )
+
+
+# ---------------------------------------------------------------------------
 # 11. CUDA Execution & Zero-Sync GPU Hamilton Commitment Ledger Proof
 # ---------------------------------------------------------------------------
 

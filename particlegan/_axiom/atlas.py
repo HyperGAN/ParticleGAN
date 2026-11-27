@@ -239,7 +239,7 @@ def batch_annular_gap_ratio(y_real: torch.Tensor) -> torch.Tensor:
     ds = safe_cdist(yf)[iu, ju].sort().values
     d_max = ds[-1]
     ds_safe = ds.clamp_min(1e-7 * d_max.clamp_min(_VAR_FLOOR))
-    t_min = max(1, b // 16)
+    t_min = 1
     t_max = max(t_min + 1, int(ds.numel()) // 2)
     gaps = torch.log(ds_safe[t_min + 1 : t_max + 1]) - torch.log(ds_safe[t_min:t_max])
     max_gap, rel_idx = gaps.max(dim=0)
@@ -334,6 +334,32 @@ def compute_connectivity_gate(
 # ---------------------------------------------------------------------------
 
 
+def _transitive_closure(adj: torch.Tensor, k: int) -> torch.Tensor:
+    out = adj.clone()
+    out.fill_diagonal_(1.0)
+    n_sq = min(8, max(4, (k - 1).bit_length()))
+    for _ in range(n_sq):
+        out = ((out @ out) > 0).float()
+    return out
+
+
+def _ltc_cluster_stats(
+    c_f: torch.Tensor,
+    cov_c0: torch.Tensor,
+    w_c: torch.Tensor,
+    adj: torch.Tensor,
+    eye_k: torch.Tensor,
+    cand: torch.Tensor,
+) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    k = int(c_f.shape[0])
+    cw = torch.where(cand[:, None] & cand[None, :], adj, eye_k) * w_c.unsqueeze(0)
+    cw = cw / cw.sum(dim=1, keepdim=True).clamp_min(1e-12)
+    cc = cw @ c_f
+    m2_j = cov_add_outer(cov_c0, c_f - cc)
+    cov_c = _scale_sanitize_cov((cw @ m2_j.reshape(k, -1)).reshape(m2_j.shape))
+    return cw, cc, cov_c
+
+
 @torch.no_grad()
 def coalesce_directional_ltc(
     proto_c: torch.Tensor,
@@ -377,25 +403,28 @@ def coalesce_directional_ltc(
     d_cc = safe_cdist(c_f)
     sqrt_d = math.sqrt(float(dim))
     u_ij = (c_f.unsqueeze(1) - c_f.unsqueeze(0)) / d_cc.clamp_min(1e-12).unsqueeze(-1)
-    sig_ij = cov_directional_var(cov_c0, u_ij).sqrt()
+    cov_dir = cov_shrink_mp(cov_c0, n_vec)
+    sig_ij = cov_directional_var(cov_dir, u_ij).sqrt()
     sig_tr = cov_trace_mean(cov_c0).sqrt()
     s_max = torch.maximum(sig_tr[:, None], sig_tr[None, :])
     s_min = torch.minimum(sig_tr[:, None], sig_tr[None, :]).clamp_min(1e-12)
-    adj = (
-        (d_cc <= (2.6 * sqrt_d * torch.maximum(sig_ij, sig_ij.T)))
-        & (s_max <= (2.2 * s_min))
-    ).float()
-    adj.fill_diagonal_(1.0)
-    for _ in range(4):
-        adj = ((adj @ adj) > 0).float()
+    width_ok = s_max <= (2.2 * s_min)
+    adj = _transitive_closure(
+        ((d_cc <= (2.6 * sqrt_d * torch.maximum(sig_ij, sig_ij.T))) & width_ok).float(),
+        k,
+    )
 
     cs = adj.sum(dim=1)
-    cand = (cs >= 1.0) & (cs <= float(max(10, 2 * dim))) & (cs < float(k))
-    cw = torch.where(cand[:, None] & cand[None, :], adj, eye_k) * w_c.unsqueeze(0)
-    cw = cw / cw.sum(dim=1, keepdim=True).clamp_min(1e-12)
-    cc = cw @ c_f
-    m2_j = cov_add_outer(cov_c0, c_f - cc)
-    cov_c = _scale_sanitize_cov((cw @ m2_j.reshape(k, -1)).reshape(m2_j.shape))
+    cand = (cs >= 1.0) & (cs < float(k))
+    _, _, cov_c1 = _ltc_cluster_stats(c_f, cov_c0, w_c, adj, eye_k, cand)
+    sig_c1_ij = cov_directional_var(cov_c1, u_ij).sqrt()
+    multi = (cs >= 1.5) & cand
+    absorb = (d_cc <= (2.6 * sqrt_d * sig_c1_ij.T)) & multi[None, :] & width_ok
+    adj = _transitive_closure(((adj > 0.5) | absorb | absorb.T).float(), k)
+
+    cs = adj.sum(dim=1)
+    cand = (cs >= 1.0) & (cs < float(k))
+    cw, cc, cov_c = _ltc_cluster_stats(c_f, cov_c0, w_c, adj, eye_k, cand)
 
     ratio_c = d_cc / (4.2 * sqrt_d * cov_directional_var(cov_c, u_ij).sqrt()).clamp_min(
         1e-12
@@ -1091,18 +1120,46 @@ class PrototypeAtlas:
         )  # type: ignore[index]
         self.psi[parent] = self.psi[dst] = 0.5 * (self.psi[parent] + self.psi[dst])  # type: ignore[index]
 
-    def _init_from_batch(self, x: torch.Tensor) -> None:
+    def _select_init_centers(self, x: torch.Tensor) -> torch.Tensor:
         b, dim, dev = int(x.shape[0]), int(x.shape[1]), x.device
-        k0 = min(self.max_prototypes, max(4, (3 * b) // 4) if b >= 8 else b)
+        raw_sp = 2.0 * x.var(dim=0, unbiased=False).sum()
+        if not bool((raw_sp > _VAR_FLOOR).item()):
+            return x[:1].clone()
+        tol = 1e-5 * raw_sp.sqrt()
+        is_first = (safe_cdist(x) <= tol).float().argmax(dim=1) == torch.arange(
+            b, device=dev
+        )
+        uniq = x[is_first]
+        n_u = int(uniq.shape[0])
+        if n_u < b and n_u <= self.max_prototypes:
+            return uniq.clone()
+        src = uniq if n_u < b else x
+        n_src = int(src.shape[0])
+        k0 = (
+            self.max_prototypes
+            if n_u < b
+            else min(
+                self.max_prototypes, max(4, (3 * n_src) // 4) if n_src >= 8 else n_src
+            )
+        )
         proj = (
             torch.remainder(
                 torch.arange(1, dim + 1, device=dev, dtype=torch.float32) * PHI1, 1.0
             )
             - 0.5
         )
-        order = torch.argsort(x @ (proj / proj.norm().clamp_min(1e-8)), stable=True)
-        pick = ((torch.arange(k0, device=dev) * b + b // 2) // k0).clamp(0, b - 1)
-        centers = x[order[pick]].clone()
+        order = torch.argsort(src @ (proj / proj.norm().clamp_min(1e-8)), stable=True)
+        pick = ((torch.arange(k0, device=dev) * n_src + n_src // 2) // k0).clamp(
+            0, n_src - 1
+        )
+        return src[order[pick]].clone()
+
+    def _init_from_batch(self, x: torch.Tensor) -> None:
+        dim, dev = int(x.shape[1]), x.device
+        centers = self._select_init_centers(x)
+        k0 = int(centers.shape[0])
+        assign = safe_cdist(x, centers).argmin(dim=1)
+        b_cnt = torch.bincount(assign, minlength=k0).float()
         raw_v = x.var(dim=0, unbiased=False).mean().clamp_min(_VAR_FLOOR) / float(
             max(1, k0)
         )
@@ -1111,28 +1168,92 @@ class PrototypeAtlas:
             pos = d_nn > 1e-12
             d_sort = torch.where(pos, d_nn, d_nn.new_tensor(float("inf"))).sort().values
             med_pos = d_sort[(pos.sum() // 2).clamp_max(k0 - 1)]
-            v0 = torch.where(
+            v_geom = torch.where(
                 pos.sum() > 0,
-                (0.25 * med_pos.square() / float(dim + 2)).clamp_min(_VAR_FLOOR),
+                (0.04 * med_pos.square() / float(dim)).clamp_min(_VAR_FLOOR),
                 raw_v,
             )
         else:
-            v0 = raw_v
-        self.dim, self.initialized = dim, True
-        self.proto_c, self.proto_cov = centers, cov_from_scalar(v0.expand(k0), dim)
-        self.proto_w = torch.full(
-            (k0,), 1.0 / float(k0), device=dev, dtype=torch.float32
+            v_geom = raw_v
+        multi = b_cnt >= 2.0
+        b_mean = x.new_zeros((k0, dim)).index_add_(0, assign, x) / b_cnt.clamp_min(
+            1.0
+        ).unsqueeze(1)
+        diff = x - b_mean[assign]
+        v_emp = (
+            diff.new_zeros(k0).index_add_(0, assign, diff.square().mean(dim=1))
+            / (b_cnt - 1.0).clamp_min(1.0)
+        ).clamp_min(_VAR_FLOOR)
+        v_fill = (
+            torch.quantile(v_emp[multi], 0.25) if bool(multi.any().item()) else v_geom
         )
+        v_init = v_fill.expand(k0).clone()
+        self.dim, self.initialized = dim, True
+        self.proto_c, self.proto_cov = centers, cov_from_scalar(v_init, dim)
+        self.proto_w = b_cnt.clamp_min(1e-12) / b_cnt.clamp_min(1e-12).sum()
         self.w_fake_ema = self.proto_w.clone()
-        self.proto_n = torch.ones(k0, device=dev, dtype=torch.float32)
+        self.proto_n = b_cnt.clamp_min(1.0)
         self.psi = torch.zeros(k0, device=dev, dtype=torch.float32)
-        self.v_push = v0.expand(k0).clone()
+        self.v_push = v_init.clone()
         self.ledger.reset()
         rho0 = batch_annular_gap_ratio(x)
         self._rho_atom_t, self._g_conn_t = (
             rho0,
             compute_connectivity_gate(x, rho_atom=rho0),
         )
+
+    def _pre_spawn_uncovered(self, x: torch.Tensor) -> None:
+        k, dim, dev = int(self.proto_c.shape[0]), self.dim, x.device  # type: ignore[union-attr]
+        if k >= self.max_prototypes:
+            return
+        d_min, assign = safe_cdist(x, self.proto_c).min(dim=1)  # type: ignore[arg-type]
+        d2_min = d_min.square()
+        raw_sp = 2.0 * x.var(dim=0, unbiased=False).sum()
+        pair_sp = raw_sp.clamp_min(_VAR_FLOOR)
+        v_prev = cov_trace_mean(self.proto_cov)  # type: ignore[arg-type]
+        pre_med_v = v_prev.median().clamp_min(_VAR_FLOOR)
+        shock_den = torch.maximum(
+            pair_sp, 6.0 * float(dim) * v_prev[assign].mean().clamp_min(_VAR_FLOOR)
+        )
+        shock = ((torch.sqrt(d2_min.mean() / shock_den) - 0.45) / 0.35).clamp(0.0, 1.0)
+        if not bool(((raw_sp > _VAR_FLOOR) & (shock <= 0.5)).item()):
+            return
+        u_x = (x - self.proto_c[assign]) / d_min.clamp_min(1e-12).unsqueeze(1)  # type: ignore[index]
+        v_dir = cov_directional_var(self.proto_cov[assign], u_x)  # type: ignore[index]
+        denom_ur = torch.maximum(
+            36.0 * float(dim) * torch.maximum(v_dir, pre_med_v), 0.008 * pair_sp
+        )
+        uncov = d2_min > denom_ur
+        if not bool(uncov.any().item()):
+            return
+        u_pts = x[uncov]
+        sep_tol = torch.sqrt(
+            torch.maximum(36.0 * float(dim) * pre_med_v, 0.008 * pair_sp)
+        )
+        is_first = (safe_cdist(u_pts) <= sep_tol).float().argmax(dim=1) == torch.arange(
+            int(u_pts.shape[0]), device=dev
+        )
+        new_c = u_pts[is_first][: min(self.max_prototypes - k, 64)]
+        n_new = int(new_c.shape[0])
+        if n_new < 1:
+            return
+        w_seed = min(0.5 / float(n_new), 1.0 / float(k + n_new))
+        keep_sc = 1.0 - float(n_new) * w_seed
+        w_add = new_c.new_full((n_new,), w_seed)
+        self.proto_c = torch.cat((self.proto_c, new_c), dim=0)  # type: ignore[arg-type]
+        self.proto_cov = torch.cat(
+            (self.proto_cov, cov_from_scalar(pre_med_v.expand(n_new), dim)),
+            dim=0,  # type: ignore[arg-type]
+        )
+        self.v_push = torch.cat((self.v_push, pre_med_v.expand(n_new)), dim=0)  # type: ignore[arg-type]
+        self.proto_w = torch.cat((self.proto_w * keep_sc, w_add), dim=0)  # type: ignore[operator]
+        self.w_fake_ema = torch.cat((self.w_fake_ema * keep_sc, w_add), dim=0)  # type: ignore[operator]
+        self.proto_n = torch.cat(
+            (self.proto_n, new_c.new_full((n_new,), 1e-6)),
+            dim=0,  # type: ignore[arg-type]
+        )
+        psi_cat = torch.cat((self.psi, new_c.new_zeros(n_new)), dim=0)  # type: ignore[arg-type]
+        self.psi = psi_cat - psi_cat.mean()
 
     def _update_streaming_stats(
         self, x: torch.Tensor
@@ -1222,7 +1343,10 @@ class PrototypeAtlas:
             cov_prev, torch.where(v_col, v_col_g / v_prev, torch.ones_like(v_prev))
         )
 
-        down_jump = (b_cnt >= 6.0) & (v_est < 0.04 * v_prev)
+        exact_col = ((b_cnt >= 2.0) & (v_est < 1e-8 * v_prev)) | (
+            (b_cnt >= 1.0) & (v_est <= 1e-12 * v_prev)
+        )
+        down_jump = exact_col | ((b_cnt >= 6.0) & (v_est < 0.04 * v_prev))
         up_jump = (b_cnt >= 2.0) & (v_est > 25.0 * v_prev)
         v_jump = hit & ((shock > 0.5) | down_jump | up_jump)
         log_r = (torch.log(v_est) - torch.log(v_prev)).abs()
@@ -1340,13 +1464,13 @@ class PrototypeAtlas:
         gamma = float(min(dim, 4)) / float(min(dim, 4) + 2)
         denom_ur = torch.maximum(
             36.0 * float(dim) * torch.maximum(v_prev[assign], pre_med_v),
-            0.08 * pair_sp,
+            0.008 * pair_sp,
         )
         max_ur, worst_j = (d2_min / denom_ur).max(dim=0)
         ge = (self.proto_w.clamp_min(1e-12) ** gamma) * v_cur  # type: ignore[union-attr]
         max_e, pi_t = ge.max(dim=0)
         zf = torch.zeros((), device=x.device, dtype=torch.bool)
-        do_uncov = (max_ur > 1.0) & has_sp if k >= 4 else zf
+        do_uncov = (max_ur > 1.0) & has_sp if k >= 1 else zf
         need_g = (
             (max_e > 10.0 * ge.median().clamp_min(_VAR_FLOOR))
             & (self.proto_w[pi_t] > 0.25 * mean_w)  # type: ignore[index]
@@ -1378,6 +1502,7 @@ class PrototypeAtlas:
         if not self.initialized or self.proto_c is None or self.dim != int(x.shape[1]):
             self._init_from_batch(x)
             return
+        self._pre_spawn_uncovered(x)
         assign, d2_min, v_prev, has_sp, pair_sp, aw = self._update_streaming_stats(x)
         self._maintain_structure(x, assign, d2_min, v_prev, has_sp, pair_sp, aw)
 
