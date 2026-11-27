@@ -2,7 +2,7 @@
   "automation_digest": "975631e907a1ca668dde96bd2837db3d6c54dadeacaf628069d8333c4539ee33",
   "conflicts": [],
   "import_gap_count": 7,
-  "input_digest": "3e1fa67872cb28c427a11e10abcb973fd4457b213c6e19b03f8bbc8a2e777c44",
+  "input_digest": "440aac607fa7653e78a1e28a8212917fa72bd4cf5f0f84b345e59df7f15970a6",
   "input_hashes": {
     "configs/forge/cadence-studies/bispf-lazy-cadence-v1.json": "fc7302ac06b61fa093a39265d440545fdab176852a588c40b750be16adc1e58b",
     "configs/forge/calibration-lane-template.json": "65f10d3061aa487bb32da43bb97cb91934a25d763f6bb634f1d3316fdcc6d9e5",
@@ -2241,7 +2241,7 @@
     "reports/forge/family-winner-round1/r1r2-grid-preparation.json": "a7cdb6a87abbae05f3659cf0fbb34f6d20cc3639d846c7accd35e8a3c82e8c78",
     "reports/forge/family-winner-round1/r1r2-trajectory-representation.json": "8f1506391a0b5bb1da5d348c526faf04da78c362e73b4ea8402f57930638a91f",
     "reports/forge/history-sources.json": "c71655de9bcd7333b83ce1b5ed5b0d6bf21a0805fd9488cf5da5fba404e31d3b",
-    "reports/forge/import-gaps.json": "8ec3a74117d6c3bb26f2ac81dc36a127300aac1e5a43e983c03e5b2d734def77",
+    "reports/forge/import-gaps.json": "5ccbdaa35db36aedbda9804517c5f229cac0c32d7c0a92c62fd98229ddab038d",
     "reports/forge/passive-publications.json": "cf4fb8e53db1896705ad70bb998e0d53d6a485783091ba02f13b9f471e9909c8",
     "reports/forge/policy-family-inventory.json": "b36cf5d76adc736adc09184afef38d81b708313864e0e94c38a47a75ace004dc",
     "reports/forge/policy-family-inventory.md": "08c9682c7233d883ef1ca8bc785c8c723245df365bb9fbd844fc05792030546c",
@@ -7576,18 +7576,16 @@
     "reports/toy_audit/api_contract/model_modes/publication.json": "3fe2d2f3b09d9e1c34b5dea5435e3d67a6aee30023e265acef25ffc6808fc6cd"
   },
   "inventory_coverage": {
-    "declared_count": 8960,
-    "missing": [
-      "reports/axiom/axiom-v6-study.md"
-    ],
+    "declared_count": 8961,
+    "missing": [],
     "stale": [],
     "tracked_count": 8961,
     "unclassified": [],
-    "valid": false
+    "valid": true
   },
   "operational_lifecycle_digest": "a9af4314073c4377eb6fc81c5cb20417930f4e0c3e36165961fca921a04ab15b",
   "output_hashes": {
-    "reports/forge/EXPERIMENT_MEMORY.md": "20c4eb7dba0a80416d3277318a42c5bd7a6793fd888231bed521df6d6758a661",
+    "reports/forge/EXPERIMENT_MEMORY.md": "4d150d811f6f1f83429df2dc85afadfce899d23988dbafbe217c7cc106a58104",
     "reports/forge/publication-records.json": "5174449ad10c00a8d22dee09d3ef50c8fb0fc76f196d85197271ee7c0766c9d8"
   },
   "pending_readout": [],
