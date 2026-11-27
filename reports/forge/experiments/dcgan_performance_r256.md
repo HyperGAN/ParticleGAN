@@ -97,6 +97,7 @@ flowchart LR
 | Candidate | Family | GPU | Outcome | `min_margin` | NVML Energy | Key Recorded Metrics | Receipt |
 | --- | --- | --- | :---: | ---: | ---: | --- | --- |
 | `axiom-v4` | `axiom` | NVIDIA RTX A6000 | **PASS** | — | 558 J | completed_updates=13, finite_update_fraction=1, first_update_ms=739.3, images_per_second=456.3 | [readout-9066cb4353eb435be7819b0c.json](../records/readout-9066cb4353eb435be7819b0c.json) |
+| `axiom-v6` | `axiom` | NVIDIA RTX A6000 | **PASS** | — | 531 J | completed_updates=13, finite_update_fraction=1, first_update_ms=626.1, images_per_second=433.3 | [readout-69f7d043a14e2780fb2cdd4a.json](../records/readout-69f7d043a14e2780fb2cdd4a.json) |
 
 ## Reproduce This Experiment
 

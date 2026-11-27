@@ -105,6 +105,7 @@ flowchart LR
 | Candidate | Family | GPU | Outcome | `min_margin` | NVML Energy | Key Recorded Metrics | Receipt |
 | --- | --- | --- | :---: | ---: | ---: | --- | --- |
 | `axiom-v4` | `axiom` | NVIDIA RTX A6000 | **PASS** | — | 9.19 kJ (J-to-PASS) | confirmation_checks=200, converged_step=1400, extension_checks=300, extension_passing=300 | [readout-9066cb4353eb435be7819b0c.json](../records/readout-9066cb4353eb435be7819b0c.json) |
+| `axiom-v6` | `axiom` | NVIDIA RTX A6000 | **PASS** | — | 6.14 kJ (J-to-PASS) | confirmation_checks=200, converged_step=1400, extension_checks=300, extension_passing=300 | [readout-69f7d043a14e2780fb2cdd4a.json](../records/readout-69f7d043a14e2780fb2cdd4a.json) |
 | `law4-energy-v11` | `unified` | NVIDIA L4 | **PASS** | — | 2.29 kJ (J-to-PASS) | confirmation_checks=200, converged_step=1400, extension_checks=300, extension_passing=300 | [2ce9b0dcefb0448996148bc72a949ee0.json](../technique-receipts/2ce9b0dcefb0448996148bc72a949ee0.json) |
 | `unified-v11` | `unified` | NVIDIA L4 | **PASS** | — | 3.42 kJ (J-to-PASS) | confirmation_checks=200, converged_step=1400, extension_checks=300, extension_passing=300 | [55cf35e8da80417f9d921f4e92ad1aa3.json](../technique-receipts/55cf35e8da80417f9d921f4e92ad1aa3.json) |
 | `unified-v12` | `unified` | NVIDIA L4 | **PASS** | — | 2.27 kJ (J-to-PASS) | confirmation_checks=200, converged_step=1400, extension_checks=300, extension_passing=300 | [d5de4369af7f46dca241b99a499339c0.json](../technique-receipts/d5de4369af7f46dca241b99a499339c0.json) |

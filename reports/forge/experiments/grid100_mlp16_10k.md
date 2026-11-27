@@ -114,6 +114,7 @@ flowchart LR
 | `axiom-v4` | `axiom` | NVIDIA L4 | **PASS** | — | 6.54 kJ (J-to-PASS) | abs_cov_trace_bias=0.04376, accuracy_score=0.4111, center_max_sigma=0.1602, center_rms_sigma=0.07295 | [ec92bcf7a8584e8983953d67611f533d.json](../technique-receipts/ec92bcf7a8584e8983953d67611f533d.json) |
 | `axiom-v5` | `axiom` | NVIDIA L4 | **PASS** | — | 7.25 kJ (J-to-PASS) | abs_cov_trace_bias=0.04376, accuracy_score=0.4111, center_max_sigma=0.1602, center_rms_sigma=0.07295 | [0790ee1abe9e4942989572738191bd31.json](../technique-receipts/0790ee1abe9e4942989572738191bd31.json) |
 | `unified-v15` | `unified` | NVIDIA L4 | **PASS** | — | 65.68 kJ (J-to-PASS) | abs_cov_trace_bias=0.06504, accuracy_score=0.6079, center_max_sigma=0.2751, center_rms_sigma=0.09611 | [2796ebb8a90449c9b86c6877319fe602.json](../technique-receipts/2796ebb8a90449c9b86c6877319fe602.json) |
+| `axiom-v6` | `axiom` | NVIDIA RTX A6000 | **FAIL** | — | 98.63 kJ | mass_tv=0.1227, n=100000, precision=0.8631, precision_gap=0.1258 | [readout-69f7d043a14e2780fb2cdd4a.json](../records/readout-69f7d043a14e2780fb2cdd4a.json) |
 | `unified-v11` | `unified` | NVIDIA L4 | **FAIL** | — | 57.18 kJ | abs_cov_trace_bias=0.08587, accuracy_score=0.6673, center_max_sigma=0.1359, center_rms_sigma=0.06022 | [2cb8fa00299a4723abd6fc4e6b5d950f.json](../technique-receipts/2cb8fa00299a4723abd6fc4e6b5d950f.json) |
 
 ## Reproduce This Experiment

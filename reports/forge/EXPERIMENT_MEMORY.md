@@ -2,7 +2,7 @@
 
 Read the relevant prior evidence before declaring an idea. Historical outcomes retain their original scope. Published qualification and automation snapshots are retained without replaying unavailable originals. Compact publications enter recall as display-only summaries and grant no qualification.
 
-Records: 1255. Inventory coverage: complete. Unresolved import items: 7.
+Records: 1266. Inventory coverage: incomplete. Unresolved import items: 7.
 
 ## Goal views
 
@@ -4280,6 +4280,22 @@ t4-nash-v2 (0 SVD calls) reproduces t4-nash-v1 bit-for-bit across all 3 Theory 4
 
 [Record and receipt provenance](records/readout-0a06aa66bdb37bbb9f4ec2c1.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### axiom-v6 · readout-0a09c3a4f58fbf9727c0aa49
+
+**Scope:** research_diagnostic; scientific; revision `29cfbe70ecae527e0507ca1a8246bbbd6efaecd2a4274fbd1907e56f9866abb2`.
+
+Unchanged global axiom-v6 (1157930ef) on t4_imbalance_nash_stretch (RTX A6000, seed 0).
+
+**Observed:** {'PASS': 3}; wall seconds 294.318; mechanism `structural`.
+
+nash_overpowered_generator_ring16: modes=16, hq=0.97729, mass_tv=0.02124; nash_overpowered_critic_ring16: modes=16, hq=0.9646, mass_tv=0.025146; nash_unequal_width_hostile_imbalance: hq=0.98755, mass_tv=0.0036621
+
+3/3 PASS: overpowered_critic_ring16, overpowered_generator_ring16, and unequal_width_hostile_imbalance all PASS.
+
+**Next:** Preserve role-agnostic Law 4 spectral conditioning.
+
+[Record and receipt provenance](records/readout-0a09c3a4f58fbf9727c0aa49.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### rgdt-v3-no-macro · readout-0a2c5b1945af6c00c9ab44bb
 
 **Scope:** research_diagnostic; scientific; revision `b692212fc2fcd61894760bbd3a9916ce1e1e988c3c75d9fb92e690d31a19f68b`.
@@ -5256,6 +5272,22 @@ This technique failed the full 80-update two_pole smoke gate: {'grad_med': 1.254
 
 [Evidence](../../reports/forge/technique-receipts/33bc62d63509425e9f7237ef19ee7374.json) · [Record](records/readout-28f0c9140b4cfeef57f23dd2.json)
 
+### axiom-v6 · readout-2984c7ab5b4f026ba2e5d2f7
+
+**Scope:** research_diagnostic; scientific; revision `29cfbe70ecae527e0507ca1a8246bbbd6efaecd2a4274fbd1907e56f9866abb2`.
+
+Unchanged global axiom-v6 (1157930ef): evaluate on dcgan_performance (solo idle GPU 1, protocol seed 0).
+
+**Observed:** {'PASS': 6}; wall seconds 60.965; mechanism `structural`.
+
+
+
+6/6 PASS on solo idle RTX A6000 GPU 1 (verified zero same-GPU contention): r32 18.32ms/64.5MiB, r64 21.39ms/141.6MiB, r128 25.17ms/339.4MiB, r256 36.26ms med/790.3MiB alloc (806.0MiB res), b64 22.34ms/231.3MiB, w128 21.86ms/383.5MiB; matched solo NVML r256 31.76ms / 9.007 J/step (283.6W) / 779.8MiB / 0B opt (-18.1% J/step and -36.1% VRAM vs unified_v14).
+
+**Next:** Keep zero-byte Conv2d optimizer state and layout-preserving FP32 critic scaling.
+
+[Record and receipt provenance](records/readout-2984c7ab5b4f026ba2e5d2f7.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### t4-arch-v1 · readout-2b160a70b11093992b400283
 
 **Scope:** research_diagnostic; scientific; revision `4b40d6f2fa410d183846f22d7d8e147cdcdb01dbe6f2c549f7255d7a2cfebf0a`.
@@ -5559,6 +5591,22 @@ Prediction observed: unified-v3 passed all 6/6 dcgan_performance benchmarks with
 **Next:** review_saved_diagnostics
 
 [Record and receipt provenance](records/readout-333332d97507ed52ce2592e5.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### axiom-v6 · readout-3368e30edcdde7aba0e0754a
+
+**Scope:** current; scientific; revision `29cfbe70ecae527e0507ca1a8246bbbd6efaecd2a4274fbd1907e56f9866abb2`.
+
+Unchanged global axiom-v6 clean-slate rewrite (1157930ef): evaluate through Tier 2 of discriminator_stability (RTX A6000, protocol seed 0).
+
+**Observed:** {'FAIL': 1, 'PASS': 16}; wall seconds 1578.218; mechanism `structural`.
+
+ae_gan_hold: recon_mse=0.011472
+
+Official Tier-1 readout: 16/17 PASS, 1 FAIL (ring16_acquisition: terminal hq=0.9736, core_cov=0.1454, core_eig=0.7193, comp_cov=0.5417, failed only step-1600 spill=0.1291 and earlier step 1534-1550 comp_cov spikes), gating Tier-2 inside this study. Notably five_word_joint_smoke (702.7s), 3/3 precision_gaussian_{fp32,mxfp8,nvfp4}, t3_iso_scale_mass_8x, and 4/4 AE/VAE all PASS. Cross-study T1-T2 coverage: 32/35 executed tasks PASS (14 UNRUN).
+
+**Next:** Document 16/17 T1 + 32/35 cross-study T1-T2 honestly in PR scope; track ring16_acquisition spill as follow-up.
+
+[Record and receipt provenance](records/readout-3368e30edcdde7aba0e0754a.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### law4-energy-v11 · readout-33d5dc6aafae554b7d9433af
 
@@ -6456,6 +6504,22 @@ The first Forge CPU smoke pilot failed two_pole after 80 updates: mean_abs 0.106
 
 [Record and receipt provenance](records/readout-4bd94051f203bbbb28a3e7a6.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### axiom-v6 · readout-4c1f609330a3ba091f3394bf
+
+**Scope:** research_diagnostic; scientific; revision `29cfbe70ecae527e0507ca1a8246bbbd6efaecd2a4274fbd1907e56f9866abb2`.
+
+Unchanged global axiom-v6 (1157930ef) on bytegan_stretch (RTX A6000, seed 0).
+
+**Observed:** {'PASS': 2}; wall seconds 442.244; mechanism `structural`.
+
+bytegan_bigan_dictionary: mass_tv=0; bytegan_hypercube8: mass_tv=0
+
+2/2 PASS: bytegan_hypercube8 256/256 unique bytes, 0 collisions, 0 orphans, mass_tv=0.0, max_bit_error=0.0436; bytegan_bigan_dictionary 256/256 unique, 0 collisions, encoder_bijection=256/256, encoder_cycle=256/256, nearest_dist=0.0327.
+
+**Next:** Retain atomic absent-byte transit shielding and committed-ledger kappa=1.0.
+
+[Record and receipt provenance](records/readout-4c1f609330a3ba091f3394bf.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### t4-ctrl-empf-adam · readout-4c6354e1cb8b12c45bd9ad0e
 
 **Scope:** research_diagnostic; scientific; revision `7c76a898ead1adad4649ca9b4cda49e767ad667b1d336e0096f191b4acec7f51`.
@@ -7288,6 +7352,22 @@ Completed dcgan_performance seed-0 CUDA execution for bispf-optimized-quintic-v1
 
 [Record and receipt provenance](records/readout-69f698e7c003c96d01d05c05.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### axiom-v6 · readout-69f7d043a14e2780fb2cdd4a
+
+**Scope:** research_diagnostic; scientific; revision `29cfbe70ecae527e0507ca1a8246bbbd6efaecd2a4274fbd1907e56f9866abb2`.
+
+Unchanged global axiom-v6 clean-slate rewrite (1157930ef): evaluate across all 34 tasks of four-laws-adherence-v2 (RTX A6000, protocol seed 0).
+
+**Observed:** {'FAIL': 6, 'PASS': 28}; wall seconds 4557.458; mechanism `structural`.
+
+mode_hold: modes=8, hq=0.98999; fl_law3_highd_orphan_d32_v2: modes=5, precision=0.97298, mass_tv=0.01623
+
+28/34 PASS (0 UNRUN): 8/10 fl_law* probes PASS (4/4 Law 4, 1/1 Law 3, 1/2 Law 2 codim1, 2/3 Law 1 codebook_v2 + highd_rank_d32_v2), plus t3_iso 2/2, grid100 (+0.0290, score 0.331), staggered100 (-0.0134, score 0.260), gaussian1d_stability (ks=0.0149, std=1.0049), ring_hold (1200/1200), ring_extension (300/300). 6 FAILs: interp_saddle_barycentric (4/5 suffix), fl_law1_aniso (-0.321), fl_law2_vit_sprites (rmse=0.1302 vs 0.12), ae_ddgan_gaussian_chain_v2, grid100_mlp16_10k, grid100_res16_tanh.
+
+**Next:** Document the 6 remaining frontier/16L-grid gaps transparently alongside 8/10 fl_law* and 28/34 pass.
+
+[Record and receipt provenance](records/readout-69f7d043a14e2780fb2cdd4a.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### recipe-prior-refactor-ka2-v1 · readout-6a7e566f412b2f89b3c4542e
 
 **Scope:** research_diagnostic; scientific; revision `bd13bfd00479408abe45e88a8d3f986b3d18bff8859fb643e12ff9a41d6efd17`.
@@ -7544,6 +7624,22 @@ Completed dcgan_performance seed-0 CUDA execution for recipe-prior-refactor-bcap
 
 [Record and receipt provenance](records/readout-72bbe311465e6ccf90b28084.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### axiom-v6 · readout-73e856d159f15fd25276d912
+
+**Scope:** research_diagnostic; scientific; revision `29cfbe70ecae527e0507ca1a8246bbbd6efaecd2a4274fbd1907e56f9866abb2`.
+
+Unchanged global axiom-v6 (1157930ef) on t3-shift-recovery-diagnostic-v1 (RTX A6000, seed 0).
+
+**Observed:** {'PASS': 5}; wall seconds 372.007; mechanism `structural`.
+
+mode_hold: modes=8, hq=0.98999
+
+5/5 PASS: ae_gan_hold, mode_hold, zero_tanh_smoke, zero_tanh_rail_escape (p99=0.0051, rms=0.0011, sat=0.0), target_shift_recovery PASS.
+
+**Next:** Retain log2_damp settling and live-parent atlas slot rebalancing.
+
+[Record and receipt provenance](records/readout-73e856d159f15fd25276d912.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### bispf-v2 · readout-7450f3d30d639bad8e4f25e5
 
 **Scope:** research_diagnostic; scientific; revision `e558bd3a50a3746df01baaf4759aaae09b48f465012d157796b76602cd2ce2e0`.
@@ -7735,6 +7831,22 @@ Full-suite diagnostic (prior-ablation-full-suite-v1, seed 0, deterministic_ortho
 **Next:** Test a clean-training Atlas study (output_noise_mode='fixed', output_noise_std=0.0 paired with prior_mechanism NormalNoiseManipulator sigma=0.005 and min(birth_death_cells, num_particles // 2) cell cap) so the generator carries full within-mode variance under clean evaluation without altering row-local particle transport.
 
 [Record and receipt provenance](records/readout-78b2f38e0f8c24f678b47fa2.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### axiom-v6 · readout-78d5dc5c1daa9732e5676b4d
+
+**Scope:** research_diagnostic; scientific; revision `29cfbe70ecae527e0507ca1a8246bbbd6efaecd2a4274fbd1907e56f9866abb2`.
+
+Unchanged global axiom-v6 clean-slate rewrite (1157930ef): evaluate on r3-tier3-long-horizon-holdout-v1 (RTX A6000, protocol seed 0).
+
+**Observed:** {'PASS': 18}; wall seconds 3546.095; mechanism `structural`.
+
+mode_hold: modes=8, hq=0.98999
+
+18/18 PASS (100% PERFECT SWEEP): two_pole, unused_token_hold, ae_gan_hold, clockfree_audit, zero_tanh_smoke, zero_tanh_rail_escape (p99=0.0051), mode_hold, five_word_joint_smoke (702.7s), five_word_joint_hold (152.1s, tv=0.0209), ring_hold (1200/1200), ring_extension (300/300), target_shift_recovery, grid100 (score 0.3308), rotated100 (0.2638), staggered100 (0.2602), grid100_14k (0.3383), rotated100_14k (0.4035), staggered100_14k (0.3848).
+
+**Next:** Ready for Wave 4 PR release.
+
+[Record and receipt provenance](records/readout-78d5dc5c1daa9732e5676b4d.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### recipe-prior-refactor-ka2-v1 · readout-7a4a425e8499eff696ed464b
 
@@ -8663,6 +8775,22 @@ Atlas particle-normal prior replication study executed in research_diagnostic sc
 **Next:** Review saved diagnostics and address intra-mode covariance calibration under clean evaluation.
 
 [Record and receipt provenance](records/readout-9f0d62f87d1ff351cfef7f98.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### axiom-v6 · readout-9f96c1fc71db4c9ca5c00dc9
+
+**Scope:** research_diagnostic; scientific; revision `29cfbe70ecae527e0507ca1a8246bbbd6efaecd2a4274fbd1907e56f9866abb2`.
+
+Unchanged global axiom-v6 clean-slate rewrite (1157930ef): evaluate on r4-occam-ablation-v1 (RTX A6000, protocol seed 0).
+
+**Observed:** {'FAIL': 3, 'PASS': 13}; wall seconds 2636.549; mechanism `structural`.
+
+nash_overpowered_generator_ring16: modes=16, hq=0.97729, mass_tv=0.02124
+
+13/16 PASS (0 UNRUN; up from 11/16 on 17af25114): PASSes gaussian1d_smoke, gaussian1d_stability (ks=0.0149, std=1.0049), zero_tanh_smoke, zero_tanh_rail_escape, five_word_joint_smoke (702.7s), grid100 (score 0.3308), img_bars4, model_ddgan_gaussian_chain (t1_q0_eig_max=1.2126, cdf=0.0665), vector_unequal_width (hq=0.9829, comp_cov=0.2073, eig=0.618), t3_iso 2/2, Nash 2/2. 3 FAILs: ring16_acquisition (spill=0.1291), vector_unequal_mass (hq=0.9866, spill=0.1053), grid100_mlp16.
+
+**Next:** Ready for Wave 4 PR release with honest scope notes on the 3 remaining Occam cells.
+
+[Record and receipt provenance](records/readout-9f96c1fc71db4c9ca5c00dc9.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### recipe-prior-refactor-r1r2-v1 · readout-a00bfca2993b57da0e7ca161
 
@@ -10008,6 +10136,22 @@ Completed dcgan_performance seed-0 CUDA execution for bispf-optimized-quintic-v1
 
 [Record and receipt provenance](records/readout-c803a788075501b6784967f2.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### axiom-v6 · readout-c9406c785907749ab2b78b38
+
+**Scope:** research_diagnostic; scientific; revision `29cfbe70ecae527e0507ca1a8246bbbd6efaecd2a4274fbd1907e56f9866abb2`.
+
+Unchanged global axiom-v6 clean-slate rewrite (1157930ef): evaluate on t4-strange-architectures-v1 (RTX A6000, protocol seed 0).
+
+**Observed:** {'FAIL': 3, 'PASS': 4}; wall seconds 1746.426; mechanism `structural`.
+
+grid100_res16_scaled_tanh: precision=0.84697, center_rms_sigma=0.062203, mass_tv=0.02186, radial_ks=0.11336
+
+4/7 PASS (0 UNRUN): clockfree_audit_measurement_v1, zero_tanh_smoke, zero_tanh_rail_escape (p99=0.0051), grid100 (score 0.3308); 3 FAILs: grid100_mlp16 (prec=0.8686, mass_tv=0.1232), grid100_res16_tanh (bias=-0.3425), grid100_res16_scaled_tanh (bias=-0.2507).
+
+**Next:** Document 4/7 honestly in PR scope; track deep 16L grid100 coverage as follow-up.
+
+[Record and receipt provenance](records/readout-c9406c785907749ab2b78b38.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### t1-prior-v2 · readout-c982ddf21128b926906438aa
 
 **Scope:** research_diagnostic; scientific; revision `bc5f46853112229bceabcc19673d27c2246eeb0296cfa5e6116dd137348449e0`.
@@ -10888,6 +11032,22 @@ Both full-budget DDGAN tasks remain FAIL. Gaussian passes all5 final marginal ch
 
 [Record and receipt provenance](records/readout-e2e0ab5b4a57b6aae957eec4.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### axiom-v6 · readout-e2f7edf628215ac4382d9e7e
+
+**Scope:** research_diagnostic; scientific; revision `29cfbe70ecae527e0507ca1a8246bbbd6efaecd2a4274fbd1907e56f9866abb2`.
+
+Unchanged global axiom-v6 (1157930ef) on t3_causal_isolation_stretch (RTX A6000, seed 0).
+
+**Observed:** {'PASS': 2}; wall seconds 122.52; mechanism `structural`.
+
+t3_iso_horizon_saddle_shift: modes=4, hq=0.95312, mass_tv=0.03125; t3_iso_scale_mass_8x: modes=4, hq=0.97656, mass_tv=0.035234
+
+2/2 PASS (fully restored from 17af25114 0/2): t3_iso_scale_mass_8x core_min_eigen_ratio=0.4870 (>=0.45), core_cov=0.2659, hq=0.9766, 4/4 modes; t3_iso_horizon_saddle_shift hq=0.9531 (>=0.92), pre_shift_hq=0.9297, tv=0.0312, 4/4 modes.
+
+**Next:** Preserve FP64 gamma*alpha precision in optimizer.py and sqrt scale factor in prior.py.
+
+[Record and receipt provenance](records/readout-e2f7edf628215ac4382d9e7e.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### ka2--4496b859e066d7a4b6279f2d34fbd58d083e0f18c2a22ade5ba12c964d01a7ca · readout-e3ab30a3f7ae4a6debe66e5d
 
 **Scope:** current; scientific; revision `0cb6ee2042006b122ef7c2c91b9ecdc74b703aa8ee51ac3e36a5164abde58a98`.
@@ -11255,6 +11415,22 @@ Bounded R1/R2 Modern GAN toy-host configuration {'lr': 0.0085, 'reg_coeff': 0.1,
 **Next:** Stop this exact failed configuration; review the provisional convergence screen before another parameter study. No downstream diagnostic, seed repeat or default adoption follows.
 
 [Evidence](../../reports/forge/technique-receipts/2a719ec706924f0ab120961cd58f7582.json) · [Record](records/readout-f0dadd320f7db48cbf5d7b20.json)
+
+### axiom-v6 · readout-f2fd872a28fe8beb751cfb13
+
+**Scope:** research_diagnostic; scientific; revision `29cfbe70ecae527e0507ca1a8246bbbd6efaecd2a4274fbd1907e56f9866abb2`.
+
+Unchanged global axiom-v6 (1157930ef) on particle_interpolation_stretch (RTX A6000, seed 0).
+
+**Observed:** {'FAIL': 1, 'PASS': 2}; wall seconds 215.068; mechanism `structural`.
+
+
+
+2/3 PASS: interp_sparse_arc PASS (interp_hq=0.9167, 30 arc bins); interp_img_patch_shift PASS (hq=1.0, peak=0.8784, rmse=0.0338); interp_saddle_barycentric FAIL only on step-834 (1st of 5 suffix checks) while clearing final 4/5 checks cleanly (step 875..1000 barycenter_hq=0.7957/0.7234/0.7340/0.7553, mae=0.0573..0.0724).
+
+**Next:** Document 4/5 terminal suffix pass on saddle_barycentric honestly in PR scope.
+
+[Record and receipt provenance](records/readout-f2fd872a28fe8beb751cfb13.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### recipe-prior-refactor-ka2-v1 · readout-f49e05e15c9423e6a7e9d1b0
 
@@ -12230,4 +12406,4 @@ These study and trial projections preserve recorded outcomes, unknowns and sourc
 
 ## Compilation provenance
 
-Reducer `forge-knowledge-v2`; input digest `e2e48f3ebdddb566f59a676a3d67c817efadc8acbabb9d88eb55661932c87e0c`. [Full input hashes and coverage](compilation.json). No training or image inspection occurs during compilation.
+Reducer `forge-knowledge-v2`; input digest `4aca40c80f508874637644981c262bd655b68b0e97b17f39b999a4c5e3462769`. [Full input hashes and coverage](compilation.json). No training or image inspection occurs during compilation.
