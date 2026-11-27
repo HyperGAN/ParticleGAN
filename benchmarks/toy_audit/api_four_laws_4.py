@@ -505,24 +505,41 @@ def _finalize_observation(
     metrics: dict[str, Any],
     views: list[dict[str, Any]],
 ) -> dict[str, Any]:
-    clean_metrics: dict[str, float | int] = {}
+    raw_metrics: dict[str, Any] = {}
     for k, v in metrics.items():
         if isinstance(v, torch.Tensor) and v.numel() == 1:
             v = v.detach().cpu().item()
         if isinstance(v, np.generic):
             v = v.item()
         if isinstance(v, bool):
-            clean_metrics[k] = int(v)
+            raw_metrics[k] = int(v)
         elif isinstance(v, int):
-            clean_metrics[k] = v
+            raw_metrics[k] = v
         elif isinstance(v, float) and math.isfinite(v):
-            clean_metrics[k] = float(v)
+            raw_metrics[k] = float(v)
         else:
-            clean_metrics[k] = -10.0 if k != "finite_fraction" else 0.0
-    margins = signed_margins(clean_metrics, task_id)
+            raw_metrics[k] = None
+    margins = signed_margins(raw_metrics, task_id)
     min_margin = float(min(margins.values())) if margins else -10.0
+    failed = _check_thresholds(raw_metrics, task_id)
+    bound_by_name = {name: (op, float(bound)) for name, op, bound in ALL_THRESHOLDS[task_id]}
+    clean_metrics: dict[str, float | int] = {}
+    for k, v in raw_metrics.items():
+        if v is not None:
+            clean_metrics[k] = v
+        elif k == "finite_fraction":
+            clean_metrics[k] = 0.0
+        elif k in bound_by_name:
+            op, bound = bound_by_name[k]
+            if op == "<=":
+                clean_metrics[k] = max(999.0, bound + 10.0)
+            elif op == ">=":
+                clean_metrics[k] = min(-10.0, bound - 10.0)
+            else:
+                clean_metrics[k] = bound - 1.0 if bound != 0.0 else -1.0
+        else:
+            clean_metrics[k] = 0.0
     clean_metrics["min_margin"] = min_margin
-    failed = _check_thresholds(clean_metrics, task_id)
     return {
         "passed": len(failed) == 0,
         "failed_bounds": failed,
@@ -722,7 +739,7 @@ class HighDSparseTanhGenerator(nn.Module):
             self._mask_rng = None
             return
         gen = self._get_mask_rng(device)
-        gen.set_state(state.cpu() if device.type == "cpu" else state.to(device))
+        gen.set_state(state.detach().to(device="cpu", dtype=torch.uint8).clone())
 
     def forward(self, z: torch.Tensor) -> torch.Tensor:
         out = torch.tanh(self.net(z))
@@ -1855,7 +1872,7 @@ def oracle_controls_v2() -> dict[str, dict[str, Any]]:
         score_fl_law42_deep_resbn_and_conv1x1_v2(ora3_lin, samples_conv1x1=ora3_conv, reference=ref3),
     )
     # Small parity divergence (0.003 diff at sw1 ~ 0.023) must PASS absolute parity <= 0.015
-    slightly_noisy_conv = ora3_lin + 0.01 * torch.randn_like(ora3_lin)
+    slightly_noisy_conv = ora3_lin + 0.01 * torch.randn(ora3_lin.shape, generator=g3, dtype=ora3_lin.dtype)
     _rec(
         "fl_law42_resbn_v2_small_diff_pass",
         True,
@@ -2495,9 +2512,9 @@ class FourLawsFixture:
             raise ValueError("checkpoint missing required provenance fields")
         self.seed = int(state["seed"])
         self._batch_sequence_sha256 = str(state["batch_sequence_sha256"])
-        self.data_rng.set_state(state["data_rng"].cpu())
+        self.data_rng.set_state(state["data_rng"].detach().to(device="cpu", dtype=torch.uint8).clone())
         for k, g in self._aux_data_rngs.items():
-            g.set_state(state["aux_data_rngs"][k].cpu())
+            g.set_state(state["aux_data_rngs"][k].detach().to(device="cpu", dtype=torch.uint8).clone())
         self.trainer.load_state_dict(state["trainer"])
         for k, tr in self.aux_trainers.items():
             tr.load_state_dict(state["aux_trainers"][k])

@@ -21,7 +21,15 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 
-from particlegan import GANTrainer, InputNoise, UpdatePolicy, get_recipe, init
+from particlegan import (
+    GANTrainer,
+    InputNoise,
+    UpdatePolicy,
+    bind_formulation_records,
+    critic_g_step_mode,
+    get_recipe,
+    init,
+)
 from .definition_quality import five_word_metrics
 
 
@@ -792,6 +800,7 @@ class ImageFixture:
                 self.loss = self.recipe.make_loss()
                 self.spread = self.recipe.make_prior_regularizer(prior=self.prior, reference=self.prior)
                 self.penalty = self.recipe.make_critic_penalty(self.opt_d)
+                bind_formulation_records(self.recipe, self.opt_d, self.loss, self.spread, generator=self.G)
                 self._context = None
                 self.policy = UpdatePolicy(self.recipe, self.G, self.D, prior=self.prior,
                                            generator_optimizer=self.opt_g, critic_optimizer=self.opt_d,
@@ -830,7 +839,6 @@ class ImageFixture:
         if self.trainer is not None:
             return self.trainer.step(real)
         self._context = context
-        flags = [p.requires_grad for p in self.D.parameters()]
         modes = [(module, module.training) for root in (self.G, self.D) for module in root.modules()]
         try:
             noise = self.policy.begin_step(real, execution_limit=self.max_steps)
@@ -849,19 +857,19 @@ class ImageFixture:
             loss_d.backward()
             self.opt_d.step()
             self.policy.after_critic_step()
-            self.D.eval().requires_grad_(False)
-            self.G.train()
-            latent, rows = self.prior.sample(len(real), generator=self.policy.latent_generator)
-            generated = self.policy.generate(latent, sigma=noise.output_sigma, rows=rows)
-            loss_gan = self.loss.g_loss(self.noisy_critic(generated, context), self.noisy_critic(real, context))
-            prior_reg = self.recipe.prior_regularization(self.prior.z, regularizer=self.spread)
-            loss_g = loss_gan + prior_reg
-            self.opt_g.zero_grad(set_to_none=True)
-            self.policy.before_generator_backward()
-            loss_g.backward()
-            self.policy.after_generator_backward(loss_gan=loss_gan.detach(), loss_critic=adversarial_d.detach())
-            self.opt_g.step()
-            self.policy.after_generator_step()
+            with critic_g_step_mode(self.D):
+                self.G.train()
+                latent, rows = self.prior.sample(len(real), generator=self.policy.latent_generator)
+                generated = self.policy.generate(latent, sigma=noise.output_sigma, rows=rows)
+                loss_gan = self.loss.g_loss(self.noisy_critic(generated, context), self.noisy_critic(real, context))
+                prior_reg = self.recipe.prior_regularization(self.prior.z, regularizer=self.spread)
+                loss_g = loss_gan + prior_reg
+                self.opt_g.zero_grad(set_to_none=True)
+                self.policy.before_generator_backward()
+                loss_g.backward()
+                self.policy.after_generator_backward(loss_gan=loss_gan.detach(), loss_critic=adversarial_d.detach())
+                self.opt_g.step()
+                self.policy.after_generator_step()
             self.policy.finish_step()
             return dict(step=self.completed_steps, loss_g=loss_g.detach(), loss_d=loss_d.detach(),
                         penalty=penalty.detach())
@@ -869,8 +877,6 @@ class ImageFixture:
             self.policy.abort_step()
             raise
         finally:
-            for parameter, flag in zip(self.D.parameters(), flags):
-                parameter.requires_grad_(flag)
             for module, flag in modes:
                 module.training = flag
             self._context = None
@@ -1109,6 +1115,7 @@ class WordFixture:
             self.loss = self.recipe.make_loss()
             self.spread = self.recipe.make_prior_regularizer(prior=self.prior, reference=self.prior)
             self.penalty = self.recipe.make_critic_penalty(self.opt_d, collect_stats=components is not None)
+            bind_formulation_records(self.recipe, self.opt_d, self.loss, self.spread, generator=self.G)
             policy_streams = None if components is None else {
                 "latent_generator": components.streams.generator("prior", component="latent", purpose="indices"),
                 "penalty_generator": components.streams.generator("noise", component="penalty", purpose="training"),
@@ -1138,7 +1145,6 @@ class WordFixture:
             raise RuntimeError("word fixture execution budget exhausted")
         ids = torch.randint(5, (self.recipe.batch_size,), device=self.device, generator=self.data_generator)
         real_words = self.words[ids]
-        flags = [parameter.requires_grad for parameter in self.D.parameters()]
         try:
             with torch.no_grad():
                 encoded = self.E(real_words)
@@ -1158,35 +1164,35 @@ class WordFixture:
             loss_d.backward()
             self.opt_d.step()
             self.policy.after_critic_step()
-            self.D.requires_grad_(False)
-            encoded = self.E(real_words)
-            latent, rows = self.prior.sample(len(real_words), generator=self.policy.latent_generator)
-            fake_words = self.policy.generate(latent, sigma=noise.output_sigma, rows=rows)
-            loss_gan = self.loss.joint_g_loss(self.noisy_critic(_join_words(fake_words, latent)),
-                                              self.noisy_critic(_join_words(real_words, encoded)))
-            loss_g = loss_gan + self.recipe.prior_regularization(self.prior.z, regularizer=self.spread)
-            if self.recipe.joint_reconstruction_weight:
-                reconstruction = self.recipe.joint_reconstruction_loss(
-                    self.G.forward_logits(encoded), real_words, categorical_dim=1)
-                loss_g = loss_g + reconstruction
-            if self.transport is not None:
-                # Categorical probability coordinates only. The joint latent
-                # coordinates and inverse encoder retain their original loss.
-                loss_g = self.transport.add(loss_g, fake_words.flatten(1), real_words.flatten(1))
-            self.opt_g.zero_grad(set_to_none=True)
-            self.policy.before_generator_backward()
-            if self.recipe.constraint_geometry_mode == 'strict_progress':
-                width_noise = (latent - self.prior.z[rows]).detach()
-            def protected_evaluator():
-                current_latent = self.prior.z[rows] + width_noise
-                return (self.loss.joint_g_loss(self.noisy_critic(_join_words(self.G(current_latent), current_latent)),
-                    self.noisy_critic(_join_words(real_words, self.E(real_words)))),)
-            from particlegan.optim.constraint_geometry import constraint_geometry_backward
-            constraint_geometry_backward(loss_g, self.opt_g, (loss_gan,),
-                                         protected_evaluator=protected_evaluator)
-            self.policy.after_generator_backward(loss_gan=loss_gan.detach(), loss_critic=adversarial_d.detach())
-            self.opt_g.step()
-            self.policy.after_generator_step()
+            with critic_g_step_mode(self.D):
+                encoded = self.E(real_words)
+                latent, rows = self.prior.sample(len(real_words), generator=self.policy.latent_generator)
+                fake_words = self.policy.generate(latent, sigma=noise.output_sigma, rows=rows)
+                loss_gan = self.loss.joint_g_loss(self.noisy_critic(_join_words(fake_words, latent)),
+                                                  self.noisy_critic(_join_words(real_words, encoded)))
+                loss_g = loss_gan + self.recipe.prior_regularization(self.prior.z, regularizer=self.spread)
+                if self.recipe.joint_reconstruction_weight:
+                    reconstruction = self.recipe.joint_reconstruction_loss(
+                        self.G.forward_logits(encoded), real_words, categorical_dim=1)
+                    loss_g = loss_g + reconstruction
+                if self.transport is not None:
+                    # Categorical probability coordinates only. The joint latent
+                    # coordinates and inverse encoder retain their original loss.
+                    loss_g = self.transport.add(loss_g, fake_words.flatten(1), real_words.flatten(1))
+                self.opt_g.zero_grad(set_to_none=True)
+                self.policy.before_generator_backward()
+                if self.recipe.constraint_geometry_mode == 'strict_progress':
+                    width_noise = (latent - self.prior.z[rows]).detach()
+                def protected_evaluator():
+                    current_latent = self.prior.z[rows] + width_noise
+                    return (self.loss.joint_g_loss(self.noisy_critic(_join_words(self.G(current_latent), current_latent)),
+                        self.noisy_critic(_join_words(real_words, self.E(real_words)))),)
+                from particlegan.optim.constraint_geometry import constraint_geometry_backward
+                constraint_geometry_backward(loss_g, self.opt_g, (loss_gan,),
+                                             protected_evaluator=protected_evaluator)
+                self.policy.after_generator_backward(loss_gan=loss_gan.detach(), loss_critic=adversarial_d.detach())
+                self.opt_g.step()
+                self.policy.after_generator_step()
             self.policy.finish_step()
             result = dict(step=self.completed_steps, loss_d=loss_d.detach(), loss_g=loss_g.detach(), penalty=penalty.detach())
             if self.recipe.joint_reconstruction_weight:
@@ -1195,9 +1201,6 @@ class WordFixture:
         except Exception:
             self.policy.abort_step()
             raise
-        finally:
-            for parameter, flag in zip(self.D.parameters(), flags):
-                parameter.requires_grad_(flag)
 
     @torch.no_grad()
     def observe(self, n=1024, seed=DEFAULT_SEED + 1000, *, generator=None, reconstruction_generator=None):

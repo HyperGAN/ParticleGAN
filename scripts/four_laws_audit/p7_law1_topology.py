@@ -1109,12 +1109,14 @@ def _audit_pullback_isometry_and_fastpath(device: torch.device) -> Dict[str, Any
 
 @contextmanager
 def _count_host_syncs(device: torch.device):
-    """Count explicit Tensor.item(), Tensor.tolist(), Tensor.__bool__(), and torch.unique calls on GPU."""
-    counts = {"item": 0, "tolist": 0, "bool": 0, "unique": 0}
+    """Count explicit Tensor.item(), Tensor.tolist(), Tensor.__bool__(), torch.unique, and nonzero calls on GPU."""
+    counts = {"item": 0, "tolist": 0, "bool": 0, "unique": 0, "nonzero": 0}
     orig_item = torch.Tensor.item
     orig_tolist = torch.Tensor.tolist
     orig_bool = torch.Tensor.__bool__
     orig_unique = torch.unique
+    orig_nonzero = torch.nonzero
+    orig_tensor_nonzero = torch.Tensor.nonzero
 
     def _wrap_item(self, *args, **kwargs):
         if self.device.type == device.type:
@@ -1136,10 +1138,22 @@ def _count_host_syncs(device: torch.device):
             counts["unique"] += 1
         return orig_unique(inp, *args, **kwargs)
 
+    def _wrap_nonzero(inp, *args, **kwargs):
+        if isinstance(inp, torch.Tensor) and inp.device.type == device.type:
+            counts["nonzero"] += 1
+        return orig_nonzero(inp, *args, **kwargs)
+
+    def _wrap_tensor_nonzero(self, *args, **kwargs):
+        if self.device.type == device.type:
+            counts["nonzero"] += 1
+        return orig_tensor_nonzero(self, *args, **kwargs)
+
     torch.Tensor.item = _wrap_item
     torch.Tensor.tolist = _wrap_tolist
     torch.Tensor.__bool__ = _wrap_bool
     torch.unique = _wrap_unique
+    torch.nonzero = _wrap_nonzero
+    torch.Tensor.nonzero = _wrap_tensor_nonzero
     try:
         yield counts
     finally:
@@ -1147,6 +1161,8 @@ def _count_host_syncs(device: torch.device):
         torch.Tensor.tolist = orig_tolist
         torch.Tensor.__bool__ = orig_bool
         torch.unique = orig_unique
+        torch.nonzero = orig_nonzero
+        torch.Tensor.nonzero = orig_tensor_nonzero
 
 
 def _benchmark_v4_vs_v11_pullback_step(device: torch.device) -> Dict[str, Any]:

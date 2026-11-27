@@ -1040,8 +1040,8 @@ class BNDCGANFixture:
         self.seed = int(state["seed"])
         self.limit = int(state["limit"])
         self._batch_sequence_sha256 = str(state["batch_sequence_sha256"])
-        self.data_rng.set_state(state["data_rng"].cpu())
-        self.generator_data_rng.set_state(state["generator_data_rng"].cpu())
+        self.data_rng.set_state(state["data_rng"].detach().to(device="cpu", dtype=torch.uint8).clone())
+        self.generator_data_rng.set_state(state["generator_data_rng"].detach().to(device="cpu", dtype=torch.uint8).clone())
         self.trainer.load_state_dict(state["trainer"])
 
 

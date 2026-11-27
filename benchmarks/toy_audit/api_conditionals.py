@@ -18,7 +18,15 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 
-from particlegan import MoGParticlePrior, ParticlePrior, get_recipe, init, scale_learning_rates
+from particlegan import (
+    MoGParticlePrior,
+    ParticlePrior,
+    bind_formulation_records,
+    critic_g_step_mode,
+    get_recipe,
+    init,
+    scale_learning_rates,
+)
 from particlegan.optim.constraint_geometry import constraint_geometry_backward
 from particlegan.priors import ManipulatedPrior, NormalNoiseManipulator, unwrap_prior
 from lib.sparse_toy import SparseMixedToy
@@ -634,6 +642,7 @@ class ConditionalFixture:
         self.opt_g,self.opt_d=self.recipe.make_optimizers(self.G,self.D,self.prior,ema_critic=deepcopy(self.D),foreach=False)
         self.base_rates=[[group["lr"] for group in opt.param_groups] for opt in (self.opt_g,self.opt_d)]
         self.loss=self.recipe.make_loss();self.penalty=self.recipe.make_critic_penalty(self.opt_d,collect_stats=True)
+        bind_formulation_records(self.recipe,self.opt_d,self.loss,None,generator=self.G)
         self.data_rng,self.latent_rng,self.noise_rng=_rng(seed+10),_rng(seed+11),_rng(seed+12)
         self.last_losses={}
         self.initialization="public deterministic orthogonal; no target/oracle weights"
@@ -656,16 +665,12 @@ class ConditionalFixture:
             real,fake=coordinates(pred,eps)
         self.opt_d.zero_grad();dl=self.loss.d_loss(self.D(real),self.D(fake));reg=self.penalty(self.D,real,fake)
         (dl+reg).backward();self.opt_d.step()
-        flags=[p.requires_grad for p in self.D.parameters()]
-        try:
-            self.D.requires_grad_(False)
+        with critic_g_step_mode(self.D):
             pred=self._generate(c,self.latent_rng);eps=.10*torch.randn(t.shape,generator=self.noise_rng)
             real,fake=coordinates(pred,eps)
             with torch.no_grad(): real_logits=self.D(real)
             gl=self.loss.g_loss(self.D(fake),real_logits)
             self.opt_g.zero_grad();gl.backward();self.opt_g.step()
-        finally:
-            for p,f in zip(self.D.parameters(),flags): p.requires_grad_(f)
         self.completed_steps+=1
         self.last_losses=dict(g_gan=float(gl.detach()),d_gan=float(dl.detach()),critic_penalty=float(reg.detach()))
         if not all(math.isfinite(v) for v in self.last_losses.values()): raise FloatingPointError("nonfinite actual GAN update")
@@ -1745,22 +1750,29 @@ class _MisGANBaseFixture:
         # Each adversarial pair owns the complete public critic state. Sharing
         # private record copies left the later pairs' clocks and thermal/anchor
         # histories detached from their optimizer updates.
+        no_ema_forms = frozenset({
+            "bispf", "empf", "rhbi", "t1_coupling", "t2_secant",
+            "rgdt", "axiom", "unified_v11", "unified_v15", "minimal",
+        })
         self.critic_optimizers = {}
         for role in ("x", "m", "i"):
             critic = getattr(self, "D_" + role, None)
             if critic is None:
                 continue
-            ema_critic = deepcopy(critic) if self.recipe.effective_critic_formulation != "bispf" else None
+            ema_critic = None if self.recipe.effective_critic_formulation in no_ema_forms else deepcopy(critic)
             optimizer = self.recipe.make_critic_optimizer(critic, ema_critic=ema_critic, foreach=False, fused=False)
             if not hasattr(optimizer, "record"):
                 _count_critic_steps(optimizer)
             self.critic_optimizers[role] = optimizer
             penalty = self.recipe.make_critic_penalty(optimizer, collect_stats=True)
             setattr(self, "penalty_" + role, penalty)
-            if self.recipe.effective_critic_formulation == "bispf":
-                from particlegan.bispf import bind_thermal_source
-                bind_thermal_source(optimizer.record, getattr(self, "loss_" + role),
-                                    getattr(self, "regularizer_" + role))
+            bind_formulation_records(
+                self.recipe,
+                optimizer,
+                getattr(self, "loss_" + role),
+                getattr(self, "regularizer_" + role),
+                generator=self.G,
+            )
         self.opt_d = self.critic_optimizers["x"]
         self.penalty_i = getattr(self, "penalty_i", None)
         self.base_rates = [[group["lr"] for group in opt.param_groups]
@@ -1898,26 +1910,27 @@ class MisGANRecoveryFixture(_MisGANBaseFixture):
         for optimizer in self.critic_optimizers.values():
             optimizer.step()
 
-        fake_gx_in = torch.cat([x_fake * m_hard, hint_fake_dx], dim=1)
+        with critic_g_step_mode(self.D):
+            fake_gx_in = torch.cat([x_fake * m_hard, hint_fake_dx], dim=1)
 
-        with torch.no_grad():
-            real_dx_logits = self.D_x(real_dx_in)
-            real_dm_logits = self.D_m(m_real)
-        loss_gx = self.loss_x.g_loss(self.D_x(fake_gx_in), real_dx_logits)
-        loss_gm = self.loss_m.g_loss(self.D_m(m_fake), real_dm_logits)
-        loss_adv = loss_gx + loss_gm
+            with torch.no_grad():
+                real_dx_logits = self.D_x(real_dx_in)
+                real_dm_logits = self.D_m(m_real)
+            loss_gx = self.loss_x.g_loss(self.D_x(fake_gx_in), real_dx_logits)
+            loss_gm = self.loss_m.g_loss(self.D_m(m_fake), real_dm_logits)
+            loss_adv = loss_gx + loss_gm
 
-        loss_prior_x = self._prior_role_reg_loss(self.prior_x, self.regularizer_x, idx_x)
-        loss_prior_m = self._prior_role_reg_loss(self.prior_m, self.regularizer_m, idx_m)
-        loss_prior = loss_prior_x + loss_prior_m
-        loss_g = loss_adv + loss_prior
+            loss_prior_x = self._prior_role_reg_loss(self.prior_x, self.regularizer_x, idx_x)
+            loss_prior_m = self._prior_role_reg_loss(self.prior_m, self.regularizer_m, idx_m)
+            loss_prior = loss_prior_x + loss_prior_m
+            loss_g = loss_adv + loss_prior
 
-        self.opt_g.zero_grad()
-        if self.recipe.constraint_geometry_mode != "none":
-            constraint_geometry_backward(loss_g, self.opt_g, (loss_adv,))
-        else:
-            loss_g.backward()
-        self.opt_g.step()
+            self.opt_g.zero_grad()
+            if self.recipe.constraint_geometry_mode != "none":
+                constraint_geometry_backward(loss_g, self.opt_g, (loss_adv,))
+            else:
+                loss_g.backward()
+            self.opt_g.step()
 
         decay = float(self.recipe.ema_decay)
         if decay > 0.0:
@@ -2134,31 +2147,32 @@ class MisGANNeuralImputerFixture(_MisGANBaseFixture):
         for optimizer in self.critic_optimizers.values():
             optimizer.step()
 
-        fake_gx_in = torch.cat([x_fake * m_hard, hint_fake_dx], dim=1)
+        with critic_g_step_mode(self.D):
+            fake_gx_in = torch.cat([x_fake * m_hard, hint_fake_dx], dim=1)
 
-        with torch.no_grad():
-            real_dx_logits = self.D_x(real_dx_in)
-            real_dm_logits = self.D_m(m_real)
-            real_di_logits = self.D_i(real_di_in)
+            with torch.no_grad():
+                real_dx_logits = self.D_x(real_dx_in)
+                real_dm_logits = self.D_m(m_real)
+                real_di_logits = self.D_i(real_di_in)
 
-        loss_gx = self.loss_x.g_loss(self.D_x(fake_gx_in), real_dx_logits)
-        loss_gm = self.loss_m.g_loss(self.D_m(m_fake), real_dm_logits)
-        loss_gi = self.loss_i.g_loss(self.D_i(cond_fake_gi), real_di_logits)
+            loss_gx = self.loss_x.g_loss(self.D_x(fake_gx_in), real_dx_logits)
+            loss_gm = self.loss_m.g_loss(self.D_m(m_fake), real_dm_logits)
+            loss_gi = self.loss_i.g_loss(self.D_i(cond_fake_gi), real_di_logits)
 
-        loss_adv = loss_gx + loss_gm + loss_gi
+            loss_adv = loss_gx + loss_gm + loss_gi
 
-        loss_prior_x = self._prior_role_reg_loss(self.prior_x, self.regularizer_x, idx_x)
-        loss_prior_m = self._prior_role_reg_loss(self.prior_m, self.regularizer_m, idx_m)
-        loss_prior_i = self._prior_role_reg_loss(self.prior_i, self.regularizer_i, idx_i)
-        loss_prior = loss_prior_x + loss_prior_m + loss_prior_i
-        loss_g = loss_adv + loss_prior
+            loss_prior_x = self._prior_role_reg_loss(self.prior_x, self.regularizer_x, idx_x)
+            loss_prior_m = self._prior_role_reg_loss(self.prior_m, self.regularizer_m, idx_m)
+            loss_prior_i = self._prior_role_reg_loss(self.prior_i, self.regularizer_i, idx_i)
+            loss_prior = loss_prior_x + loss_prior_m + loss_prior_i
+            loss_g = loss_adv + loss_prior
 
-        self.opt_g.zero_grad()
-        if self.recipe.constraint_geometry_mode != "none":
-            constraint_geometry_backward(loss_g, self.opt_g, (loss_adv,))
-        else:
-            loss_g.backward()
-        self.opt_g.step()
+            self.opt_g.zero_grad()
+            if self.recipe.constraint_geometry_mode != "none":
+                constraint_geometry_backward(loss_g, self.opt_g, (loss_adv,))
+            else:
+                loss_g.backward()
+            self.opt_g.step()
 
         decay = float(self.recipe.ema_decay)
         if decay > 0.0:

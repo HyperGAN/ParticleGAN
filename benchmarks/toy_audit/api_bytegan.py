@@ -28,6 +28,8 @@ from particlegan import (
     ParticlePrior,
     Recipe,
     UpdatePolicy,
+    bind_formulation_records,
+    critic_g_step_mode,
     get_recipe,
     init,
     unwrap_prior,
@@ -136,8 +138,10 @@ _NO_EMA_FORMULATIONS = frozenset({
     "unified",
     "unified_v4",
     "unified_v11",
+    "unified_v15",
     "r4_autograd_critic",
     "cond_fiber",
+    "axiom",
     "minimal",
 })
 
@@ -795,61 +799,7 @@ def _bind_formulation_record(
     generator: nn.Module | None = None,
 ) -> None:
     """Bind instance-local critic records to losses and prior regularizers matching GANTrainer."""
-    record = getattr(opt_d, "record", None)
-    if record is None:
-        return
-    eff = recipe.effective_critic_formulation
-    if eff == "bispf":
-        from particlegan.bispf import bind_thermal_source
-        bind_thermal_source(record, loss_fn, prior_reg_fn)
-    elif eff == "empf":
-        from particlegan.empf import bind_empf_record
-        bind_empf_record(record, loss_fn, prior_reg_fn)
-    elif eff == "t2_secant":
-        from particlegan.t2_critic import bind_t2_record
-        bind_t2_record(record, loss_fn, prior_reg_fn)
-    elif eff == "unified":
-        from particlegan.unified import bind_unified_record
-        bind_unified_record(record, loss_fn, prior_reg_fn)
-    elif eff in ("unified_v4", "r4_autograd_critic"):
-        from particlegan.unified_v4 import bind_unified_v4_record
-        bind_unified_v4_record(record, loss_fn, prior_reg_fn)
-        if prior_reg_fn is not None and getattr(prior_reg_fn, "_bound_device", None) is None and generator is not None:
-            g_dev = next((p.device for p in generator.parameters()), None)
-            if g_dev is not None:
-                prior_reg_fn._bound_device = g_dev
-    elif eff == "unified_v11":
-        from particlegan.unified_v11 import bind_unified_v11_record
-        bind_unified_v11_record(record, loss_fn, prior_reg_fn)
-        if prior_reg_fn is not None and getattr(prior_reg_fn, "_bound_device", None) is None and generator is not None:
-            g_dev = next((p.device for p in generator.parameters()), None)
-            if g_dev is not None:
-                prior_reg_fn._bound_device = g_dev
-    elif eff == "cond_fiber":
-        from particlegan.cond_fiber import bind_cond_fiber_record
-        bind_cond_fiber_record(record, loss_fn, prior_reg_fn)
-    elif eff == "rhbi" or recipe.rhbi_weight > 0 or recipe.rhbi_critic_weight > 0:
-        from particlegan.rhbi import bind_rhbi_record
-        bind_rhbi_record(record, loss_fn, prior_reg_fn)
-    elif eff == "t1_coupling" or recipe.t1c_weight > 0:
-        from particlegan.t1_coupling import bind_t1_coupling_record
-        bind_t1_coupling_record(record, loss_fn, prior_reg_fn)
-    elif eff == "rgdt":
-        from particlegan.t3_dynamics import bind_rgdt_record
-        bind_rgdt_record(record, loss_fn, prior_reg_fn)
-    elif eff == "t4_nash":
-        from particlegan.t4_nash import bind_t4_nash_record
-        bind_t4_nash_record(record, loss_fn, prior_reg_fn)
-    elif eff == "t4_nash_v3":
-        from particlegan.nash_v3 import bind_nash_v3_record
-        bind_nash_v3_record(record, loss_fn, prior_reg_fn)
-    elif eff == "minimal":
-        from particlegan.minimal import bind_minimal_record
-        bind_minimal_record(record, loss_fn, prior_reg_fn)
-        if prior_reg_fn is not None and getattr(prior_reg_fn, "_bound_device", None) is None and generator is not None:
-            g_dev = next((p.device for p in generator.parameters()), None)
-            if g_dev is not None:
-                prior_reg_fn._bound_device = g_dev
+    bind_formulation_records(recipe, opt_d, loss_fn, prior_reg_fn, generator=generator)
 
 
 class ByteGANToyFixture:
@@ -922,7 +872,7 @@ class ByteGANToyFixture:
         self.recipe.apply_prior_policy(prior)
 
         self.data_rng = torch.Generator(device="cpu").manual_seed(_seed_int("data:target:training", self.seed))
-        self._batch_hasher = hashlib.sha256()
+        self._batch_sequence_sha256 = hashlib.sha256().hexdigest()
         self.trainer = GANTrainer(
             self.recipe,
             G,
@@ -952,11 +902,14 @@ class ByteGANToyFixture:
 
     @property
     def batch_sequence_sha256(self) -> str:
-        return self._batch_hasher.hexdigest()
+        return self._batch_sequence_sha256
 
     def step(self) -> dict:
         real_cpu = sample_byte_target(self.recipe.batch_size, self.data_rng, device="cpu")
-        self._batch_hasher.update(real_cpu.numpy().tobytes())
+        step_hash = hashlib.sha256(real_cpu.numpy().tobytes()).digest()
+        self._batch_sequence_sha256 = hashlib.sha256(
+            bytes.fromhex(self._batch_sequence_sha256) + step_hash
+        ).hexdigest()
         out = self.trainer.step(real_cpu.to(self.device))
         return {k: float(v.item()) if isinstance(v, torch.Tensor) else v for k, v in out.items()}
 
@@ -978,6 +931,7 @@ class ByteGANToyFixture:
             "case_id": self.case_id,
             "seed": self.seed,
             "limit": self.limit,
+            "batch_sequence_sha256": self._batch_sequence_sha256,
             "data_rng": self.data_rng.get_state().clone(),
             "trainer": self.trainer.state_dict(),
         }
@@ -985,7 +939,10 @@ class ByteGANToyFixture:
     def load_state_dict(self, state: dict) -> None:
         if state.get("case_id") != self.case_id:
             raise ValueError("checkpoint case_id mismatch")
-        self.data_rng.set_state(state["data_rng"].cpu())
+        if "batch_sequence_sha256" not in state:
+            raise ValueError("checkpoint missing batch_sequence_sha256")
+        self._batch_sequence_sha256 = str(state["batch_sequence_sha256"])
+        self.data_rng.set_state(state["data_rng"].detach().to(device="cpu", dtype=torch.uint8).clone())
         self.trainer.load_state_dict(state["trainer"])
 
 
@@ -1140,7 +1097,7 @@ class ByteGANBiGANFixture:
             self.loss = self.recipe.make_loss()
             self.spread = self.recipe.make_prior_regularizer(prior=self.prior, reference=self.prior)
             self.penalty = self.recipe.make_critic_penalty(self.opt_d, collect_stats=components is not None)
-            _bind_formulation_record(self.recipe, self.opt_d, self.loss, self.spread, self.G)
+            bind_formulation_records(self.recipe, self.opt_d, self.loss, self.spread, generator=self.G)
 
             policy_streams = (
                 {
@@ -1191,7 +1148,7 @@ class ByteGANBiGANFixture:
             if components is None
             else components.streams.generator("data", component="target", purpose="training", device="cpu")
         )
-        self._batch_hasher = hashlib.sha256()
+        self._batch_sequence_sha256 = hashlib.sha256().hexdigest()
         self.metadata = {
             "checkpoint_capabilities": {
                 "round_trip": True,
@@ -1206,16 +1163,18 @@ class ByteGANBiGANFixture:
 
     @property
     def batch_sequence_sha256(self) -> str:
-        return self._batch_hasher.hexdigest()
+        return self._batch_sequence_sha256
 
     def step(self) -> dict:
         if self.completed_steps >= self.max_steps:
             raise RuntimeError("bytegan_bigan execution budget exhausted")
         real_cpu = sample_byte_target(self.recipe.batch_size, self.data_rng, device="cpu")
-        self._batch_hasher.update(real_cpu.numpy().tobytes())
+        step_hash = hashlib.sha256(real_cpu.numpy().tobytes()).digest()
+        self._batch_sequence_sha256 = hashlib.sha256(
+            bytes.fromhex(self._batch_sequence_sha256) + step_hash
+        ).hexdigest()
         real_bytes = real_cpu.to(self.device)
 
-        flags = [p.requires_grad for p in self.D.parameters()]
         modes = [(m, m.training) for root in (self.G, self.E, self.D) for m in root.modules()]
         base_prior = unwrap_prior(self.prior)
         postproc = bool(getattr(self.prior, "postprocesses_generated", False))
@@ -1245,61 +1204,61 @@ class ByteGANBiGANFixture:
                 self.opt_d.step()
                 self.policy.after_critic_step()
 
-                self.D.eval().requires_grad_(False)
-                self.G.train()
-                self.E.train()
-                encoded = self.E(real_bytes)
-                latent, rows = self.prior.sample(len(real_bytes), generator=self.policy.latent_generator)
-                fake_bytes = self.policy.generate(latent, sigma=noise.output_sigma, rows=rows)
-                if postproc:
-                    fake_bytes = self.prior.postprocess_generated(fake_bytes)
-                if hasattr(self.opt_g, "bind_origin_sample"):
-                    self.opt_g.bind_origin_sample(fake_bytes)
-                loss_gan = self.loss.joint_g_loss(
-                    self.noisy_critic(_join_byte_latent(fake_bytes, latent)),
-                    self.noisy_critic(_join_byte_latent(real_bytes, encoded)),
-                )
-                prior_reg = self.recipe.prior_regularization(base_prior.z, regularizer=self.spread)
-                loss_g = loss_gan + prior_reg
-                reconstruction = None
-                if self.recipe.joint_reconstruction_weight:
-                    reconstruction = self.recipe.joint_reconstruction_loss(
-                        self.G(encoded), real_bytes, categorical_dim=None
+                with critic_g_step_mode(self.D):
+                    self.G.train()
+                    self.E.train()
+                    encoded = self.E(real_bytes)
+                    latent, rows = self.prior.sample(len(real_bytes), generator=self.policy.latent_generator)
+                    fake_bytes = self.policy.generate(latent, sigma=noise.output_sigma, rows=rows)
+                    if postproc:
+                        fake_bytes = self.prior.postprocess_generated(fake_bytes)
+                    if hasattr(self.opt_g, "bind_origin_sample"):
+                        self.opt_g.bind_origin_sample(fake_bytes)
+                    loss_gan = self.loss.joint_g_loss(
+                        self.noisy_critic(_join_byte_latent(fake_bytes, latent)),
+                        self.noisy_critic(_join_byte_latent(real_bytes, encoded)),
                     )
-                    loss_g = loss_g + reconstruction
-                if self.transport is not None:
-                    loss_g = self.transport.add(loss_g, fake_bytes, real_bytes)
-
-                self.opt_g.zero_grad(set_to_none=True)
-                self.policy.before_generator_backward()
-                protected_evaluator = None
-                if self.recipe.constraint_geometry_mode == "strict_progress":
-                    width_noise = (latent - base_prior.z[rows]).detach()
-
-                    def protected_evaluator():
-                        current_latent = base_prior.z[rows] + width_noise
-                        gen_cur = self.G(current_latent)
-                        if postproc:
-                            gen_cur = self.prior.postprocess_generated(gen_cur)
-                        return (
-                            self.loss.joint_g_loss(
-                                self.noisy_critic(_join_byte_latent(gen_cur, current_latent)),
-                                self.noisy_critic(_join_byte_latent(real_bytes, self.E(real_bytes))),
-                            ),
+                    prior_reg = self.recipe.prior_regularization(base_prior.z, regularizer=self.spread)
+                    loss_g = loss_gan + prior_reg
+                    reconstruction = None
+                    if self.recipe.joint_reconstruction_weight:
+                        reconstruction = self.recipe.joint_reconstruction_loss(
+                            self.G(encoded), real_bytes, categorical_dim=None
                         )
+                        loss_g = loss_g + reconstruction
+                    if self.transport is not None:
+                        loss_g = self.transport.add(loss_g, fake_bytes, real_bytes)
 
-                constraint_geometry_backward(
-                    loss_g,
-                    self.opt_g,
-                    (loss_gan,),
-                    protected_evaluator=protected_evaluator,
-                )
-                self.policy.after_generator_backward(
-                    loss_gan=loss_gan.detach(),
-                    loss_critic=adversarial_d.detach(),
-                )
-                self.opt_g.step()
-                self.policy.after_generator_step()
+                    self.opt_g.zero_grad(set_to_none=True)
+                    self.policy.before_generator_backward()
+                    protected_evaluator = None
+                    if self.recipe.constraint_geometry_mode == "strict_progress":
+                        width_noise = (latent - base_prior.z[rows]).detach()
+
+                        def protected_evaluator():
+                            current_latent = base_prior.z[rows] + width_noise
+                            gen_cur = self.G(current_latent)
+                            if postproc:
+                                gen_cur = self.prior.postprocess_generated(gen_cur)
+                            return (
+                                self.loss.joint_g_loss(
+                                    self.noisy_critic(_join_byte_latent(gen_cur, current_latent)),
+                                    self.noisy_critic(_join_byte_latent(real_bytes, self.E(real_bytes))),
+                                ),
+                            )
+
+                    constraint_geometry_backward(
+                        loss_g,
+                        self.opt_g,
+                        (loss_gan,),
+                        protected_evaluator=protected_evaluator,
+                    )
+                    self.policy.after_generator_backward(
+                        loss_gan=loss_gan.detach(),
+                        loss_critic=adversarial_d.detach(),
+                    )
+                    self.opt_g.step()
+                    self.policy.after_generator_step()
                 self.policy.finish_step()
                 result = {
                     "step": self.completed_steps,
@@ -1314,8 +1273,6 @@ class ByteGANBiGANFixture:
             self.policy.abort_step()
             raise
         finally:
-            for p, flag in zip(self.D.parameters(), flags):
-                p.requires_grad_(flag)
             for m, flag in modes:
                 m.training = flag
 
@@ -1340,6 +1297,7 @@ class ByteGANBiGANFixture:
             "seed": self.seed,
             "max_steps": self.max_steps,
             "recipe": self.recipe.to_dict(),
+            "batch_sequence_sha256": self._batch_sequence_sha256,
             "data_rng": self.data_rng.get_state().clone(),
             "input_noise_rng": self.input_noise_generator.get_state().clone(),
             "api_components": self.api_components,
@@ -1355,6 +1313,8 @@ class ByteGANBiGANFixture:
             raise ValueError("checkpoint case_id mismatch")
         if state.get("recipe") != self.recipe.to_dict():
             raise ValueError("checkpoint recipe mismatch")
+        if "batch_sequence_sha256" not in state:
+            raise ValueError("checkpoint missing batch_sequence_sha256")
         self.recipe.restore_prior_regularizer(self.spread, state.get("prior_regularizer"), validate_only=True)
         if self.transport is None:
             if state.get("component_transport") is not None:
@@ -1365,10 +1325,11 @@ class ByteGANBiGANFixture:
             self.transport.load_state_dict(state["component_transport"])
         self.policy.load_state_dict(state["api_state"])
         self.recipe.restore_prior_regularizer(self.spread, state.get("prior_regularizer"))
-        self.data_rng.set_state(state["data_rng"].cpu())
+        self._batch_sequence_sha256 = str(state["batch_sequence_sha256"])
+        self.data_rng.set_state(state["data_rng"].detach().to(device="cpu", dtype=torch.uint8).clone())
         in_rng = state["input_noise_rng"]
         self.input_noise_generator.set_state(
-            in_rng.cpu() if self.input_noise_generator.device.type == "cpu" else in_rng.to(self.input_noise_generator.device)
+            in_rng.detach().to(device="cpu", dtype=torch.uint8).clone()
         )
 
 

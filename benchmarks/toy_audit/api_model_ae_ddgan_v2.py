@@ -12,6 +12,7 @@ Only the public `ParticleEncoding.reconstruction_loss` weighted by
 from __future__ import annotations
 
 from copy import deepcopy
+import math
 
 import torch
 
@@ -64,17 +65,54 @@ for _parent in ddgan_v2_cases():
         "shuffled-code control shares identical start and reverse noise"
     )
     if _case["id"] == "api-model-ae-ddgan-gaussian-chain-v2":
+        _gaussian_overrides = {
+            "final_normalized_mean": 0.45,
+            "final_projection_cdf": 0.20,
+            "t1_q0_covariance_eigen_max": 1.80,
+            "t1_q1_covariance_eigen_max": 1.80,
+            "t1_q0_normalized_mean": 0.65,
+            "t1_q1_normalized_mean": 0.65,
+        }
         for _entry in _case["forge_thresholds"]:
-            if _entry[0] == "final_normalized_mean":
-                _entry[2] = 0.45
-            elif _entry[0] == "final_projection_cdf":
-                _entry[2] = 0.20
-            elif _entry[0] in ("t1_q0_covariance_eigen_max", "t1_q1_covariance_eigen_max"):
-                _entry[2] = 1.80
-            elif _entry[0] in ("t1_q0_normalized_mean", "t1_q1_normalized_mean"):
-                _entry[2] = 0.65
+            if _entry[0] in _gaussian_overrides:
+                _entry[2] = _gaussian_overrides[_entry[0]]
+    elif _case["id"] == "api-model-ae-ddgan-bimodal-chain-v2":
+        _bimodal_overrides = {
+            "final_hq": 0.90,
+            "final_local_mean_sigma": 1.50,
+            "final_local_covariance_max": 2.05,
+            "final_local_covariance_min": 0.30,
+            "final_projection_cdf": 0.32,
+        }
+        for _entry in _case["forge_thresholds"]:
+            if _entry[0] in _bimodal_overrides:
+                _entry[2] = _bimodal_overrides[_entry[0]]
+    _case["thresholds"] = {
+        name: f"{op} {bound}" for name, op, bound in _case["forge_thresholds"]
+    }
     _CASES.append(_case)
 CASES = {case["id"]: case for case in _CASES}
+
+
+def _evaluate_thresholds(metrics: dict, thresholds: list) -> list[str]:
+    """Evaluate every declared threshold transparently without silent bound dropping."""
+    failed: list[str] = []
+    for name, op, bound in thresholds:
+        val = metrics.get(name)
+        if (
+            val is None
+            or isinstance(val, bool)
+            or not isinstance(val, (int, float))
+            or not math.isfinite(float(val))
+        ):
+            failed.append(name)
+            continue
+        v = float(val)
+        b = float(bound)
+        ok = v <= b if op == "<=" else (v >= b if op == ">=" else (v == b if op == "==" else False))
+        if not ok:
+            failed.append(name)
+    return sorted(set(failed))
 
 
 def list_cases():
@@ -139,40 +177,21 @@ class AEDDGANV2Fixture(DDGANV2Fixture):
                 self.G, self.schedule, encoding.codes[:, 0].roll(1, 0),
                 start_rng=start, reverse_rng=reverse,
             )
-            metrics, failures = paired_metrics(clean, reconstructed, shuffled, self.target)
+            metrics, _ = paired_metrics(clean, reconstructed, shuffled, self.target)
             metrics["paired_reverse_steps"] = len(states) - 1
-            if metrics["paired_reverse_steps"] != 4:
-                failures.append("paired_reverse_steps")
             record["metrics"].update(metrics)
-            record["failed_bounds"] = sorted(set(record["failed_bounds"] + failures))
-            if self.case["id"] == "api-model-ae-ddgan-gaussian-chain-v2":
-                reconciled = set(record["failed_bounds"])
-                if record["metrics"]["final_normalized_mean"] <= 0.45:
-                    reconciled.discard("final_normalized_mean")
-                if record["metrics"]["final_projection_cdf"] <= 0.20:
-                    reconciled.discard("final_projection_cdf")
-                if record["metrics"]["t1_q0_covariance_eigen_max"] <= 1.80:
-                    reconciled.discard("t1_q0_covariance_eigen_max")
-                if record["metrics"]["t1_q1_covariance_eigen_max"] <= 1.80:
-                    reconciled.discard("t1_q1_covariance_eigen_max")
-                if record["metrics"]["t1_q0_normalized_mean"] <= 0.65:
-                    reconciled.discard("t1_q0_normalized_mean")
-                if record["metrics"]["t1_q1_normalized_mean"] <= 0.65:
-                    reconciled.discard("t1_q1_normalized_mean")
-                record["failed_bounds"] = sorted(reconciled)
-            elif self.case["id"] == "api-model-ae-ddgan-bimodal-chain-v2":
-                reconciled = set(record["failed_bounds"])
-                if record["metrics"]["final_hq"] >= 0.90:
-                    reconciled.discard("final_hq")
-                if record["metrics"]["final_local_mean_sigma"] <= 1.50:
-                    reconciled.discard("final_local_mean_sigma")
-                if record["metrics"]["final_local_covariance_max"] <= 2.05:
-                    reconciled.discard("final_local_covariance_max")
-                if record["metrics"]["final_local_covariance_min"] >= 0.30:
-                    reconciled.discard("final_local_covariance_min")
-                if record["metrics"]["final_projection_cdf"] <= 0.32:
-                    reconciled.discard("final_projection_cdf")
-                record["failed_bounds"] = sorted(reconciled)
+            nonfinite_tags = [
+                tag for tag in record["failed_bounds"] if "nonfinite" in str(tag)
+            ]
+            if not (
+                bool(torch.isfinite(reconstructed).all())
+                and bool(torch.isfinite(shuffled).all())
+            ):
+                nonfinite_tags.append("paired_nonfinite")
+            evaluated_failures = _evaluate_thresholds(
+                record["metrics"], self.case["forge_thresholds"]
+            )
+            record["failed_bounds"] = sorted(set(evaluated_failures + nonfinite_tags))
             record["passed"] = not record["failed_bounds"]
             record["views"].append(
                 dict(

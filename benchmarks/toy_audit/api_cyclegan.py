@@ -29,14 +29,14 @@ from particlegan import (
     MoGParticlePrior,
     ParticlePrior,
     Recipe,
+    bind_formulation_records,
+    critic_g_step_mode,
     get_recipe,
     get_recipe_fields,
     init,
     scale_learning_rates,
     unwrap_prior,
 )
-from particlegan._bispf.critic import _attach_critic_input_hook
-from particlegan._bispf.thermal import bind_thermal_source
 from particlegan.optim.constraint_geometry import constraint_geometry_backward
 
 
@@ -487,11 +487,7 @@ class CycleGANConstellationFixture:
         self.loss = self.recipe.make_loss()
         self.penalty = self.recipe.make_critic_penalty(self.opt_d)
         self.regularizer = self.recipe.make_prior_regularizer(prior=self.prior)
-
-        if getattr(self.recipe, "effective_critic_formulation", "") == "bispf" and hasattr(self.opt_d, "record"):
-            bind_thermal_source(self.opt_d.record, self.loss, self.penalty.regularizer)
-            _attach_critic_input_hook(self.D_y, self.opt_d.record)
-            _attach_critic_input_hook(self.D_x, self.opt_d.record)
+        bind_formulation_records(self.recipe, self.opt_d, self.loss, self.regularizer, generator=self.G_bundle)
 
     def _sample_prior(self, batch_size: int) -> tuple[torch.Tensor, torch.Tensor]:
         if isinstance(self.prior, (MoGParticlePrior, ManipulatedPrior)):
@@ -574,9 +570,7 @@ class CycleGANConstellationFixture:
         # ------------------------------------------------------------------
         # 2. Translator + Prior update (G_xy, G_yx, G_prior, prior.z)
         # ------------------------------------------------------------------
-        d_flags = [p.requires_grad for p in self.D_bundle.parameters()]
-        try:
-            self.D_bundle.requires_grad_(False)
+        with critic_g_step_mode(self.D_bundle):
             self.opt_g.zero_grad()
 
             z_g, idx_g = self._sample_prior(batch_size)
@@ -616,12 +610,6 @@ class CycleGANConstellationFixture:
 
             # Bidirectional cycle-consistency loss (Zhu et al. 2017; Kim et al. 2017)
             loss_cyc = F.mse_loss(cyc_x, real_x) + F.mse_loss(cyc_y, real_y)
-            s_thermal = float(getattr(getattr(self.opt_d, "record", None), "_thermal_scale", 1.0))
-            if getattr(self.recipe, "effective_critic_formulation", "") == "bispf" and s_thermal < 1.0:
-                s_cyc = min(1.0, 0.15 * s_thermal * s_thermal)
-                loss_cyc_eff = loss_cyc * s_cyc + loss_cyc.detach() * (1.0 - s_cyc)
-            else:
-                loss_cyc_eff = loss_cyc
 
             # Recipe-owned prior regularization
             reg_prior = self.recipe.prior_regularization(
@@ -632,16 +620,13 @@ class CycleGANConstellationFixture:
                     z=z_g, idx=idx_g, x_fake=x_prior
                 )
 
-            loss_g = loss_adv + self.lambda_cyc * loss_cyc_eff + reg_prior
+            loss_g = loss_adv + self.lambda_cyc * loss_cyc + reg_prior
 
             if self.recipe.constraint_geometry_mode != "none":
                 constraint_geometry_backward(loss_g, self.opt_g, (loss_adv,))
             else:
                 loss_g.backward()
             self.opt_g.step()
-        finally:
-            for p, f in zip(self.D_bundle.parameters(), d_flags):
-                p.requires_grad_(f)
 
         self.completed_steps += 1
         self.last_losses = {
@@ -709,11 +694,11 @@ class CycleGANConstellationFixture:
         self.prior.load_state_dict(state["prior"])
         self.opt_g.load_state_dict(state["opt_g"])
         self.opt_d.load_state_dict(state["opt_d"])
-        self.data_x_rng.set_state(state["data_x_rng"])
-        self.data_y_rng.set_state(state["data_y_rng"])
-        self.prior_rng.set_state(state["prior_rng"])
-        self.noise_rng.set_state(state["noise_rng"])
-        self.eval_rng.set_state(state["eval_rng"])
+        self.data_x_rng.set_state(state["data_x_rng"].detach().to(device="cpu", dtype=torch.uint8).clone())
+        self.data_y_rng.set_state(state["data_y_rng"].detach().to(device="cpu", dtype=torch.uint8).clone())
+        self.prior_rng.set_state(state["prior_rng"].detach().to(device="cpu", dtype=torch.uint8).clone())
+        self.noise_rng.set_state(state["noise_rng"].detach().to(device="cpu", dtype=torch.uint8).clone())
+        self.eval_rng.set_state(state["eval_rng"].detach().to(device="cpu", dtype=torch.uint8).clone())
         self.last_losses = deepcopy(state["last_losses"])
 
 

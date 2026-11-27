@@ -524,3 +524,141 @@ def test_four_laws_v2_oracle_controls_preflight_grading_and_shock_continuation()
         assert obs_direct["metrics"] == obs_resume["metrics"]
     finally:
         torch.set_num_threads(old_threads)
+
+
+def test_repaired_axiom_four_laws_benchmark_formulas_and_nonzero_sync_counter():
+    """Verify repaired 4-laws benchmark: nonzero sync tracking, seeded shuffled 3C tail, real 3B, Suite 4A parity."""
+    from scripts import axiom_four_laws_benchmark as bench
+    from scripts.four_laws_audit import p7_law1_topology as p7
+
+    # 1. _count_host_syncs catches BOTH torch.nonzero(t) and t.nonzero() in both audit scripts
+    for mod in (bench, p7):
+        with mod._count_host_syncs(torch.device("cpu")) as sc:
+            t = torch.tensor([0, 1, 0, 2])
+            _ = torch.nonzero(t)
+            _ = t.nonzero()
+        assert sc["nonzero"] == 2, f"{mod.__name__}: {sc}"
+
+    # 2. Suite 3C uses deterministic seeded shuffled indices (never hardcoded [126, 127]) and real 3B optimizers
+    r3 = bench.run_suite3_law41_43_p4()
+    tail_idx = r3["rare_1pct_tail_capture"]["axiom"]["tail_indices"]
+    assert len(tail_idx) == 2 and tail_idx != [126, 127]
+    assert abs(r3["coord_scale_homogeneity"]["1e-04"]["axiom_ratio_vs_c1"] - 1.0) < 1e-3
+
+    # 3. Source-level check: zero legacy _t1_coupling import in axiom_four_laws_benchmark.py & exact Suite 4A formulas
+    src = (ROOT / "scripts/axiom_four_laws_benchmark.py").read_text(encoding="utf-8")
+    assert "from particlegan._t1_coupling" not in src
+    assert "laguerre_hard_commitment" not in src
+    assert "beta=20.0" in src
+    assert "0.25 * cap_c" in src
+    assert "0.005 * (sr.mean() + sf.mean())" in src
+    assert "8.0 * sr" in src and "0.08 * chord" in src
+
+
+def test_ae_ddgan_v2_transparent_thresholds_zero_reconciled_discard():
+    """api_model_ae_ddgan_v2 must match case['thresholds'] == forge_thresholds with zero reconciled.discard."""
+    from benchmarks.toy_audit import api_model_ae_ddgan_v2 as ae2
+
+    src = (ROOT / "benchmarks/toy_audit/api_model_ae_ddgan_v2.py").read_text(encoding="utf-8")
+    assert "reconciled.discard" not in src
+    for case in ae2.list_cases():
+        expected = {name: f"{op} {bound}" for name, op, bound in case["forge_thresholds"]}
+        assert case["thresholds"] == expected
+        # Every bound violation must be reported fail-closed without silent dropping
+        passing_metrics = {name: bound for name, _, bound in case["forge_thresholds"]}
+        assert ae2._evaluate_thresholds(passing_metrics, case["forge_thresholds"]) == []
+        breached = dict(passing_metrics)
+        first_name, first_op, first_bound = case["forge_thresholds"][0]
+        breached[first_name] = first_bound + 1.0 if first_op == "<=" else first_bound - 1.0
+        assert first_name in ae2._evaluate_thresholds(breached, case["forge_thresholds"])
+
+
+def test_four_laws_123_real_sdpa_gating_critic_grad_and_no_swallowed_exceptions():
+    """ResNetGroupNormViTCritic uses real F.scaled_dot_product_attention; critic_grad_finite gates PASS; errors propagate."""
+    import torch.nn.functional as F
+    from unittest import mock
+
+    critic = fl123.ResNetGroupNormViTCritic(in_ch=3, base_ch=16, vit_dim=32, vit_heads=2)
+    sdpa_calls = 0
+    orig_sdpa = F.scaled_dot_product_attention
+
+    def _spy_sdpa(*args, **kwargs):
+        nonlocal sdpa_calls
+        sdpa_calls += 1
+        return orig_sdpa(*args, **kwargs)
+
+    with mock.patch.object(F, "scaled_dot_product_attention", side_effect=_spy_sdpa):
+        out = critic(torch.randn(2, 3, 32, 32))
+    assert out.shape == (2,)
+    assert sdpa_calls >= 1
+
+    # Both v1 and v2 sprites tasks must gate on critic_grad_finite == 1.0
+    tpl = fl123.sprite_templates("cpu")
+    ora = fl123.sample_target_for_kind("fl_law2_groupnorm_and_vit_sprites", 64, torch.Generator().manual_seed(0))
+    res_v1 = fl123.score_fl_law2_groupnorm_and_vit_sprites(ora, critic_grad_finite=0.0, reference=tpl)
+    res_v2 = fl123.score_fl_law2_groupnorm_and_vit_sprites_v2(ora, critic_grad_finite=0.0, reference=tpl)
+    assert res_v1["passed"] is False and "critic_grad_finite == 1.0" in res_v1["failed_bounds"]
+    assert res_v2["passed"] is False and "critic_grad_finite == 1.0" in res_v2["failed_bounds"]
+
+    # Runtime exceptions inside critic gradient measurement must propagate (not be swallowed into 0.0/nan)
+    class _BrokenCritic(torch.nn.Module):
+        def __init__(self):
+            super().__init__()
+            self.w = torch.nn.Parameter(torch.ones(1))
+
+        def forward(self, x):
+            raise RuntimeError("injected critic boom")
+
+    broken = _BrokenCritic()
+    with pytest.raises(RuntimeError, match="injected critic boom"):
+        fl123._measure_sprite_critic_grad(broken, torch.zeros(4, 3, 32, 32))
+    with pytest.raises(RuntimeError, match="injected critic boom"):
+        fl123._measure_normal_critic_grad(broken, torch.zeros(4, 2))
+
+
+def test_tier4_providers_zero_bispf_branching_oracle_or_mmd_shortcuts():
+    """Verify Tier-4 providers removed bispf branching, oracle RING_RADIUS, identity skips, MMD shortcuts, and bind axiom/v15."""
+    import inspect
+    from benchmarks.toy_audit import (
+        api_bytegan,
+        api_cramergan,
+        api_cyclegan,
+        api_infogan,
+        api_pacgan,
+    )
+
+    # 1. InfoGAN: zero bispf branching in step(), zero RING_RADIUS in G/Q
+    assert "bispf" not in inspect.getsource(api_infogan.InfoGANAnisotropicFixture.step)
+    assert "RING_RADIUS" not in inspect.getsource(api_infogan.InfoGANGenerator)
+    assert "RING_RADIUS" not in inspect.getsource(api_infogan.InfoGANRecognition)
+    assert "3.0 *" not in inspect.getsource(api_infogan.InfoGANGenerator.forward)
+
+    # 2. CycleGAN: zero bispf branching in step()
+    assert "bispf" not in inspect.getsource(api_cyclegan.CycleGANConstellationFixture.step)
+
+    # 3. CramerGAN: zero data-space identity skip in CramerCritic.embed, zero data-space MMD shortcut
+    critic = api_cramergan.CramerCritic(in_dim=2, embed_dim=16, hidden=32)
+    with torch.no_grad():
+        critic.embedding_head.weight.zero_()
+        critic.embedding_head.bias.zero_()
+    x_probe = torch.randn(8, 2) + 5.0
+    assert torch.allclose(critic.embed(x_probe), torch.zeros(8, 16)), "Identity skip still present in CramerCritic.embed!"
+
+    hr, hf1, hf2 = torch.randn(8, 16), torch.randn(8, 16), torch.randn(8, 16)
+    xr, xf1, xf2 = torch.randn(8, 2), torch.randn(8, 2) + 10.0, torch.randn(8, 2) - 10.0
+    loss_pure = api_cramergan.cramer_generator_loss(hr, hf1, hf2)
+    loss_with_x = api_cramergan.cramer_generator_loss(hr, hf1, hf2, real_x=xr, fake_x1=xf1, fake_x2=xf2)
+    assert torch.allclose(loss_pure, loss_with_x, atol=1e-7), "Data-space MMD shortcut still active!"
+
+    # 4. Caller-owned fixtures cleanly bind formulation records for axiom and unified_v15
+    for preset in ("axiom", "unified_v15"):
+        b_fix = api_bytegan.build_case("api-bytegan-bigan-dictionary", device="cpu", seed=0, recipe_name=preset, max_steps=2)
+        assert getattr(b_fix.loss, "record", None) is b_fix.opt_d.record
+        p_fix = api_pacgan.PacGANUnequalMassFixture(device="cpu", seed=0, recipe_name=preset, max_steps=2)
+        assert getattr(p_fix.loss, "record", None) is p_fix.opt_d.record
+        i_fix = api_infogan.InfoGANAnisotropicFixture(device="cpu", seed=0, recipe_name=preset, max_steps=2)
+        assert getattr(i_fix.loss, "record", None) is i_fix.opt_d.record
+        c_fix = api_cyclegan.CycleGANConstellationFixture(device="cpu", seed=0, recipe_name=preset, max_steps=2)
+        assert getattr(c_fix.loss, "record", None) is c_fix.opt_d.record
+        cr_fix = api_cramergan.CramerGANOverlapFixture(device="cpu", seed=0, recipe_name=preset, max_steps=2)
+        assert getattr(cr_fix.loss, "record", None) is cr_fix.opt_d.record

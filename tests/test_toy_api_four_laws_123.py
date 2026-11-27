@@ -96,9 +96,8 @@ def test_interface_contract_exports_and_schema():
 
 
 def test_thresholds_are_strictly_method_agnostic_output_gates():
-    """Verify THRESHOLDS grade ONLY observable generated outputs, never internal mechanics."""
+    """Verify THRESHOLDS grade observable outputs (plus explicit critic_grad_finite gate on ViT sprites)."""
     forbidden_substrings = (
-        "grad",
         "stiff",
         "s_th",
         "peak",
@@ -109,13 +108,23 @@ def test_thresholds_are_strictly_method_agnostic_output_gates():
         "d_max_s1",
         "prior_",
     )
-    for tid in EXPECTED_TASKS:
-        gate_names = [row[0] for row in fl123.THRESHOLDS[tid]]
+    allowed_grad_gates = {
+        "fl_law2_groupnorm_and_vit_sprites": {"critic_grad_finite"},
+        "fl_law2_groupnorm_and_vit_sprites_v2": {"critic_grad_finite"},
+    }
+    for tid in fl123.ALL_TASKS:
+        gate_names = [row[0] for row in fl123.ALL_THRESHOLDS[tid]]
         for name in gate_names:
             lower = name.lower()
             assert not any(tok in lower for tok in forbidden_substrings), (
-                f"{tid} threshold {name!r} must not gate on internal/runtime/critic mechanics"
+                f"{tid} threshold {name!r} must not gate on internal/runtime mechanics"
             )
+            if "grad" in lower:
+                assert name in allowed_grad_gates.get(tid, set()), (
+                    f"{tid} threshold {name!r} unexpectedly gates on gradient telemetry"
+                )
+    assert ["critic_grad_finite", "==", 1.0] in fl123.THRESHOLDS["fl_law2_groupnorm_and_vit_sprites"]
+    assert ["critic_grad_finite", "==", 1.0] in fl123.V2_THRESHOLDS["fl_law2_groupnorm_and_vit_sprites_v2"]
 
 
 def test_signed_margins_semantics_and_fail_closed():
@@ -309,11 +318,17 @@ def test_destructive_negative_controls_all_five_tasks():
     )
     assert not r4_skew["passed"] and "mass_tv <= 0.14" in r4_skew["failed_bounds"]
 
-    # Runtime/diagnostic telemetry (mean_step_ms, critic_grad_finite) does NOT gate generated-output PASS.
-    r4_diag = api_contract.validate_observation(
-        fl123.score_fl_law2_groupnorm_and_vit_sprites(ora4, critic_grad_finite=0.0, mean_step_ms=9999.0, reference=tpl4)
+    # critic_grad_finite == 1.0 MUST gate PASS; mean_step_ms remains non-gating telemetry.
+    r4_bad_grad = api_contract.validate_observation(
+        fl123.score_fl_law2_groupnorm_and_vit_sprites(ora4, critic_grad_finite=0.0, mean_step_ms=30.0, reference=tpl4)
     )
-    assert r4_diag["passed"] is True and r4_diag["metrics"]["mean_step_ms"] == 9999.0
+    assert r4_bad_grad["passed"] is False
+    assert "critic_grad_finite == 1.0" in r4_bad_grad["failed_bounds"]
+
+    r4_slow = api_contract.validate_observation(
+        fl123.score_fl_law2_groupnorm_and_vit_sprites(ora4, critic_grad_finite=1.0, mean_step_ms=9999.0, reference=tpl4)
+    )
+    assert r4_slow["passed"] is True and r4_slow["metrics"]["mean_step_ms"] == 9999.0
 
     # --- Task 5: fl_law3_highd_orphan_d32 ---
     w5, m5, s5, q5 = fl123.highd_orphan_parameters("cpu")
@@ -473,12 +488,18 @@ def test_forge_components_context_zero_unintended_rng_deviations():
     assert torch.equal(global_before, torch.get_rng_state())
 
 
-@pytest.mark.parametrize("recipe_name", ["minimal", "bispf", "empf"])
+@pytest.mark.parametrize("recipe_name", ["minimal", "axiom", "unified_v15", "bispf", "empf"])
 @pytest.mark.parametrize("task_id", EXPECTED_TASKS)
 def test_non_v14_recipes_run_cleanly_on_all_five_tasks(recipe_name: str, task_id: str):
-    """Confirm all 5 tasks are method-agnostic and execute cleanly under non-v14 recipes."""
+    """Confirm 1st-order recipes pass all 5 tasks (incl. real SDPA ViT) while 2nd-order RoR exposes SDPA double-backward."""
     torch.set_num_threads(1)
     fix = fl123.build_case(task_id, device="cpu", seed=0, recipe_name=recipe_name, max_steps=4)
+    if task_id == "fl_law2_groupnorm_and_vit_sprites" and recipe_name in ("bispf", "empf"):
+        # Genuine Law 2 / L2-5 finding: 2nd-order create_graph=True RoR cannot differentiate through
+        # real F.scaled_dot_product_attention flash/mem-efficient backward, whereas 1st-order recipes survive.
+        with pytest.raises(RuntimeError, match="scaled_dot_product"):
+            fix.step()
+        return
     for _ in range(2):
         fix.step()
     eval_n = 32 if task_id == "fl_law2_groupnorm_and_vit_sprites" else 64
