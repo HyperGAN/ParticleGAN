@@ -1,0 +1,496 @@
+{
+  "attempt_ids": [
+    "61c5be3159c8426ca605fdb857c5229e",
+    "82fc00dbd12f4b889f875819438d350d",
+    "9025fa1837164e859d5f5bb3cc6e7b0a"
+  ],
+  "candidate_id": "axiom-v6",
+  "candidate_revision": "29cfbe70ecae527e0507ca1a8246bbbd6efaecd2a4274fbd1907e56f9866abb2",
+  "claim_contract": {
+    "sampling_law": "task_declared",
+    "schedule": "scheduled",
+    "scoring_weights": "live"
+  },
+  "comparison": "Strong improvement over axiom-v4 (1/3); clears terminal saddle_barycentric thresholds on 4/5 suffix checks.",
+  "conclusion": "2/3 PASS: interp_sparse_arc PASS (interp_hq=0.9167, 30 arc bins); interp_img_patch_shift PASS (hq=1.0, peak=0.8784, rmse=0.0338); interp_saddle_barycentric FAIL only on step-834 (1st of 5 suffix checks) while clearing final 4/5 checks cleanly (step 875..1000 barycenter_hq=0.7957/0.7234/0.7340/0.7553, mae=0.0573..0.0724).",
+  "decision_outcomes": [
+    {
+      "attempt_ids": [
+        "61c5be3159c8426ca605fdb857c5229e",
+        "82fc00dbd12f4b889f875819438d350d",
+        "9025fa1837164e859d5f5bb3cc6e7b0a"
+      ],
+      "binding_errors": [],
+      "causal_judgment": "requires_review",
+      "contract_sha256": "67d6f98f05fb9f933ba1bac7ca9b718da28a2efb04acecd19d1ad9ab358e9818",
+      "duplicate_task_ids": [],
+      "execution_authorized": false,
+      "max_rounds": 1,
+      "next_action": "review_saved_diagnostics",
+      "observed": {
+        "falsifier": {
+          "satisfied": false,
+          "value": 0.9166666865348816
+        },
+        "prediction": {
+          "satisfied": true,
+          "value": 0.9166666865348816
+        }
+      },
+      "outcome": "prediction_observed",
+      "provenance": [
+        {
+          "attempt_id": "61c5be3159c8426ca605fdb857c5229e",
+          "producer_request_id": "cce9d87aacad94eba31153f9",
+          "producer_study_id": "axiom-v6-interp-study",
+          "result_hash": "382335e80005c2962813eb7fc1b5978be5cba0744a78ac6b21c5dcc2e1c2827f",
+          "valid_receipt": true
+        },
+        {
+          "attempt_id": "82fc00dbd12f4b889f875819438d350d",
+          "producer_request_id": "cce9d87aacad94eba31153f9",
+          "producer_study_id": "axiom-v6-interp-study",
+          "result_hash": "4959933d5bc524b8fb95cf678e923860576fced6a744c03423f207a2d3daa477",
+          "valid_receipt": true
+        },
+        {
+          "attempt_id": "9025fa1837164e859d5f5bb3cc6e7b0a",
+          "producer_request_id": "cce9d87aacad94eba31153f9",
+          "producer_study_id": "axiom-v6-interp-study",
+          "result_hash": "c16579d97e1a56bca5a2cd20f2cc9084876f9464659df3185341e8c2b44adf4f",
+          "valid_receipt": true
+        }
+      ],
+      "qualification_input": false,
+      "reuse_note": "Compatible original receipts; overlapping readouts are not independent runs or additive costs",
+      "schema_version": 1,
+      "study_binding": {
+        "binding_sha256": "c7fcf7b24915a52ac56169a46e5e3030f470cb0cc3ef0137f3159a8a1e39b65b",
+        "contract_sha256": "67d6f98f05fb9f933ba1bac7ca9b718da28a2efb04acecd19d1ad9ab358e9818",
+        "control_binding_sha256": "fd12571c9eed38ff3ff7d33489d407f967eae703fe493c4f2ab53cf0680fe47f",
+        "policy_fingerprint": "34a36262d57e25f535f70f5dfe8b8c57c7c45d5f4154f2cb7f71c76de7eabadb",
+        "protocol_sha256": "7b975bab8008c880a88e04d9e9bbdf4d1ab549d46d1d894b9e42369fdc0931b2",
+        "study_sha256": "d5c1564173451ec46024583779ca8521d67a1b871369ea3b5b303180d109d717"
+      },
+      "study_id": "axiom-v6-interp-study",
+      "study_sha256": "d5c1564173451ec46024583779ca8521d67a1b871369ea3b5b303180d109d717"
+    }
+  ],
+  "eligible": false,
+  "evidence_scope": "research_diagnostic",
+  "goal": "particle_interpolation_stretch",
+  "hypothesis": "Unchanged global axiom-v6 (1157930ef) on particle_interpolation_stretch (RTX A6000, seed 0).",
+  "lifecycle": "concluded",
+  "mechanism_class": "structural",
+  "next_action": "Document 4/5 terminal suffix pass on saddle_barycentric honestly in PR scope.",
+  "prior": {
+    "kind": "mog",
+    "learnable": true,
+    "sigma": 0.025,
+    "standardize": false
+  },
+  "provenance": {
+    "attempts": [
+      {
+        "attempt_id": "61c5be3159c8426ca605fdb857c5229e",
+        "result_hash": "382335e80005c2962813eb7fc1b5978be5cba0744a78ac6b21c5dcc2e1c2827f",
+        "valid_receipt": true
+      },
+      {
+        "attempt_id": "82fc00dbd12f4b889f875819438d350d",
+        "result_hash": "4959933d5bc524b8fb95cf678e923860576fced6a744c03423f207a2d3daa477",
+        "valid_receipt": true
+      },
+      {
+        "attempt_id": "9025fa1837164e859d5f5bb3cc6e7b0a",
+        "result_hash": "c16579d97e1a56bca5a2cd20f2cc9084876f9464659df3185341e8c2b44adf4f",
+        "valid_receipt": true
+      }
+    ]
+  },
+  "qualification_input": false,
+  "qualification_reuse": false,
+  "qualified_tier": 0,
+  "record_id": "readout-f2fd872a28fe8beb751cfb13",
+  "record_type": "scientific",
+  "schema_version": 1,
+  "source": {
+    "path": "reports/forge/attempts/61c5be3159c8426ca605fdb857c5229e/result.json"
+  },
+  "study": {
+    "campaign": {
+      "budget_seconds": 86400,
+      "candidate_budget_seconds": 86400,
+      "id": "axiom-v6-interp-study"
+    },
+    "candidate": "axiom-v6",
+    "competing_explanation": "Faithful numerical FAIL if axiom-v6 misses any gate on particle_interpolation_stretch.",
+    "control": {
+      "candidate_id": "unified-v12",
+      "task_map": {}
+    },
+    "falsifier": {
+      "metric": "interp_hq",
+      "op": "<",
+      "phase": "final",
+      "task_id": "interp_sparse_arc",
+      "threshold": 0.78
+    },
+    "hypothesis": "Unchanged global axiom-v6 (1157930ef) on particle_interpolation_stretch (RTX A6000, seed 0).",
+    "id": "axiom-v6-interp-study",
+    "max_rounds": 1,
+    "prediction": {
+      "metric": "interp_hq",
+      "op": ">=",
+      "phase": "final",
+      "task_id": "interp_sparse_arc",
+      "threshold": 0.78
+    },
+    "prior_evidence": [
+      {
+        "identity": {
+          "campaign_id": "bytegan-stretch-diag-v1",
+          "cuda_model": "NVIDIA RTX A6000"
+        },
+        "path": "reports/forge/bytegan-stretch/summary.json",
+        "selector": [],
+        "use": "motivation_only"
+      }
+    ],
+    "schema_version": 1,
+    "scope": {
+      "cuda_model": "NVIDIA RTX A6000",
+      "execution_backend": "cuda",
+      "through_tier": 1,
+      "view": "particle_interpolation_stretch"
+    },
+    "status": "ready",
+    "terminal_rules": {
+      "falsified": "stop_revision",
+      "incomplete": "request_missing_evidence",
+      "inconclusive": "stop_and_readout",
+      "prediction_observed": "review_saved_diagnostics"
+    }
+  },
+  "study_id": "axiom-v6-interp-study",
+  "study_sha256": "d5c1564173451ec46024583779ca8521d67a1b871369ea3b5b303180d109d717",
+  "task_results": [
+    {
+      "compatibility_key": "04a39f95a44c99e2d10016e7fdf0bfb633985b59c018bda94b8301198c7099cb",
+      "cost": {
+        "adapter_loop_seconds": 73.60857112705708,
+        "adapter_seconds": 74.46173314400949,
+        "charged_task": "interp_saddle_barycentric",
+        "completed_steps": 1000,
+        "device": "1",
+        "energy": {
+          "avg_power_watts": 107.00240214890535,
+          "checkpoint_joules": {
+            "0": 39.44399997591972,
+            "1000": 7205.389999985695,
+            "125": 957.3439999818802,
+            "167": 1249.0569999814034,
+            "209": 1550.986999988556,
+            "250": 1833.0719999969006,
+            "292": 2126.0179999768734,
+            "334": 2429.4379999935627,
+            "375": 2712.2159999907017,
+            "417": 3016.4719999730587,
+            "42": 385.24599999189377,
+            "459": 3323.3680000007153,
+            "500": 3608.214999973774,
+            "542": 3914.326999992132,
+            "584": 4220.7589999735355,
+            "625": 4516.217999994755,
+            "667": 4811.590999990702,
+            "709": 5108.139999985695,
+            "750": 5414.35799998045,
+            "792": 5710.937999993563,
+            "834": 6027.345999985933,
+            "84": 676.2239999771118,
+            "875": 6313.696999996901,
+            "917": 6610.76599997282,
+            "959": 6908.67199999094
+          },
+          "contended": false,
+          "cumulative_joules_to_first_pass": 1249.0569999814034,
+          "cumulative_joules_to_sustained_pass": null,
+          "energy_backend": "nvml_energy_counter",
+          "first_pass_step": 167,
+          "gpu_name": "NVIDIA RTX A6000",
+          "joules_per_step": 7.960031999975443,
+          "joules_to_first_pass": 1249.0569999814034,
+          "joules_to_sustained_pass": null,
+          "joules_total": 7960.031999975443,
+          "sustained_pass_step": null
+        },
+        "execution_seconds": 81.99444255488925,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "optimizer_updates": {
+          "discriminator": 1000,
+          "generator": 1000,
+          "prior": 1000
+        },
+        "phase_timing": {
+          "coverage": "partial_adapter",
+          "measured_seconds": 65.14643662818708,
+          "method": "exclusive_synchronized_wall_time",
+          "phases": {
+            "evaluation": {
+              "calls": 25,
+              "seconds": 0.381388645619154
+            },
+            "sampling": {
+              "calls": 24,
+              "seconds": 0.0070555375423282385
+            },
+            "training_updates": {
+              "calls": 1000,
+              "seconds": 64.7579924450256
+            }
+          },
+          "scope": "Training updates exclude input preparation; evaluation includes metrics and its artifact I/O but excludes separately measured sampling."
+        },
+        "runner_seconds": 76.02998729189858,
+        "wall_seconds": 81.99444255488925
+      },
+      "evaluator_summary": {
+        "minimum_stable_checks": 5,
+        "passed": false,
+        "terminal_passed": 4
+      },
+      "gate_status": "FAIL",
+      "metrics": {
+        "barycenter_hq": 0.7553191781044006,
+        "barycenter_novelty": 0.5419835399774585,
+        "barycenter_surface_mae": 0.07242649793624878,
+        "edge_midpoint_surface_mae": 0.06318183988332748,
+        "endpoint_hq": 0.84375,
+        "endpoint_surface_mae": 0.05344708636403084,
+        "finite_fraction": 1.0,
+        "output_knn_barycenter_mae": 0.06544101238250732,
+        "step": 1000,
+        "triangle_count": 94,
+        "xy_bins_covered": 16
+      },
+      "raw_status": "completed",
+      "reason": "failed interp_saddle_barycentric thresholds: endpoint_surface_mae <= 0.08, barycenter_surface_mae <= 0.09, barycenter_hq >= 0.72",
+      "task_id": "interp_saddle_barycentric"
+    },
+    {
+      "compatibility_key": "f6b7ea2f1fe4cd5555cf581846ac12722fa3b9019211505d9af2f10a6f108237",
+      "cost": {
+        "adapter_loop_seconds": 52.011138781905174,
+        "adapter_seconds": 52.852371057961136,
+        "charged_task": "interp_img_patch_shift",
+        "completed_steps": 800,
+        "device": "1",
+        "energy": {
+          "avg_power_watts": 103.333141413795,
+          "checkpoint_joules": {
+            "0": 38.002000004053116,
+            "100": 689.6089999973774,
+            "134": 888.555999994278,
+            "167": 1076.78900000453,
+            "200": 1266.2689999938011,
+            "234": 1476.7419999837875,
+            "267": 1667.136000007391,
+            "300": 1857.727999985218,
+            "334": 2058.609999984503,
+            "34": 301.52000001072884,
+            "367": 2248.4259999990463,
+            "400": 2448.9989999830723,
+            "434": 2650.9210000038147,
+            "467": 2841.317000001669,
+            "500": 3022.400999993086,
+            "534": 3252.67199999094,
+            "567": 3443.5900000035763,
+            "600": 3643.9390000104904,
+            "634": 3845.4429999887943,
+            "667": 4056.2360000014305,
+            "67": 489.7360000014305,
+            "700": 4247.152999997139,
+            "734": 4448.222999989986,
+            "767": 4640.108999997377,
+            "800": 4842.043999999762
+          },
+          "contended": false,
+          "cumulative_joules_to_first_pass": 2448.9989999830723,
+          "cumulative_joules_to_sustained_pass": 3252.67199999094,
+          "energy_backend": "nvml_energy_counter",
+          "first_pass_step": 400,
+          "gpu_name": "NVIDIA RTX A6000",
+          "joules_per_step": 6.817173749990761,
+          "joules_to_first_pass": 2448.9989999830723,
+          "joules_to_sustained_pass": 3252.67199999094,
+          "joules_total": 5453.738999992609,
+          "sustained_pass_step": 534
+        },
+        "execution_seconds": 60.450297286966816,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "optimizer_updates": {
+          "discriminator": 800,
+          "generator": 800,
+          "prior": 800
+        },
+        "phase_timing": {
+          "coverage": "partial_adapter",
+          "measured_seconds": 44.703301754780114,
+          "method": "exclusive_synchronized_wall_time",
+          "phases": {
+            "evaluation": {
+              "calls": 25,
+              "seconds": 0.6986809156369418
+            },
+            "sampling": {
+              "calls": 24,
+              "seconds": 0.01057680300436914
+            },
+            "training_updates": {
+              "calls": 800,
+              "seconds": 43.9940440361388
+            }
+          },
+          "scope": "Training updates exclude input preparation; evaluation includes metrics and its artifact I/O but excludes separately measured sampling."
+        },
+        "runner_seconds": 54.48260883195326,
+        "wall_seconds": 60.450297286966816
+      },
+      "evaluator_summary": {
+        "minimum_stable_checks": 5,
+        "passed": true,
+        "terminal_passed": 5
+      },
+      "gate_status": "PASS",
+      "metrics": {
+        "all_pairs_interp_rmse": 0.05825357884168625,
+        "edge_count": 20,
+        "endpoint_hq": 1.0,
+        "endpoint_rmse": 0.03532692417502403,
+        "finite_fraction": 1.0,
+        "interp_hq": 1.0,
+        "interp_peak": 0.878418505191803,
+        "interp_rmse": 0.03380589559674263,
+        "midpoint_novelty": 0.38533941226739565,
+        "output_knn_interp_peak": 0.8749630451202393,
+        "output_knn_interp_rmse": 0.03591878339648247,
+        "quadrant_coverage": 4,
+        "step": 800
+      },
+      "raw_status": "completed",
+      "reason": "recomputed interp_img_patch_shift gates (5/5 terminal checks passed)",
+      "task_id": "interp_img_patch_shift"
+    },
+    {
+      "compatibility_key": "cd7c7c6512b89b15198e48e36f6737e54f87166bd689b2a45ea05db20655e78a",
+      "cost": {
+        "adapter_loop_seconds": 64.2014862250071,
+        "adapter_seconds": 64.9971198469866,
+        "charged_task": "interp_sparse_arc",
+        "completed_steps": 900,
+        "device": "1",
+        "energy": {
+          "avg_power_watts": 105.95795662464695,
+          "checkpoint_joules": {
+            "0": 36.51299998164177,
+            "113": 839.5929999947548,
+            "150": 1097.197999984026,
+            "188": 1355.4709999859333,
+            "225": 1603.1579999923706,
+            "263": 1861.3700000047684,
+            "300": 2109.055999994278,
+            "338": 2358.2999999821186,
+            "375": 2595.5509999990463,
+            "38": 337.2529999911785,
+            "413": 2854.481000006199,
+            "450": 3103.822999984026,
+            "488": 3364.0499999821186,
+            "525": 3603.081999987364,
+            "563": 3864.6469999849796,
+            "600": 4114.259999990463,
+            "638": 4365.324000000954,
+            "675": 4614.821999996901,
+            "713": 4864.738000005484,
+            "75": 582.1209999918938,
+            "750": 5115.944999992847,
+            "788": 5386.084999978542,
+            "825": 5637.59399998188,
+            "863": 5889.141000002623,
+            "900": 6140.535999983549
+          },
+          "contended": false,
+          "cumulative_joules_to_first_pass": 582.1209999918938,
+          "cumulative_joules_to_sustained_pass": 1603.1579999923706,
+          "energy_backend": "nvml_energy_counter",
+          "first_pass_step": 75,
+          "gpu_name": "NVIDIA RTX A6000",
+          "joules_per_step": 7.64381444444259,
+          "joules_to_first_pass": 582.1209999918938,
+          "joules_to_sustained_pass": 1603.1579999923706,
+          "joules_total": 6879.432999998331,
+          "sustained_pass_step": 225
+        },
+        "execution_seconds": 72.62298442889005,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "optimizer_updates": {
+          "discriminator": 900,
+          "generator": 900,
+          "prior": 900
+        },
+        "phase_timing": {
+          "coverage": "partial_adapter",
+          "measured_seconds": 55.91100812703371,
+          "method": "exclusive_synchronized_wall_time",
+          "phases": {
+            "evaluation": {
+              "calls": 25,
+              "seconds": 0.1657172858249396
+            },
+            "sampling": {
+              "calls": 24,
+              "seconds": 0.006913556717336178
+            },
+            "training_updates": {
+              "calls": 900,
+              "seconds": 55.738377284491435
+            }
+          },
+          "scope": "Training updates exclude input preparation; evaluation includes metrics and its artifact I/O but excludes separately measured sampling."
+        },
+        "runner_seconds": 66.57110378402285,
+        "wall_seconds": 72.62298442889005
+      },
+      "evaluator_summary": {
+        "minimum_stable_checks": 5,
+        "passed": true,
+        "terminal_passed": 5
+      },
+      "gate_status": "PASS",
+      "metrics": {
+        "all_pairs_interp_hq": 0.2750000059604645,
+        "edge_count": 28,
+        "endpoint_arc_bins": 15,
+        "endpoint_hq": 0.9375,
+        "finite_fraction": 1.0,
+        "interp_arc_bins": 30,
+        "interp_hq": 0.9166666865348816,
+        "interp_mean_dist": 0.03293759748339653,
+        "midpoint_novelty": 0.40237088326257103,
+        "output_knn_interp_hq": 0.9259259104728699,
+        "step": 900
+      },
+      "raw_status": "completed",
+      "reason": "recomputed interp_sparse_arc gates (5/5 terminal checks passed)",
+      "task_id": "interp_sparse_arc"
+    }
+  ]
+}

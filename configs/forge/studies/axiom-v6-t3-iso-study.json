@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 86400,
+    "candidate_budget_seconds": 86400,
+    "id": "axiom-v6-t3-iso-study"
+  },
+  "candidate": "axiom-v6",
+  "competing_explanation": "Faithful numerical FAIL if axiom-v6 misses any gate on t3_causal_isolation_stretch.",
+  "control": {
+    "candidate_id": "unified-v12",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "core_min_eigen_ratio",
+    "op": "<",
+    "phase": "final",
+    "task_id": "t3_iso_scale_mass_8x",
+    "threshold": 0.45
+  },
+  "hypothesis": "Unchanged global axiom-v6 (1157930ef) on t3_causal_isolation_stretch (RTX A6000, seed 0).",
+  "id": "axiom-v6-t3-iso-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "core_min_eigen_ratio",
+    "op": ">=",
+    "phase": "final",
+    "task_id": "t3_iso_scale_mass_8x",
+    "threshold": 0.45
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "unified-v10",
+        "candidate_revision": "72e944a156d7b1eb980c62f4a193012731111251e912b8b1ea75f02fc6db5127"
+      },
+      "path": "reports/forge/records/readout-15aafd6ce00180e64ecd23fc.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "t3_causal_isolation_stretch"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

@@ -1,0 +1,1372 @@
+{
+  "attempt_ids": [
+    "10af17967b02408eb8f1bee833237e82",
+    "21c27b11eb994731871d504a42aef7e9",
+    "553626a917c54c928b7b221245819300",
+    "6ec4655200584773a8943c954d5c56d6",
+    "84a88de8e6274bdf987a434c08dff238",
+    "e56b80ef34914cc4a25b51b2c2f5ab38",
+    "eba20e11d1cf46e5aec434ecaf138a77"
+  ],
+  "candidate_id": "axiom-v6",
+  "candidate_revision": "29cfbe70ecae527e0507ca1a8246bbbd6efaecd2a4274fbd1907e56f9866abb2",
+  "claim_contract": {
+    "sampling_law": "task_declared",
+    "schedule": "scheduled",
+    "scoring_weights": "live"
+  },
+  "comparison": "Fixes axiom-v5 zero_tanh_rail_escape regression; trails axiom-v4 (5/7) on grid100_mlp16 after Round-3b sqrt prior scale.",
+  "conclusion": "4/7 PASS (0 UNRUN): clockfree_audit_measurement_v1, zero_tanh_smoke, zero_tanh_rail_escape (p99=0.0051), grid100 (score 0.3308); 3 FAILs: grid100_mlp16 (prec=0.8686, mass_tv=0.1232), grid100_res16_tanh (bias=-0.3425), grid100_res16_scaled_tanh (bias=-0.2507).",
+  "decision_outcomes": [
+    {
+      "attempt_ids": [
+        "10af17967b02408eb8f1bee833237e82",
+        "21c27b11eb994731871d504a42aef7e9",
+        "553626a917c54c928b7b221245819300",
+        "6ec4655200584773a8943c954d5c56d6",
+        "84a88de8e6274bdf987a434c08dff238",
+        "e56b80ef34914cc4a25b51b2c2f5ab38",
+        "eba20e11d1cf46e5aec434ecaf138a77"
+      ],
+      "binding_errors": [],
+      "causal_judgment": "requires_review",
+      "contract_sha256": "e606d1abf04655a20071b281ccddcf68807c505227eea70ab21ab4da2af0b2a3",
+      "duplicate_task_ids": [],
+      "execution_authorized": false,
+      "max_rounds": 1,
+      "next_action": "review_saved_diagnostics",
+      "observed": {
+        "falsifier": {
+          "satisfied": false,
+          "value": 0.10210318154036709
+        },
+        "prediction": {
+          "satisfied": true,
+          "value": 0.10210318154036709
+        }
+      },
+      "outcome": "prediction_observed",
+      "provenance": [
+        {
+          "attempt_id": "10af17967b02408eb8f1bee833237e82",
+          "producer_request_id": "e56fe97f347c8398df612471",
+          "producer_study_id": "axiom-v6-shift-diag-study",
+          "result_hash": "2972915277b4bfe6a6f78050540cc7c9c52390630ea5372632fe1494996e59a2",
+          "valid_receipt": true
+        },
+        {
+          "attempt_id": "21c27b11eb994731871d504a42aef7e9",
+          "producer_request_id": "4efc4cdd69adc31c08a0c57f",
+          "producer_study_id": "axiom-v6-t4-arch-study",
+          "result_hash": "98763f01a53d053a909e1436df228b463b3ef3bfe462bad203c1f5aa2eec8775",
+          "valid_receipt": true
+        },
+        {
+          "attempt_id": "553626a917c54c928b7b221245819300",
+          "producer_request_id": "e56fe97f347c8398df612471",
+          "producer_study_id": "axiom-v6-shift-diag-study",
+          "result_hash": "b01b79d7765e272acc569bcf4c6f6ca6dcc4966dfc9ef73b8eaff82f4087fa20",
+          "valid_receipt": true
+        },
+        {
+          "attempt_id": "6ec4655200584773a8943c954d5c56d6",
+          "producer_request_id": "01d946b30060c63b066aff58",
+          "producer_study_id": "axiom-v6-four-laws-v2-study",
+          "result_hash": "313974c3819156e8d99573d7d34799abbfdcefc4bc12eff8ad6893e7f36773d2",
+          "valid_receipt": true
+        },
+        {
+          "attempt_id": "84a88de8e6274bdf987a434c08dff238",
+          "producer_request_id": "01d946b30060c63b066aff58",
+          "producer_study_id": "axiom-v6-four-laws-v2-study",
+          "result_hash": "f27ccbe69644e02ae4ed989e1d2a8ada7c7376968423271b97c6310e217b9164",
+          "valid_receipt": true
+        },
+        {
+          "attempt_id": "e56b80ef34914cc4a25b51b2c2f5ab38",
+          "producer_request_id": "01d946b30060c63b066aff58",
+          "producer_study_id": "axiom-v6-four-laws-v2-study",
+          "result_hash": "22a101eec0f4796b122a6c20f1543191f35bd94350d8daac3a938cafd2851ab9",
+          "valid_receipt": true
+        },
+        {
+          "attempt_id": "eba20e11d1cf46e5aec434ecaf138a77",
+          "producer_request_id": "4efc4cdd69adc31c08a0c57f",
+          "producer_study_id": "axiom-v6-t4-arch-study",
+          "result_hash": "2932e6e862ac4cf14079db6526694d42627b064b395f20bc5496ad999ed1aa5c",
+          "valid_receipt": true
+        }
+      ],
+      "qualification_input": false,
+      "reuse_note": "Compatible original receipts; overlapping readouts are not independent runs or additive costs",
+      "schema_version": 1,
+      "study_binding": {
+        "binding_sha256": "4483ce2578e19975f0956c515d2c66ae39ec47777ed09db24506f9a5483076f3",
+        "contract_sha256": "e606d1abf04655a20071b281ccddcf68807c505227eea70ab21ab4da2af0b2a3",
+        "control_binding_sha256": "4b4dd13edec8c1aaffac13cd7c6b80ea1622bb05f2ea7bd96fe5d1e4656cf74f",
+        "policy_fingerprint": "c02e192d3434ebb7e656f5131e9a3d7703e521401b84296abc2963343006b5b9",
+        "protocol_sha256": "7b975bab8008c880a88e04d9e9bbdf4d1ab549d46d1d894b9e42369fdc0931b2",
+        "study_sha256": "22e01efbb8de1685b7536037ced19812160927c0dfedaf8518fc5cbb3ce43a0f"
+      },
+      "study_id": "axiom-v6-t4-arch-study",
+      "study_sha256": "22e01efbb8de1685b7536037ced19812160927c0dfedaf8518fc5cbb3ce43a0f"
+    }
+  ],
+  "eligible": false,
+  "evidence_scope": "research_diagnostic",
+  "goal": "t4-strange-architectures-v1",
+  "hypothesis": "Unchanged global axiom-v6 clean-slate rewrite (1157930ef): evaluate on t4-strange-architectures-v1 (RTX A6000, protocol seed 0).",
+  "lifecycle": "concluded",
+  "mechanism_class": "structural",
+  "next_action": "Document 4/7 honestly in PR scope; track deep 16L grid100 coverage as follow-up.",
+  "prior": {
+    "kind": "mog",
+    "learnable": true,
+    "sigma": 0.025,
+    "standardize": false
+  },
+  "provenance": {
+    "attempts": [
+      {
+        "attempt_id": "10af17967b02408eb8f1bee833237e82",
+        "result_hash": "2972915277b4bfe6a6f78050540cc7c9c52390630ea5372632fe1494996e59a2",
+        "valid_receipt": true
+      },
+      {
+        "attempt_id": "21c27b11eb994731871d504a42aef7e9",
+        "result_hash": "98763f01a53d053a909e1436df228b463b3ef3bfe462bad203c1f5aa2eec8775",
+        "valid_receipt": true
+      },
+      {
+        "attempt_id": "553626a917c54c928b7b221245819300",
+        "result_hash": "b01b79d7765e272acc569bcf4c6f6ca6dcc4966dfc9ef73b8eaff82f4087fa20",
+        "valid_receipt": true
+      },
+      {
+        "attempt_id": "6ec4655200584773a8943c954d5c56d6",
+        "result_hash": "313974c3819156e8d99573d7d34799abbfdcefc4bc12eff8ad6893e7f36773d2",
+        "valid_receipt": true
+      },
+      {
+        "attempt_id": "84a88de8e6274bdf987a434c08dff238",
+        "result_hash": "f27ccbe69644e02ae4ed989e1d2a8ada7c7376968423271b97c6310e217b9164",
+        "valid_receipt": true
+      },
+      {
+        "attempt_id": "e56b80ef34914cc4a25b51b2c2f5ab38",
+        "result_hash": "22a101eec0f4796b122a6c20f1543191f35bd94350d8daac3a938cafd2851ab9",
+        "valid_receipt": true
+      },
+      {
+        "attempt_id": "eba20e11d1cf46e5aec434ecaf138a77",
+        "result_hash": "2932e6e862ac4cf14079db6526694d42627b064b395f20bc5496ad999ed1aa5c",
+        "valid_receipt": true
+      }
+    ]
+  },
+  "qualification_input": false,
+  "qualification_reuse": false,
+  "qualified_tier": 0,
+  "record_id": "readout-c9406c785907749ab2b78b38",
+  "record_type": "scientific",
+  "schema_version": 1,
+  "source": {
+    "path": "reports/forge/attempts/10af17967b02408eb8f1bee833237e82/result.json"
+  },
+  "study": {
+    "campaign": {
+      "budget_seconds": 86400,
+      "candidate_budget_seconds": 86400,
+      "id": "axiom-v6-t4-arch-study"
+    },
+    "candidate": "axiom-v6",
+    "competing_explanation": "Faithful numerical FAIL on any t4-strange-architectures-v1 task where axiom-v6 misses a gate.",
+    "control": {
+      "candidate_id": "unified-v12",
+      "task_map": {}
+    },
+    "falsifier": {
+      "metric": "center_rms_sigma",
+      "op": ">",
+      "phase": "final",
+      "task_id": "grid100_res16_tanh",
+      "threshold": 0.35
+    },
+    "hypothesis": "Unchanged global axiom-v6 clean-slate rewrite (1157930ef): evaluate on t4-strange-architectures-v1 (RTX A6000, protocol seed 0).",
+    "id": "axiom-v6-t4-arch-study",
+    "max_rounds": 1,
+    "prediction": {
+      "metric": "center_rms_sigma",
+      "op": "<=",
+      "phase": "final",
+      "task_id": "grid100_res16_tanh",
+      "threshold": 0.25
+    },
+    "prior_evidence": [
+      {
+        "identity": {
+          "candidate_id": "unified-v12",
+          "candidate_revision": "f16b8465a125d20c372aacad0607555ac78d5f74545d734931b6f4c61cdd1f9f"
+        },
+        "path": "reports/forge/records/readout-b51ab67c4d97526186e23651.json",
+        "selector": [],
+        "use": "motivation_only"
+      }
+    ],
+    "schema_version": 1,
+    "scope": {
+      "cuda_model": "NVIDIA RTX A6000",
+      "execution_backend": "cuda",
+      "through_tier": 1,
+      "view": "t4-strange-architectures-v1"
+    },
+    "status": "ready",
+    "terminal_rules": {
+      "falsified": "stop_revision",
+      "incomplete": "request_missing_evidence",
+      "inconclusive": "stop_and_readout",
+      "prediction_observed": "review_saved_diagnostics"
+    }
+  },
+  "study_id": "axiom-v6-t4-arch-study",
+  "study_sha256": "22e01efbb8de1685b7536037ced19812160927c0dfedaf8518fc5cbb3ce43a0f",
+  "task_results": [
+    {
+      "compatibility_key": "5d75cb52a78d5979a158316ff3270270b5d588819e62733157f6a65439f89f07",
+      "cost": {
+        "adapter_loop_seconds": 44.440018937923014,
+        "adapter_seconds": 44.86568341986276,
+        "charged_task": "zero_tanh_rail_escape",
+        "completed_steps": 2000,
+        "device": "1",
+        "energy": {
+          "avg_power_watts": 101.49248485371675,
+          "checkpoint_joules": {
+            "1000": 2280.287000000477,
+            "1084": 2453.20300000906,
+            "1167": 2647.472000002861,
+            "1250": 2831.4200000166893,
+            "1334": 3025.509000003338,
+            "1401": 3179.150999993086,
+            "1417": 3208.8930000066757,
+            "1500": 3403.270000010729,
+            "1584": 3597.067000001669,
+            "1667": 3780.719999998808,
+            "167": 422.9500000178814,
+            "1750": 3974.1820000112057,
+            "1834": 4167.937000006437,
+            "1917": 4352.358999997377,
+            "2000": 4536.1279999911785,
+            "250": 605.7660000026226,
+            "334": 797.738999992609,
+            "417": 980.0530000030994,
+            "500": 1161.9979999959469,
+            "584": 1355.2619999945164,
+            "667": 1536.8460000157356,
+            "750": 1720.1649999916553,
+            "834": 1912.2520000040531,
+            "84": 241.60300001502037,
+            "917": 2096.1610000133514
+          },
+          "contended": false,
+          "cumulative_joules_to_first_pass": 422.9500000178814,
+          "cumulative_joules_to_sustained_pass": 1161.9979999959469,
+          "energy_backend": "nvml_energy_counter",
+          "first_pass_step": 167,
+          "gpu_name": "NVIDIA RTX A6000",
+          "joules_per_step": 2.272758499994874,
+          "joules_to_first_pass": 422.9500000178814,
+          "joules_to_sustained_pass": 1161.9979999959469,
+          "joules_total": 4545.516999989748,
+          "sustained_pass_step": 500
+        },
+        "execution_seconds": 51.131971555994824,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "optimizer_updates": {
+          "discriminator": 2000,
+          "generator": 2000,
+          "prior": 2000
+        },
+        "phase_timing": {
+          "coverage": "partial_adapter",
+          "measured_seconds": 43.51664856844582,
+          "method": "exclusive_synchronized_wall_time",
+          "phases": {
+            "evaluation": {
+              "calls": 25,
+              "seconds": 0.012394846882671118
+            },
+            "sampling": {
+              "calls": 25,
+              "seconds": 0.007811550749465823
+            },
+            "training_updates": {
+              "calls": 2000,
+              "seconds": 43.49644217081368
+            }
+          },
+          "scope": "Training updates exclude input preparation; evaluation includes metrics and its artifact I/O but excludes separately measured sampling."
+        },
+        "runner_seconds": 45.947075525065884,
+        "wall_seconds": 51.131971555994824
+      },
+      "evaluator_summary": {
+        "minimum_stable_checks": 1,
+        "passed": true,
+        "terminal_passed": 1
+      },
+      "gate_status": "PASS",
+      "metrics": {
+        "mean_abs_error": 0.0004488856648094952,
+        "p99_abs_error": 0.005108928773552179,
+        "rms_error": 0.0010673452634364367,
+        "sample_count": 4096,
+        "saturated_fraction": 0.0,
+        "step": 2000
+      },
+      "raw_status": "completed",
+      "reason": "recomputed zero_tanh_rail_escape gates (1/1 terminal checks passed)",
+      "task_id": "zero_tanh_rail_escape"
+    },
+    {
+      "compatibility_key": "7b924d01cf79a7e870c1a731855063fb38414505e096d39597dfe03854a3feb3",
+      "cost": {
+        "adapter_loop_seconds": 454.71135721099563,
+        "adapter_seconds": 455.20114942919463,
+        "charged_task": "grid100_res16_scaled_tanh",
+        "completed_steps": 7000,
+        "device": "1",
+        "energy": {
+          "avg_power_watts": 168.788595867719,
+          "checkpoint_joules": {
+            "0": 76.13600000739098,
+            "1": 122.0789999961853,
+            "10": 218.41300001740456,
+            "100": 1187.3920000195503,
+            "1000": 10616.349000006914,
+            "1250": 13309.949000000954,
+            "1500": 16001.876000016928,
+            "1750": 18752.657000005245,
+            "2000": 21492.98600000143,
+            "2250": 24240.024000018835,
+            "25": 390.9210000038147,
+            "250": 2748.305999994278,
+            "2500": 26994.849000006914,
+            "2750": 29739.15000000596,
+            "3000": 32500.89500001073,
+            "3250": 35265.235000014305,
+            "3500": 38044.70000001788,
+            "3750": 40822.86300000548,
+            "4000": 43623.00499999523,
+            "4250": 46381.163000017405,
+            "4500": 49149.131999999285,
+            "4750": 51924.04500001669,
+            "50": 664.7370000183582,
+            "500": 5357.293000012636,
+            "5000": 54680.72200000286,
+            "5250": 57445.629000008106,
+            "5500": 60211.25100001693,
+            "5750": 62963.12600001693,
+            "6000": 65724.0,
+            "6250": 68468.28700000048,
+            "6500": 71231.80200001597,
+            "6750": 73978.42300000787,
+            "7000": 76707.02599999309,
+            "750": 7968.201999992132
+          },
+          "contended": false,
+          "cumulative_joules_to_first_pass": null,
+          "cumulative_joules_to_sustained_pass": null,
+          "energy_backend": "nvml_energy_counter",
+          "first_pass_step": null,
+          "gpu_name": "NVIDIA RTX A6000",
+          "joules_per_step": 10.974471285713571,
+          "joules_to_first_pass": null,
+          "joules_to_sustained_pass": null,
+          "joules_total": 76821.298999995,
+          "sustained_pass_step": null
+        },
+        "execution_seconds": 462.88977991300635,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "optimizer_updates": {
+          "discriminator": 7000,
+          "generator": 7000,
+          "prior": 7000
+        },
+        "phase_timing": {
+          "coverage": "partial_adapter",
+          "measured_seconds": 450.90658287215047,
+          "method": "exclusive_synchronized_wall_time",
+          "phases": {
+            "evaluation": {
+              "calls": 35,
+              "seconds": 4.53445732453838
+            },
+            "sampling": {
+              "calls": 70,
+              "seconds": 0.2901869718916714
+            },
+            "training_updates": {
+              "calls": 7000,
+              "seconds": 446.0819385757204
+            }
+          },
+          "scope": "Training updates exclude input preparation; evaluation includes metrics and its artifact I/O but excludes separately measured sampling."
+        },
+        "runner_seconds": 456.2771755428985,
+        "wall_seconds": 462.88977991300635
+      },
+      "evaluator_summary": {
+        "coverage_status": "FAIL",
+        "final_metrics": {
+          "abs_cov_trace_bias": 0.2550601526233196,
+          "accuracy_pass": false,
+          "accuracy_score": 1.6294004500091503,
+          "all_finite": true,
+          "center_max_sigma": 0.2652428030738082,
+          "center_rms_sigma": 0.10295101538209654,
+          "cov_frob_rms": 0.2730430127596886,
+          "cov_trace_bias": -0.2550601526233196,
+          "frozen_pass": false,
+          "mass_tv": 0.0317,
+          "n": 20000,
+          "passed": false,
+          "precision": 0.8447,
+          "precision_gap": 0.14419100346175773,
+          "problem": "grid100",
+          "protocol": "toy100-accuracy-v1",
+          "radial_ks": 0.11695647454238356,
+          "valid_n": 20000,
+          "within_radius_n": 16894
+        },
+        "holdout_ema_metrics": {
+          "abs_cov_trace_bias": 0.24373072173883192,
+          "accuracy_pass": false,
+          "accuracy_score": 1.4690756998214838,
+          "all_finite": true,
+          "center_max_sigma": 0.19230690384288887,
+          "center_rms_sigma": 0.06152529931887657,
+          "cov_frob_rms": 0.2511121629090609,
+          "cov_trace_bias": -0.24373072173883192,
+          "frozen_pass": false,
+          "mass_tv": 0.021740000000000002,
+          "n": 100000,
+          "passed": false,
+          "precision": 0.84354,
+          "precision_gap": 0.14535100346175778,
+          "problem": "grid100",
+          "protocol": "toy100-accuracy-v1",
+          "radial_ks": 0.11076143007879602,
+          "valid_n": 100000,
+          "within_radius_n": 84354
+        },
+        "holdout_metrics": {
+          "abs_cov_trace_bias": 0.2507188670703445,
+          "accuracy_pass": false,
+          "accuracy_score": 1.5041202894941588,
+          "all_finite": true,
+          "center_max_sigma": 0.14903428442555616,
+          "center_rms_sigma": 0.06220329671252618,
+          "cov_frob_rms": 0.25533820506206306,
+          "cov_trace_bias": -0.2507188670703445,
+          "frozen_pass": false,
+          "mass_tv": 0.02186,
+          "n": 100000,
+          "passed": false,
+          "precision": 0.84697,
+          "precision_gap": 0.14192100346175773,
+          "problem": "grid100",
+          "protocol": "toy100-accuracy-v1",
+          "radial_ks": 0.11335770681508905,
+          "valid_n": 100000,
+          "within_radius_n": 84697
+        },
+        "oracle_metrics": {
+          "abs_cov_trace_bias": 0.0002794449587595338,
+          "accuracy_pass": true,
+          "accuracy_score": 0.11341721050570538,
+          "all_finite": true,
+          "center_max_sigma": 0.10090990917529204,
+          "center_rms_sigma": 0.041737606908836516,
+          "cov_frob_rms": 0.05610274287219167,
+          "cov_trace_bias": 0.0002794449587595338,
+          "frozen_pass": true,
+          "mass_tv": 0.012260000000000004,
+          "n": 100000,
+          "passed": true,
+          "precision": 0.98914,
+          "precision_gap": 0.0002489965382422854,
+          "problem": "grid100",
+          "protocol": "toy100-accuracy-v1",
+          "radial_ks": 0.001514120982308409,
+          "valid_n": 100000,
+          "within_radius_n": 98914
+        },
+        "passed": false,
+        "problem": "grid100",
+        "reason": "coverage, sustained live accuracy, or independent holdout failed",
+        "status": "FAIL",
+        "terminal_summary": {
+          "checks": 5,
+          "passing_checks": 0,
+          "status_counts": {
+            "FAIL": 5
+          }
+        }
+      },
+      "gate_status": "FAIL",
+      "metrics": {
+        "abs_cov_trace_bias": 0.2507188670703445,
+        "accuracy_pass": false,
+        "accuracy_score": 1.5041202894941588,
+        "all_finite": true,
+        "center_max_sigma": 0.14903428442555616,
+        "center_rms_sigma": 0.06220329671252618,
+        "cov_frob_rms": 0.25533820506206306,
+        "cov_trace_bias": -0.2507188670703445,
+        "frozen_pass": false,
+        "mass_tv": 0.02186,
+        "n": 100000,
+        "passed": false,
+        "precision": 0.84697,
+        "precision_gap": 0.14192100346175773,
+        "problem": "grid100",
+        "protocol": "toy100-accuracy-v1",
+        "radial_ks": 0.11335770681508905,
+        "saturated_fraction": 0.0,
+        "terminal_max_saturated_fraction": 0.0,
+        "valid_n": 100000,
+        "within_radius_n": 84697
+      },
+      "raw_status": "completed",
+      "reason": "coverage, sustained live accuracy, or independent holdout failed",
+      "task_id": "grid100_res16_scaled_tanh"
+    },
+    {
+      "compatibility_key": "fe83767ea1c08198d3a3a939ab124e98caa15de54391dc6d74e71d67d793cb9e",
+      "cost": {
+        "adapter_loop_seconds": 22.04619131493382,
+        "adapter_seconds": 22.464894599979743,
+        "charged_task": "zero_tanh_smoke",
+        "completed_steps": 1000,
+        "device": "1",
+        "energy": {
+          "avg_power_watts": 101.55645047227506,
+          "checkpoint_joules": {
+            "1000": 2264.600000023842,
+            "125": 333.9880000054836,
+            "167": 425.4340000152588,
+            "209": 517.694000005722,
+            "250": 599.2100000083447,
+            "292": 700.3519999980927,
+            "334": 802.4259999990463,
+            "375": 884.630000025034,
+            "417": 977.0610000193119,
+            "42": 151.96500000357628,
+            "459": 1067.8250000178814,
+            "500": 1159.807999998331,
+            "542": 1251.483000010252,
+            "584": 1353.5920000076294,
+            "625": 1445.5170000195503,
+            "667": 1538.3810000121593,
+            "709": 1630.9020000100136,
+            "750": 1723.2300000190735,
+            "792": 1815.5430000126362,
+            "834": 1907.3610000014305,
+            "84": 243.16300001740456,
+            "875": 1989.0030000209808,
+            "917": 2081.6070000231266,
+            "959": 2172.686000019312
+          },
+          "contended": false,
+          "cumulative_joules_to_first_pass": 333.9880000054836,
+          "cumulative_joules_to_sustained_pass": 700.3519999980927,
+          "energy_backend": "nvml_energy_counter",
+          "first_pass_step": 125,
+          "gpu_name": "NVIDIA RTX A6000",
+          "joules_per_step": 2.2738950000107288,
+          "joules_to_first_pass": 333.9880000054836,
+          "joules_to_sustained_pass": 700.3519999980927,
+          "joules_total": 2273.895000010729,
+          "sustained_pass_step": 292
+        },
+        "execution_seconds": 28.777765675913543,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "optimizer_updates": {
+          "discriminator": 1000,
+          "generator": 1000,
+          "prior": 1000
+        },
+        "phase_timing": {
+          "coverage": "partial_adapter",
+          "measured_seconds": 21.580692320363596,
+          "method": "exclusive_synchronized_wall_time",
+          "phases": {
+            "evaluation": {
+              "calls": 24,
+              "seconds": 0.011235739570111036
+            },
+            "sampling": {
+              "calls": 24,
+              "seconds": 0.007282909704372287
+            },
+            "training_updates": {
+              "calls": 1000,
+              "seconds": 21.562173671089113
+            }
+          },
+          "scope": "Training updates exclude input preparation; evaluation includes metrics and its artifact I/O but excludes separately measured sampling."
+        },
+        "runner_seconds": 23.528243470937014,
+        "wall_seconds": 28.777765675913543
+      },
+      "evaluator_summary": {
+        "metric_checks": {
+          "mean_abs_error": {
+            "margin": 0.0037743025412783028,
+            "metric": "mean_abs_error",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.005,
+            "value": 0.0012256974587216973
+          },
+          "p99_abs_error": {
+            "margin": 0.014061382599174978,
+            "metric": "p99_abs_error",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.025,
+            "value": 0.010938617400825024
+          },
+          "rms_error": {
+            "margin": 0.007661813395097852,
+            "metric": "rms_error",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.01,
+            "value": 0.0023381866049021482
+          },
+          "saturated_fraction": {
+            "margin": -0.0,
+            "metric": "saturated_fraction",
+            "op": "==",
+            "status": "PASS",
+            "threshold": 0.0,
+            "value": 0.0
+          }
+        },
+        "passed": true
+      },
+      "gate_status": "PASS",
+      "metrics": {
+        "mean_abs_error": 0.0012256974587216973,
+        "p99_abs_error": 0.010938617400825024,
+        "rms_error": 0.0023381866049021482,
+        "sample_count": 4096,
+        "saturated_fraction": 0.0,
+        "step": 1000
+      },
+      "raw_status": "completed",
+      "reason": "recomputed the declared final zero-tanh bounds",
+      "task_id": "zero_tanh_smoke"
+    },
+    {
+      "compatibility_key": "b0af8a154d3b402a687a92af88a978dfd51d42fe4b90ef8fc490fc38973ecdf2",
+      "cost": {
+        "adapter_reported_inclusive_seconds": 2.081732942024246,
+        "adapter_seconds": 2.1728715570643544,
+        "charged_task": "clockfree_audit_measurement_v1",
+        "completed_steps": 24,
+        "completed_updates": 24,
+        "component_timing": "unavailable; legacy elapsed time includes evaluation and sampling",
+        "device": "0",
+        "energy": {
+          "avg_power_watts": 87.97299389204063,
+          "checkpoint_joules": null,
+          "contended": false,
+          "cumulative_joules_to_first_pass": null,
+          "cumulative_joules_to_sustained_pass": null,
+          "energy_backend": "nvml_energy_counter",
+          "first_pass_step": null,
+          "gpu_name": "NVIDIA RTX A6000",
+          "joules_per_step": 7.7207500003278255,
+          "joules_to_first_pass": null,
+          "joules_to_sustained_pass": null,
+          "joules_total": 185.2980000078678,
+          "sustained_pass_step": null
+        },
+        "execution_seconds": 8.750960424076766,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "runner_seconds": 3.257795264944434,
+        "wall_seconds": 8.750960424076766
+      },
+      "evaluator_summary": {},
+      "gate_status": "PASS",
+      "metrics": {
+        "parity_comparisons": 4
+      },
+      "raw_status": "completed",
+      "reason": "declared state/horizon/cadence/restart comparisons agree; source audit bound",
+      "task_id": "clockfree_audit_measurement_v1"
+    },
+    {
+      "compatibility_key": "7f3e5669d5235b27a37fea8b0210cd2dc743b068374322e3b7766a0cff6e886a",
+      "cost": {
+        "adapter_loop_seconds": 354.1601535740774,
+        "adapter_seconds": 354.5604394720867,
+        "charged_task": "grid100",
+        "completed_steps": 7000,
+        "device": "1",
+        "energy": {
+          "avg_power_watts": 165.65446963803663,
+          "checkpoint_joules": {
+            "0": 193.10099998116493,
+            "1": 241.13999998569489,
+            "10": 318.12199997901917,
+            "100": 1027.682999998331,
+            "1000": 8096.8779999911785,
+            "1250": 10105.956000000238,
+            "1500": 12162.370999991894,
+            "1750": 14204.812999993563,
+            "2000": 16222.148000001907,
+            "2250": 18264.461999982595,
+            "25": 438.60299998521805,
+            "250": 2177.628999978304,
+            "2500": 20351.672999978065,
+            "2750": 22406.584999978542,
+            "3000": 24462.983999997377,
+            "3250": 26529.53299999237,
+            "3500": 28618.42699998617,
+            "3750": 30739.63299998641,
+            "4000": 32887.111999988556,
+            "4250": 35035.310000002384,
+            "4500": 37183.54099997878,
+            "4750": 39357.71399998665,
+            "50": 632.5799999833107,
+            "500": 4127.101999998093,
+            "5000": 41502.98399999738,
+            "5250": 43646.803999990225,
+            "5500": 45777.37799999118,
+            "5750": 47926.84199997783,
+            "6000": 50078.93299999833,
+            "6250": 52230.25900000334,
+            "6500": 54356.43899998069,
+            "6750": 56489.91999998689,
+            "7000": 58626.6629999876,
+            "750": 6103.334999978542
+          },
+          "contended": false,
+          "cumulative_joules_to_first_pass": 35035.310000002384,
+          "cumulative_joules_to_sustained_pass": 43646.803999990225,
+          "energy_backend": "nvml_energy_counter",
+          "first_pass_step": 4250,
+          "gpu_name": "NVIDIA RTX A6000",
+          "joules_per_step": 8.388848142853805,
+          "joules_to_first_pass": 35035.310000002384,
+          "joules_to_sustained_pass": 43646.803999990225,
+          "joules_total": 58721.936999976635,
+          "sustained_pass_step": 5250
+        },
+        "execution_seconds": 362.29834171407856,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "optimizer_updates": {
+          "discriminator": 7000,
+          "generator": 7000,
+          "prior": 7000
+        },
+        "phase_timing": {
+          "coverage": "partial_adapter",
+          "measured_seconds": 348.84280641260557,
+          "method": "exclusive_synchronized_wall_time",
+          "phases": {
+            "evaluation": {
+              "calls": 35,
+              "seconds": 4.2386376617942005
+            },
+            "sampling": {
+              "calls": 70,
+              "seconds": 0.05504062748514116
+            },
+            "training_updates": {
+              "calls": 7000,
+              "seconds": 344.5491281233262
+            }
+          },
+          "scope": "Training updates exclude input preparation; evaluation includes metrics and its artifact I/O but excludes separately measured sampling."
+        },
+        "runner_seconds": 355.6486290509347,
+        "wall_seconds": 362.29834171407856
+      },
+      "evaluator_summary": {
+        "coverage_status": "PASS",
+        "final_metrics": {
+          "abs_cov_trace_bias": 0.018098096267963992,
+          "accuracy_pass": true,
+          "accuracy_score": 0.3979482051531164,
+          "all_finite": true,
+          "center_max_sigma": 0.2495979864190135,
+          "center_rms_sigma": 0.1134777634043024,
+          "cov_frob_rms": 0.15203327514741544,
+          "cov_trace_bias": 0.018098096267963992,
+          "frozen_pass": true,
+          "mass_tv": 0.03429999999999999,
+          "n": 20000,
+          "passed": true,
+          "precision": 0.9831,
+          "precision_gap": 0.00579100346175776,
+          "problem": "grid100",
+          "protocol": "toy100-accuracy-v1",
+          "radial_ks": 0.010870254969785886,
+          "valid_n": 20000,
+          "within_radius_n": 19662
+        },
+        "holdout_ema_metrics": {
+          "abs_cov_trace_bias": 0.03299862491672956,
+          "accuracy_pass": true,
+          "accuracy_score": 0.34046367796792715,
+          "all_finite": true,
+          "center_max_sigma": 0.1511618604759728,
+          "center_rms_sigma": 0.054296886579033005,
+          "cov_frob_rms": 0.10694365981156335,
+          "cov_trace_bias": 0.03299862491672956,
+          "frozen_pass": true,
+          "mass_tv": 0.023679999999999996,
+          "n": 100000,
+          "passed": true,
+          "precision": 0.97652,
+          "precision_gap": 0.01237100346175768,
+          "problem": "grid100",
+          "protocol": "toy100-accuracy-v1",
+          "radial_ks": 0.014628694525703256,
+          "valid_n": 100000,
+          "within_radius_n": 97652
+        },
+        "holdout_metrics": {
+          "abs_cov_trace_bias": 0.028984826781245587,
+          "accuracy_pass": true,
+          "accuracy_score": 0.3307873783952145,
+          "all_finite": true,
+          "center_max_sigma": 0.1433632684134746,
+          "center_rms_sigma": 0.0596855764410388,
+          "cov_frob_rms": 0.10325890999893161,
+          "cov_trace_bias": 0.028984826781245587,
+          "frozen_pass": true,
+          "mass_tv": 0.02386,
+          "n": 100000,
+          "passed": true,
+          "precision": 0.98277,
+          "precision_gap": 0.006121003461757701,
+          "problem": "grid100",
+          "protocol": "toy100-accuracy-v1",
+          "radial_ks": 0.01348826787586166,
+          "valid_n": 100000,
+          "within_radius_n": 98277
+        },
+        "oracle_metrics": {
+          "abs_cov_trace_bias": 0.0002794449587595338,
+          "accuracy_pass": true,
+          "accuracy_score": 0.11341721050570538,
+          "all_finite": true,
+          "center_max_sigma": 0.10090990917529204,
+          "center_rms_sigma": 0.041737606908836516,
+          "cov_frob_rms": 0.05610274287219167,
+          "cov_trace_bias": 0.0002794449587595338,
+          "frozen_pass": true,
+          "mass_tv": 0.012260000000000004,
+          "n": 100000,
+          "passed": true,
+          "precision": 0.98914,
+          "precision_gap": 0.0002489965382422854,
+          "problem": "grid100",
+          "protocol": "toy100-accuracy-v1",
+          "radial_ks": 0.001514120982308409,
+          "valid_n": 100000,
+          "within_radius_n": 98914
+        },
+        "passed": true,
+        "problem": "grid100",
+        "reason": "sustained live accuracy and independent holdout pass",
+        "status": "PASS",
+        "terminal_summary": {
+          "checks": 5,
+          "passing_checks": 5,
+          "status_counts": {
+            "PASS": 5
+          }
+        }
+      },
+      "gate_status": "PASS",
+      "metrics": {
+        "abs_cov_trace_bias": 0.028984826781245587,
+        "accuracy_pass": true,
+        "accuracy_score": 0.3307873783952145,
+        "all_finite": true,
+        "center_max_sigma": 0.1433632684134746,
+        "center_rms_sigma": 0.0596855764410388,
+        "cov_frob_rms": 0.10325890999893161,
+        "cov_trace_bias": 0.028984826781245587,
+        "frozen_pass": true,
+        "mass_tv": 0.02386,
+        "n": 100000,
+        "passed": true,
+        "precision": 0.98277,
+        "precision_gap": 0.006121003461757701,
+        "problem": "grid100",
+        "protocol": "toy100-accuracy-v1",
+        "radial_ks": 0.01348826787586166,
+        "valid_n": 100000,
+        "within_radius_n": 98277
+      },
+      "raw_status": "completed",
+      "reason": "sustained live accuracy and independent holdout pass",
+      "task_id": "grid100"
+    },
+    {
+      "compatibility_key": "745f5e69e89dc47a42239d4d4b038be2529df06697c91f4bfa40207dcd7be1dd",
+      "cost": {
+        "adapter_loop_seconds": 414.1428363400046,
+        "adapter_seconds": 414.6015666278545,
+        "charged_task": "grid100_res16_tanh",
+        "completed_steps": 7000,
+        "device": "0",
+        "energy": {
+          "avg_power_watts": 150.64811251900332,
+          "checkpoint_joules": {
+            "0": 56.677000001072884,
+            "1": 84.52000001072884,
+            "10": 169.46500000357628,
+            "100": 941.8289999961853,
+            "1000": 8457.221000000834,
+            "1250": 10584.417999997735,
+            "1500": 12725.938000008464,
+            "1750": 14875.296000003815,
+            "2000": 17039.435000002384,
+            "2250": 19210.39699999988,
+            "25": 293.12399999797344,
+            "250": 2180.3850000053644,
+            "2500": 21387.737000003457,
+            "2750": 23624.27199999988,
+            "3000": 25895.510000005364,
+            "3250": 28178.29399999976,
+            "3500": 30451.48600000143,
+            "3750": 32736.420000001788,
+            "4000": 35002.924000009894,
+            "4250": 37251.568000003695,
+            "4500": 39512.57700000703,
+            "4750": 41784.33799999952,
+            "50": 516.4249999970198,
+            "500": 4236.152999997139,
+            "5000": 44062.600999996066,
+            "5250": 46345.38300000131,
+            "5500": 48616.83900000155,
+            "5750": 50889.300999999046,
+            "6000": 53160.73700000346,
+            "6250": 55439.49500000477,
+            "6500": 57717.23900000751,
+            "6750": 59981.47300000489,
+            "7000": 62250.5719999969,
+            "750": 6335.78599999845
+          },
+          "contended": false,
+          "cumulative_joules_to_first_pass": null,
+          "cumulative_joules_to_sustained_pass": null,
+          "energy_backend": "nvml_energy_counter",
+          "first_pass_step": null,
+          "gpu_name": "NVIDIA RTX A6000",
+          "joules_per_step": 8.921130285714353,
+          "joules_to_first_pass": null,
+          "joules_to_sustained_pass": null,
+          "joules_total": 62447.91200000048,
+          "sustained_pass_step": null
+        },
+        "execution_seconds": 422.31952429097146,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "optimizer_updates": {
+          "discriminator": 7000,
+          "generator": 7000,
+          "prior": 7000
+        },
+        "phase_timing": {
+          "coverage": "partial_adapter",
+          "measured_seconds": 410.41181592969224,
+          "method": "exclusive_synchronized_wall_time",
+          "phases": {
+            "evaluation": {
+              "calls": 35,
+              "seconds": 5.357804225292057
+            },
+            "sampling": {
+              "calls": 70,
+              "seconds": 0.22729855543002486
+            },
+            "training_updates": {
+              "calls": 7000,
+              "seconds": 404.82671314897016
+            }
+          },
+          "scope": "Training updates exclude input preparation; evaluation includes metrics and its artifact I/O but excludes separately measured sampling."
+        },
+        "runner_seconds": 415.658142950153,
+        "wall_seconds": 422.31952429097146
+      },
+      "evaluator_summary": {
+        "coverage_status": "FAIL",
+        "final_metrics": {
+          "abs_cov_trace_bias": 0.34624413377037866,
+          "accuracy_pass": false,
+          "accuracy_score": 2.329387136939872,
+          "all_finite": true,
+          "center_max_sigma": 0.22947725683061473,
+          "center_rms_sigma": 0.12566365445136604,
+          "cov_frob_rms": 0.4901477130899991,
+          "cov_trace_bias": -0.34624413377037866,
+          "frozen_pass": false,
+          "mass_tv": 0.031999999999999994,
+          "n": 20000,
+          "passed": false,
+          "precision": 0.9911,
+          "precision_gap": 0.002208996538242247,
+          "problem": "grid100",
+          "protocol": "toy100-accuracy-v1",
+          "radial_ks": 0.18773822417862152,
+          "valid_n": 20000,
+          "within_radius_n": 19822
+        },
+        "holdout_ema_metrics": {
+          "abs_cov_trace_bias": 0.3319095191419015,
+          "accuracy_pass": false,
+          "accuracy_score": 2.199171188018797,
+          "all_finite": true,
+          "center_max_sigma": 0.2698458678386854,
+          "center_rms_sigma": 0.10416884509047454,
+          "cov_frob_rms": 0.4780577581087827,
+          "cov_trace_bias": -0.3319095191419015,
+          "frozen_pass": false,
+          "mass_tv": 0.0231,
+          "n": 100000,
+          "passed": false,
+          "precision": 0.98517,
+          "precision_gap": 0.0037210034617577437,
+          "problem": "grid100",
+          "protocol": "toy100-accuracy-v1",
+          "radial_ks": 0.18286981340815206,
+          "valid_n": 100000,
+          "within_radius_n": 98517
+        },
+        "holdout_metrics": {
+          "abs_cov_trace_bias": 0.34249427025360746,
+          "accuracy_pass": false,
+          "accuracy_score": 2.2463338836631133,
+          "all_finite": true,
+          "center_max_sigma": 0.18219498660791517,
+          "center_rms_sigma": 0.10210318154036709,
+          "cov_frob_rms": 0.48296162094741574,
+          "cov_trace_bias": -0.34249427025360746,
+          "frozen_pass": false,
+          "mass_tv": 0.023489999999999997,
+          "n": 100000,
+          "passed": false,
+          "precision": 0.99137,
+          "precision_gap": 0.0024789965382422396,
+          "problem": "grid100",
+          "protocol": "toy100-accuracy-v1",
+          "radial_ks": 0.18633507697658175,
+          "valid_n": 100000,
+          "within_radius_n": 99137
+        },
+        "oracle_metrics": {
+          "abs_cov_trace_bias": 0.0002794449587595338,
+          "accuracy_pass": true,
+          "accuracy_score": 0.11341721050570538,
+          "all_finite": true,
+          "center_max_sigma": 0.10090990917529204,
+          "center_rms_sigma": 0.041737606908836516,
+          "cov_frob_rms": 0.05610274287219167,
+          "cov_trace_bias": 0.0002794449587595338,
+          "frozen_pass": true,
+          "mass_tv": 0.012260000000000004,
+          "n": 100000,
+          "passed": true,
+          "precision": 0.98914,
+          "precision_gap": 0.0002489965382422854,
+          "problem": "grid100",
+          "protocol": "toy100-accuracy-v1",
+          "radial_ks": 0.001514120982308409,
+          "valid_n": 100000,
+          "within_radius_n": 98914
+        },
+        "passed": false,
+        "problem": "grid100",
+        "reason": "coverage, sustained live accuracy, or independent holdout failed",
+        "status": "FAIL",
+        "terminal_summary": {
+          "checks": 5,
+          "passing_checks": 0,
+          "status_counts": {
+            "FAIL": 5
+          }
+        }
+      },
+      "gate_status": "FAIL",
+      "metrics": {
+        "abs_cov_trace_bias": 0.34249427025360746,
+        "accuracy_pass": false,
+        "accuracy_score": 2.2463338836631133,
+        "all_finite": true,
+        "center_max_sigma": 0.18219498660791517,
+        "center_rms_sigma": 0.10210318154036709,
+        "cov_frob_rms": 0.48296162094741574,
+        "cov_trace_bias": -0.34249427025360746,
+        "frozen_pass": false,
+        "mass_tv": 0.023489999999999997,
+        "n": 100000,
+        "passed": false,
+        "precision": 0.99137,
+        "precision_gap": 0.0024789965382422396,
+        "problem": "grid100",
+        "protocol": "toy100-accuracy-v1",
+        "radial_ks": 0.18633507697658175,
+        "saturated_fraction": 0.0,
+        "terminal_max_saturated_fraction": 0.0,
+        "valid_n": 100000,
+        "within_radius_n": 99137
+      },
+      "raw_status": "completed",
+      "reason": "coverage, sustained live accuracy, or independent holdout failed",
+      "task_id": "grid100_res16_tanh"
+    },
+    {
+      "compatibility_key": "a1d31b4222a710b1a16e26d1ef61353fed0f9e50e7702b36b4e102e285d4cd6b",
+      "cost": {
+        "adapter_loop_seconds": 402.20421349001117,
+        "adapter_seconds": 402.62150461715646,
+        "charged_task": "grid100_mlp16",
+        "completed_steps": 7000,
+        "device": "0",
+        "energy": {
+          "avg_power_watts": 151.65747262729653,
+          "checkpoint_joules": {
+            "0": 45.93599998950958,
+            "1": 94.50199998915195,
+            "10": 167.08099998533726,
+            "100": 971.5309999883175,
+            "1000": 8620.964999988675,
+            "1250": 10758.609999999404,
+            "1500": 12909.127999991179,
+            "1750": 15078.289999991655,
+            "2000": 17248.484999999404,
+            "2250": 19420.925999999046,
+            "25": 309.09999999403954,
+            "250": 2258.5569999963045,
+            "2500": 21595.13899999857,
+            "2750": 23795.651999995112,
+            "3000": 25977.889999985695,
+            "3250": 28189.71899999678,
+            "3500": 30359.948999986053,
+            "3750": 32516.190999999642,
+            "4000": 34688.36099998653,
+            "4250": 36871.11699999869,
+            "4500": 39067.75999999046,
+            "4750": 41243.14699999988,
+            "50": 525.777999997139,
+            "500": 4384.608999997377,
+            "5000": 43415.681999996305,
+            "5250": 45598.856999993324,
+            "5500": 47796.68299999833,
+            "5750": 49975.625,
+            "6000": 52167.04799999297,
+            "6250": 54357.61999998987,
+            "6500": 56523.57699999213,
+            "6750": 58674.41699999571,
+            "7000": 60852.631999999285,
+            "750": 6486.630999997258
+          },
+          "contended": false,
+          "cumulative_joules_to_first_pass": null,
+          "cumulative_joules_to_sustained_pass": null,
+          "energy_backend": "nvml_energy_counter",
+          "first_pass_step": null,
+          "gpu_name": "NVIDIA RTX A6000",
+          "joules_per_step": 8.72135414285532,
+          "joules_to_first_pass": null,
+          "joules_to_sustained_pass": null,
+          "joules_total": 61049.478999987245,
+          "sustained_pass_step": null
+        },
+        "execution_seconds": 410.2578561489936,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "optimizer_updates": {
+          "discriminator": 7000,
+          "generator": 7000,
+          "prior": 7000
+        },
+        "phase_timing": {
+          "coverage": "partial_adapter",
+          "measured_seconds": 398.4014461329207,
+          "method": "exclusive_synchronized_wall_time",
+          "phases": {
+            "evaluation": {
+              "calls": 35,
+              "seconds": 5.000598649261519
+            },
+            "sampling": {
+              "calls": 70,
+              "seconds": 0.20718808006495237
+            },
+            "training_updates": {
+              "calls": 7000,
+              "seconds": 393.1936594035942
+            }
+          },
+          "scope": "Training updates exclude input preparation; evaluation includes metrics and its artifact I/O but excludes separately measured sampling."
+        },
+        "runner_seconds": 403.69864071905613,
+        "wall_seconds": 410.2578561489936
+      },
+      "evaluator_summary": {
+        "coverage_status": "FAIL",
+        "final_metrics": {
+          "abs_cov_trace_bias": null,
+          "accuracy_pass": false,
+          "accuracy_score": null,
+          "all_finite": true,
+          "center_max_sigma": null,
+          "center_rms_sigma": null,
+          "cov_frob_rms": null,
+          "cov_trace_bias": null,
+          "frozen_pass": false,
+          "mass_tv": 0.13475,
+          "n": 20000,
+          "passed": false,
+          "precision": 0.87465,
+          "precision_gap": 0.1142410034617577,
+          "problem": "grid100",
+          "protocol": "toy100-accuracy-v1",
+          "radial_ks": null,
+          "valid_n": 20000,
+          "within_radius_n": 17493
+        },
+        "holdout_ema_metrics": {
+          "abs_cov_trace_bias": null,
+          "accuracy_pass": false,
+          "accuracy_score": null,
+          "all_finite": true,
+          "center_max_sigma": null,
+          "center_rms_sigma": null,
+          "cov_frob_rms": null,
+          "cov_trace_bias": null,
+          "frozen_pass": false,
+          "mass_tv": 0.12414,
+          "n": 100000,
+          "passed": false,
+          "precision": 0.85306,
+          "precision_gap": 0.1358310034617577,
+          "problem": "grid100",
+          "protocol": "toy100-accuracy-v1",
+          "radial_ks": null,
+          "valid_n": 100000,
+          "within_radius_n": 85306
+        },
+        "holdout_metrics": {
+          "abs_cov_trace_bias": null,
+          "accuracy_pass": false,
+          "accuracy_score": null,
+          "all_finite": true,
+          "center_max_sigma": null,
+          "center_rms_sigma": null,
+          "cov_frob_rms": null,
+          "cov_trace_bias": null,
+          "frozen_pass": false,
+          "mass_tv": 0.12324999999999998,
+          "n": 100000,
+          "passed": false,
+          "precision": 0.86863,
+          "precision_gap": 0.12026100346175772,
+          "problem": "grid100",
+          "protocol": "toy100-accuracy-v1",
+          "radial_ks": null,
+          "valid_n": 100000,
+          "within_radius_n": 86863
+        },
+        "oracle_metrics": {
+          "abs_cov_trace_bias": 0.0002794449587595338,
+          "accuracy_pass": true,
+          "accuracy_score": 0.11341721050570538,
+          "all_finite": true,
+          "center_max_sigma": 0.10090990917529204,
+          "center_rms_sigma": 0.041737606908836516,
+          "cov_frob_rms": 0.05610274287219167,
+          "cov_trace_bias": 0.0002794449587595338,
+          "frozen_pass": true,
+          "mass_tv": 0.012260000000000004,
+          "n": 100000,
+          "passed": true,
+          "precision": 0.98914,
+          "precision_gap": 0.0002489965382422854,
+          "problem": "grid100",
+          "protocol": "toy100-accuracy-v1",
+          "radial_ks": 0.001514120982308409,
+          "valid_n": 100000,
+          "within_radius_n": 98914
+        },
+        "passed": false,
+        "problem": "grid100",
+        "reason": "coverage, sustained live accuracy, or independent holdout failed",
+        "status": "FAIL",
+        "terminal_summary": {
+          "checks": 5,
+          "passing_checks": 0,
+          "status_counts": {
+            "FAIL": 5
+          }
+        }
+      },
+      "gate_status": "FAIL",
+      "metrics": {
+        "abs_cov_trace_bias": null,
+        "accuracy_pass": false,
+        "accuracy_score": null,
+        "all_finite": true,
+        "center_max_sigma": null,
+        "center_rms_sigma": null,
+        "cov_frob_rms": null,
+        "cov_trace_bias": null,
+        "frozen_pass": false,
+        "mass_tv": 0.12324999999999998,
+        "n": 100000,
+        "passed": false,
+        "precision": 0.86863,
+        "precision_gap": 0.12026100346175772,
+        "problem": "grid100",
+        "protocol": "toy100-accuracy-v1",
+        "radial_ks": null,
+        "valid_n": 100000,
+        "within_radius_n": 86863
+      },
+      "raw_status": "completed",
+      "reason": "coverage, sustained live accuracy, or independent holdout failed",
+      "task_id": "grid100_mlp16"
+    }
+  ]
+}

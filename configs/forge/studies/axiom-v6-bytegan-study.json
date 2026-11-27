@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 86400,
+    "candidate_budget_seconds": 86400,
+    "id": "axiom-v6-bytegan-study"
+  },
+  "candidate": "axiom-v6",
+  "competing_explanation": "Faithful numerical FAIL if axiom-v6 misses any gate on bytegan_stretch.",
+  "control": {
+    "candidate_id": "unified-v12",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "valid_unique_bytes",
+    "op": "<",
+    "phase": "final",
+    "task_id": "bytegan_hypercube8",
+    "threshold": 256
+  },
+  "hypothesis": "Unchanged global axiom-v6 (1157930ef) on bytegan_stretch (RTX A6000, seed 0).",
+  "id": "axiom-v6-bytegan-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "valid_unique_bytes",
+    "op": ">=",
+    "phase": "final",
+    "task_id": "bytegan_hypercube8",
+    "threshold": 256
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "campaign_id": "bytegan-stretch-diag-v1",
+        "cuda_model": "NVIDIA RTX A6000"
+      },
+      "path": "reports/forge/bytegan-stretch/summary.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "bytegan_stretch"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

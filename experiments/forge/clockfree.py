@@ -64,6 +64,8 @@ def source_audit(recipe, extensions):
              "particlegan/_r4_ablation/prior.py",
              "particlegan/_minimal/dynamics.py", "particlegan/_minimal/geometry.py",
              "particlegan/_minimal/prior.py",
+             "particlegan/_axiom/math_ops.py", "particlegan/_axiom/state.py",
+             "particlegan/_axiom/atlas.py", "particlegan/_axiom/fiber.py",
              "particlegan/_axiom/prior.py", "particlegan/_axiom/critic.py",
              "particlegan/_axiom/transport.py", "particlegan/_axiom/optimizer.py",
              "particlegan/_axiom/loss.py",

@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "id": "axiom-v6-occam-study",
+    "budget_seconds": 86400,
+    "candidate_budget_seconds": 86400
+  },
+  "candidate": "axiom-v6",
+  "competing_explanation": "Faithful numerical FAIL on any r4-occam-ablation-v1 task where axiom-v6 misses a gate.",
+  "control": {
+    "candidate_id": "unified-v12",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "core_min_eigen_ratio",
+    "op": "<",
+    "phase": "final",
+    "task_id": "t3_iso_scale_mass_8x",
+    "threshold": 0.35
+  },
+  "hypothesis": "Unchanged global axiom-v6 clean-slate rewrite (1157930ef): evaluate on r4-occam-ablation-v1 (RTX A6000, protocol seed 0).",
+  "id": "axiom-v6-occam-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "core_min_eigen_ratio",
+    "op": ">=",
+    "phase": "final",
+    "task_id": "t3_iso_scale_mass_8x",
+    "threshold": 0.35
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "unified-v12",
+        "candidate_revision": "f16b8465a125d20c372aacad0607555ac78d5f74545d734931b6f4c61cdd1f9f"
+      },
+      "path": "reports/forge/records/readout-624964f4e46793593bc147e4.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "view": "r4-occam-ablation-v1",
+    "through_tier": 1,
+    "execution_backend": "cuda",
+    "cuda_model": "NVIDIA RTX A6000"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

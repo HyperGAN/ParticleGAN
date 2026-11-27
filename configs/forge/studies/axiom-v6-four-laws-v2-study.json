@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "id": "axiom-v6-four-laws-v2-study",
+    "budget_seconds": 86400,
+    "candidate_budget_seconds": 86400
+  },
+  "candidate": "axiom-v6",
+  "competing_explanation": "Faithful numerical FAIL on any four-laws-adherence-v2 probe where axiom-v6 misses a threshold.",
+  "control": {
+    "candidate_id": "unified-v14",
+    "task_map": {}
+  },
+  "falsifier": {
+    "task_id": "fl_law1_noisy_atomic_codebook_v2",
+    "metric": "atom_recall",
+    "op": "<",
+    "threshold": 0.96,
+    "phase": "final"
+  },
+  "hypothesis": "Unchanged global axiom-v6 clean-slate rewrite (1157930ef): evaluate across all 34 tasks of four-laws-adherence-v2 (RTX A6000, protocol seed 0).",
+  "id": "axiom-v6-four-laws-v2-study",
+  "max_rounds": 1,
+  "prediction": {
+    "task_id": "fl_law1_noisy_atomic_codebook_v2",
+    "metric": "atom_recall",
+    "op": ">=",
+    "threshold": 0.96,
+    "phase": "final"
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "unified-v12",
+        "candidate_revision": "f16b8465a125d20c372aacad0607555ac78d5f74545d734931b6f4c61cdd1f9f"
+      },
+      "path": "reports/forge/records/readout-b51ab67c4d97526186e23651.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "view": "four-laws-adherence-v2",
+    "through_tier": 1,
+    "execution_backend": "cuda",
+    "cuda_model": "NVIDIA RTX A6000"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

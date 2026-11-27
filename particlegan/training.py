@@ -213,34 +213,26 @@ def critic_source_context(critic, source):
     conversion or additive input noise) allocates a new tensor storage pointer so
     formulation hooks still match ``source`` during critic penalty evaluation.
     """
+    from ._axiom.state import axiom_source_context
+
     target = critic
-    if target is not None and not (hasattr(target, "_t2_record") or hasattr(target, "_axiom_record")):
+    if target is not None and not hasattr(target, "_t2_record"):
         inner = getattr(target, "critic", None)
-        if inner is not None and (hasattr(inner, "_t2_record") or hasattr(inner, "_axiom_record")):
+        if inner is not None and hasattr(inner, "_t2_record"):
             target = inner
     has_t2 = target is not None and source is not None and hasattr(target, "_t2_record")
-    has_axiom = target is not None and source is not None and hasattr(target, "_axiom_record")
-    if not (has_t2 or has_axiom):
-        yield
-        return
     sentinel = object()
     prev_t2 = sentinel
-    prev_axiom = sentinel
     if has_t2:
         from ._t2_critic.critic import _tensor_identity_key
         prev_t2 = getattr(target, "_t2_pending_source_key", sentinel)
         target._t2_pending_source_key = _tensor_identity_key(source)
-    if has_axiom:
-        from ._axiom.critic import _tensor_id
-        prev_axiom = getattr(target, "_axiom_pending_source_key", sentinel)
-        target._axiom_pending_source_key = _tensor_id(source)
     try:
-        yield
+        with axiom_source_context(critic, source):
+            yield
     finally:
         if has_t2:
             target._t2_pending_source_key = None if prev_t2 is sentinel else prev_t2
-        if has_axiom:
-            target._axiom_pending_source_key = None if prev_axiom is sentinel else prev_axiom
 
 
 def _is_frozen_bn(module):
@@ -354,7 +346,7 @@ def bind_formulation_records(recipe, opt_d, loss=None, prior_regularizer=None, *
         from .cond_fiber import bind_cond_fiber_record
         bind_cond_fiber_record(record, loss, prior_regularizer)
     elif formulation == "axiom":
-        from ._axiom.critic import bind_axiom_record
+        from ._axiom.state import bind_axiom_record
         bind_axiom_record(record, loss, prior_regularizer)
     elif formulation == "rhbi":
         from .rhbi import bind_rhbi_record
@@ -479,15 +471,8 @@ class InputNoise(nn.Module):
                         float_parts=float_parts,
                         overwrite=True,
                     )
-            if hasattr(target, "_axiom_input") or hasattr(self.critic, "_axiom_record"):
-                rec_ax = getattr(target, "_axiom_record", getattr(self.critic, "_axiom_record", None))
-                if rec_ax is None or not getattr(rec_ax, "_in_penalty", False):
-                    target._axiom_input = x
-                    if rec_ax is not None:
-                        target._axiom_record = rec_ax
-                    prev_parts = getattr(target, "_axiom_parts", None)
-                    if isinstance(prev_parts, tuple) and prev_parts:
-                        target._axiom_parts = (x, *prev_parts[1:])
+            from ._axiom.state import override_axiom_capture_input
+            override_axiom_capture_input(out, x, critic=self.critic, args=args, kwargs=kwargs)
         return out
 
 
@@ -1207,36 +1192,33 @@ class GANTrainer:
                 )
                 prim_op = getattr(self.loss, "t1c", None) or getattr(self.loss, "rhbi", None)
                 is_axiom_atomic = False
-                rec_ax_step = getattr(self.opt_d, "record", None) if recipe.effective_critic_formulation == "axiom" else None
                 if recipe.effective_critic_formulation == "axiom":
-                    if rec_ax_step is not None and self.prior_noise_generator is None and hasattr(unwrap_prior(self.prior), "z"):
-                        rec_ax_step._active_prior_table = unwrap_prior(self.prior).z
-                        rec_ax_step._active_batch_rows = indices.detach() if indices is not None else None
-                    if use_simplex and len(real) >= 8:
-                        from ._axiom.transport import compute_discrete_atomic_gate, project_transport_features
-                        _y_proj = project_transport_features(real.detach(), max_spatial=getattr(prim_op, "max_spatial", 8))
-                        _cs = getattr(rec_ax_step, "chart_state", None) if rec_ax_step is not None else None
-                        _ch = None
-                        _rd = None
-                        if isinstance(_cs, dict) and isinstance(_cs.get("sum"), torch.Tensor) and isinstance(_cs.get("count"), torch.Tensor) and _cs["sum"].shape[1] == _y_proj.shape[1]:
-                            _cc = _cs["count"].to(device=real.device, dtype=torch.float32).clamp_min(1e-8)
-                            _ch = _cs["sum"].to(device=real.device, dtype=torch.float32) / _cc.unsqueeze(1)
-                            if isinstance(_cs.get("sq_dev"), torch.Tensor):
-                                _rd = (_cs["sq_dev"].to(device=real.device, dtype=torch.float32) / _cc).clamp_min(1e-12).sqrt()
-                        is_axiom_atomic = compute_discrete_atomic_gate(_y_proj, charts=_ch, radii=_rd) > 0.5
-                if prim_op is not None and hasattr(prim_op, "bind_discrete_prior_step"):
+                    from ._axiom.transport import prepare_axiom_transport_step
+                    rec_ax_step = getattr(self.opt_d, "record", None)
+                    base_p = unwrap_prior(self.prior)
+                    simplicial_active = prepare_axiom_transport_step(
+                        prim_op,
+                        rec_ax_step,
+                        real,
+                        prior_table=getattr(base_p, "z", None),
+                        batch_rows=indices,
+                        is_discrete_prior=(self.prior_noise_generator is None),
+                        use_simplex=use_simplex,
+                        simplex_chart_weight=recipe.rhbi_simplex_chart_weight,
+                    )
+                    is_axiom_atomic = bool(
+                        use_simplex and recipe.rhbi_simplex_chart_weight > 0.0 and not simplicial_active
+                    )
+                elif prim_op is not None and hasattr(prim_op, "bind_discrete_prior_step"):
                     simplicial_active = (
                         use_simplex
-                        and not is_axiom_atomic
                         and recipe.rhbi_simplex_chart_weight > 0.0
-                        and (recipe.effective_critic_formulation == "axiom" or recipe.rhbi_simplex_macro_settle)
+                        and recipe.rhbi_simplex_macro_settle
                     )
                     prim_op.bind_discrete_prior_step(
                         self.prior_noise_generator is None,
                         simplicial_active=simplicial_active,
                     )
-                    if rec_ax_step is not None and hasattr(rec_ax_step, "_simplicial_step"):
-                        rec_ax_step._simplicial_step = bool(simplicial_active)
                 if hasattr(self.loss, "bind_discrete_prior_step") and hasattr(self.loss, "manifold_chart_loss"):
                     rgdt_manifold_active = (
                         recipe.rgdt_manifold_chart_weight > 0.0
@@ -1267,9 +1249,14 @@ class GANTrainer:
                     # Its contribution to the training objective is recipe.prior_reg.
                     raw = self.prior.z if recipe.num_particles <= 1024 else self.prior.z[torch.unique(indices)]
                     prior_reg = self.prior_regularizer(raw)
+                aux_terms = []
+                if recipe.prior_reg > 0 and prior_reg.requires_grad:
+                    aux_terms.append(recipe.prior_reg * prior_reg)
                 loss_g = loss_gan + recipe.prior_reg * prior_reg
                 if self.prior.z.requires_grad and recipe.prior_l2 > 0:
-                    loss_g = loss_g + recipe.prior_l2 * self.prior.z.square().mean()
+                    l2_term = recipe.prior_l2 * self.prior.z.square().mean()
+                    aux_terms.append(l2_term)
+                    loss_g = loss_g + l2_term
                 prior_manip_loss = None
                 if self._prior_penalty:
                     raw_rows = self.prior.z if recipe.num_particles <= 1024 else self.prior.z[torch.unique(indices)]
@@ -1307,6 +1294,8 @@ class GANTrainer:
                             macro_settle=recipe.rhbi_simplex_macro_settle,
                             curve_settle=recipe.rhbi_simplex_curve_settle,
                         )
+                    if simplex_loss.requires_grad:
+                        aux_terms.append(simplex_loss)
                     loss_g = loss_g + simplex_loss
                 rgdt_chart_loss = None
                 if (
@@ -1323,6 +1312,8 @@ class GANTrainer:
                         real_g,
                         record=getattr(self.opt_d, "record", None),
                     )
+                    if rgdt_chart_loss.requires_grad:
+                        aux_terms.append(rgdt_chart_loss)
                     loss_g = loss_g + rgdt_chart_loss
                 self.opt_g.zero_grad()
                 protected_evaluator = None
@@ -1345,8 +1336,20 @@ class GANTrainer:
                         finally:
                             if rec is not None:
                                 rec._in_protected_probe = prev_probe
-                constraint_geometry_backward(loss_g, self.opt_g, (loss_gan,),
-                                             protected_evaluator=protected_evaluator)
+                use_axiom_single_bw = (
+                    recipe.optimizer_family == "axiom"
+                    and recipe.constraint_geometry_mode == "direction_blend"
+                    and hasattr(self.opt_g, "backward_with_protected")
+                    and not self._prior_penalty
+                    and not recipe.kinetic_transport_weight
+                    and not recipe.kinetic_transport_local_weight
+                )
+                if use_axiom_single_bw:
+                    aux_loss = sum(aux_terms[1:], aux_terms[0]) if aux_terms else None
+                    self.opt_g.backward_with_protected(loss_gan, aux_loss)
+                else:
+                    constraint_geometry_backward(loss_g, self.opt_g, (loss_gan,),
+                                                 protected_evaluator=protected_evaluator)
                 self.policy.after_generator_backward(
                     loss_gan=loss_gan.detach(), loss_critic=(loss_d - penalty).detach())
                 self.opt_g.step()
