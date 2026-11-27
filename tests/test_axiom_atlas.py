@@ -902,6 +902,55 @@ def test_law1_wishart_shrinkage_fisher_isolation_and_hysteresis() -> None:
     assert abs(float(at.proto_c[0, 0])) < 1e-6 and float(at.proto_c[3, 0]) > 5.0
 
 
+def test_fast_path_exact_parity_group_rank_ledger_and_coalesce() -> None:
+    from particlegan._axiom.atlas import _group_rank
+
+    # 1. Single-sort int64 bit-cast _group_rank matches reference two-pass stable sort exactly.
+    gen = torch.Generator().manual_seed(17)
+    num_p, num_comp = 128, 16
+    gid = torch.randint(0, num_comp + 1, (num_p,), generator=gen)
+    dist = torch.rand(num_p, generator=gen) * 10.0
+    dist[::7] = 0.0  # exact ties broken by weyl
+    dist[::11] = 1e30  # huge sentinel values
+    weyl = ((torch.arange(num_p, dtype=torch.float32) + 0.5) * 0.6180339887498949).remainder(1.0)
+    order, sorted_g, rank = _group_rank(gid, dist, weyl, num_comp)
+    ref_order = (dist.clamp_max(1e6) + 1e-6 * weyl).argsort(stable=True)
+    ref_order = ref_order[gid[ref_order].argsort(stable=True)]
+    assert torch.equal(order, ref_order) and torch.equal(sorted_g, gid[ref_order])
+
+    # 2. HamiltonCommitmentLedger.update(allow_sync=True) matches allow_sync=False bit-for-bit.
+    comp_c = torch.tensor([[-4.0, 0.0], [0.0, 4.0], [4.0, 0.0], [0.0, -4.0]])
+    comp_w = torch.tensor([0.25, 0.25, 0.25, 0.25])
+    led_a, led_b = HamiltonCommitmentLedger(), HamiltonCommitmentLedger()
+    x_pool = torch.randn(16, 2, generator=gen)
+    for step in range(8):
+        rows = torch.randperm(16, generator=gen)[:8]
+        x_pool[rows] = x_pool[rows] + 0.4 * (comp_c[rows % 4] - x_pool[rows])
+        oa = led_a.update(x_pool[rows], rows, comp_c, comp_w, 16, allow_sync=False)
+        ob = led_b.update(x_pool[rows], rows, comp_c, comp_w, 16, allow_sync=True)
+        assert torch.equal(oa.row_comp, ob.row_comp) and torch.equal(oa.occupancy, ob.occupancy)
+        assert torch.allclose(oa.batch_target, ob.batch_target, atol=0.0)
+        assert torch.allclose(oa.tail_residual, ob.tail_residual, atol=1e-6)
+
+    # 3. Steady-state _warm_rho_batch / _rho_below_conn fast paths match fresh checkpoint reload exactly.
+    modes = torch.tensor([[-5.0, -5.0], [5.0, -5.0], [-5.0, 5.0], [5.0, 5.0]])
+    at = PrototypeAtlas(max_prototypes=16)
+    for _ in range(30):
+        yb = modes[torch.randint(0, 4, (64,), generator=gen)]
+        at.update(yb)
+        at.coalesce(yb)
+    sd = at.state_dict()
+    at_reloaded = PrototypeAtlas(max_prototypes=16)
+    at_reloaded.load_state_dict(sd)
+    yb_next = modes[torch.randint(0, 4, (64,), generator=gen)]
+    at.update(yb_next)
+    at_reloaded.update(yb_next)
+    c1, c2 = at.coalesce(yb_next), at_reloaded.coalesce(yb_next)
+    assert abs(at.rho_atom_ema - at_reloaded.rho_atom_ema) < 1e-7
+    assert abs(at.g_conn_ema - at_reloaded.g_conn_ema) < 1e-7
+    assert torch.allclose(c1.comp_c, c2.comp_c, atol=1e-6)
+
+
 @pytest.mark.cuda
 def test_cuda_deterministic_algorithms_atlas_update_and_ledger() -> None:
     if not torch.cuda.is_available():

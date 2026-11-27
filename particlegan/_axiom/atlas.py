@@ -38,7 +38,7 @@ MAX_LEDGER_PARTICLES = 2048
 _VAR_FLOOR = 1e-24
 _EPS = 1e-12
 _BETA_N = 0.04
-_PROPOSAL_ROUNDS = 8
+_PROPOSAL_ROUNDS = 4
 _INF = float("inf")
 
 _LEDGER_HEADER_KEYS = ("initialized", "num_particles", "dim")
@@ -160,7 +160,8 @@ def _sanitize_cov(cov, scale=None):
         cov = cov * _broadcast_slots(scale, cov.ndim == 3)
     if cov.ndim == 3:
         sym = 0.5 * (cov + cov.mT)
-        return sym + torch.diag_embed((_VAR_FLOOR - _diag(sym)).clamp_min(0.0))
+        _diag(sym).clamp_min_(_VAR_FLOOR)
+        return sym
     return cov.clamp_min(_VAR_FLOOR)
 
 
@@ -180,8 +181,9 @@ def cov_from_scalar(var, dim):
 def cov_directional_var(cov, dirs):
     """Directional variance ``u^T Sigma u`` for full SPD or diagonal covariance."""
     if cov.ndim == 3:
-        eq = "kmd,kde,kme->km" if dirs.ndim == 3 else "kd,kde,ke->k"
-        return torch.einsum(eq, dirs, cov, dirs).clamp_min(_VAR_FLOOR)
+        if dirs.ndim == 3:
+            return ((dirs @ cov) * dirs).sum(-1).clamp_min(_VAR_FLOOR)
+        return ((cov @ dirs.unsqueeze(-1)).squeeze(-1) * dirs).sum(-1).clamp_min(_VAR_FLOOR)
     base = cov.unsqueeze(1) if dirs.ndim == 3 else cov
     return (dirs.square() * base).sum(-1).clamp_min(_VAR_FLOOR)
 
@@ -280,7 +282,7 @@ def manifold_connectivity_stats(y_real):
     nn_q90 = quantile(dist.masked_fill(~off_diag, _INF).amin(-1), 0.90).clamp_min(1e-8)
     diam_ratio = quantile(dist[off_diag], 0.90) / nn_q90
     ultra = dist.clone()
-    for _ in range(8):
+    for _ in range(min(8, max(1, (len(y_sub) - 1).bit_length()))):
         ultra = minimum(ultra, maximum(ultra.unsqueeze(2), ultra.unsqueeze(0)).amin(1))
     g_conn = smoothstep01((10.0 - ultra.amax() / nn_q90) / 3.0) * smoothstep01((diam_ratio - 1.15) / 0.25)
     return g_conn, g_conn * smoothstep01((diam_ratio - 3.80) / 1.00), nn_q90.clamp_min(1e-4), scale
@@ -316,7 +318,7 @@ def compute_connectivity_gate(y_real, *, rho_atom=None):
 def _ltc_coalesce_pass(centers, cov, weights, adj, eye_k):
     num_proto = len(centers)
     reach = adj.clone().fill_diagonal_(1.0)
-    for _ in range(min(8, max(4, (num_proto - 1).bit_length()))):
+    for _ in range(min(8, max(1, (num_proto - 1).bit_length()))):
         reach = ((reach @ reach) > 0).float()
     comp_size = reach.sum(1)
     valid_comp = (comp_size >= 1.0) & (comp_size < num_proto)
@@ -462,8 +464,8 @@ def validate_atlas_state(state):
 
 
 def _group_rank(group_id, dist, weyl, num_comp):
-    order = (dist.clamp_max(1e6) + 1e-6 * weyl).argsort(stable=True)
-    order = order[group_id[order].argsort(stable=True)]
+    dist_bits = (dist.clamp(0.0, 1e6) + 1e-6 * weyl).float().view(torch.int32).to(torch.int64)
+    order = ((group_id.to(torch.int64) << 32) + dist_bits).argsort(stable=True)
     sorted_g = group_id[order]
     counts = bincount(sorted_g, minlength=num_comp + 1)
     rank = arange(group_id.numel(), device=group_id.device, dtype=torch.int64) - (counts.cumsum(0) - counts)[sorted_g]
@@ -506,7 +508,7 @@ class HamiltonCommitmentLedger:
         num_comp, num_p, dev = len(comp_c), row_comp.numel(), row_comp.device
         deficit = (quotas - _slot_occupancy(row_comp, num_comp)).clamp_min(0)
         unassigned = in_batch & (row_comp < 0)
-        for _ in range(_PROPOSAL_ROUNDS):
+        for _ in range(min(_PROPOSAL_ROUNDS, num_comp)):
             prop_dist, prop_comp = dist_pc.masked_fill((deficit <= 0).unsqueeze(0), _INF).min(1)
             group_key = where(unassigned & isfinite(prop_dist), prop_comp, num_comp)
             order, sorted_g, rank = _group_rank(group_key, prop_dist, weyl, num_comp)
@@ -534,8 +536,58 @@ class HamiltonCommitmentLedger:
             where(matched, dist_pc.gather(1, safe_id.unsqueeze(1)).squeeze(1), row_dist),
         )
 
+    def _evict_excess(self, row_comp, row_dist, occ_now, quotas, w_norm, nn_dist, weyl, num_p, num_comp):
+        any_empty = ((quotas >= 1) & (occ_now == 0)).any()
+        q_hyst = maximum(quotas, (num_p * w_norm + 0.80).floor().long())
+        q_settled = where(any_empty, quotas, q_hyst)
+        settled = (row_comp >= 0) & (row_dist <= 0.15 * nn_dist[row_comp.clamp_min(0)])
+        order, sorted_g, rank = _group_rank(where(row_comp >= 0, row_comp, num_comp), row_dist, weyl, num_comp)
+        safe_g = sorted_g.clamp_max(num_comp - 1)
+        evict_bound = where(settled[order], q_settled[safe_g], quotas[safe_g])
+        evict = zeros_like(settled).scatter_(0, order, (sorted_g < num_comp) & (rank >= evict_bound))
+        return where(evict, -1, row_comp), where(evict, 1e30, row_dist)
+
+    def _reconcile_rows(
+        self, row_comp, row_target, row_dist, row_idx, dist_xc, centers, w_norm, quotas, nn_dist, allow_sync
+    ):
+        batch_n, num_p, num_comp, dev = len(dist_xc), len(row_comp), len(centers), dist_xc.device
+        in_batch = zeros(num_p, dtype=torch.bool, device=dev)
+        in_batch[row_idx] = True
+        first_pos = full((num_p,), batch_n, dtype=torch.int64, device=dev).scatter_reduce_(
+            0, row_idx, arange(batch_n, device=dev, dtype=torch.int64), reduce="amin"
+        )
+        dist_pc = dist_xc[first_pos.clamp_max(batch_n - 1)]
+        active = row_comp >= 0
+        nearest_c = safe_cdist(row_target, centers).argmin(1)
+        matched_c = centers[nearest_c]
+        row_comp = where(active, nearest_c, row_comp)
+        row_dist = where(
+            in_batch & (row_comp >= 0),
+            dist_pc.gather(1, row_comp.clamp_min(0).unsqueeze(1)).squeeze(1),
+            where(active, maximum(row_dist, (row_target - matched_c).norm(dim=1)), row_dist),
+        )
+        row_target = where(active.unsqueeze(1), matched_c, row_target)
+
+        occ_now = _slot_occupancy(row_comp, num_comp)
+        do_evict = do_assign = True
+        if allow_sync:
+            ev_flag, as_flag = stack(((occ_now > quotas).any(), (in_batch & (row_comp < 0)).any())).tolist()
+            do_evict, do_assign = bool(ev_flag), bool(ev_flag or as_flag)
+        if not (do_evict or do_assign):
+            return row_comp, row_target, row_dist, occ_now
+        weyl = ((arange(num_p, device=dev, dtype=torch.float32) + 0.5) * PHI1).remainder(1.0)
+        if do_evict:
+            row_comp, row_dist = self._evict_excess(
+                row_comp, row_dist, occ_now, quotas, w_norm, nn_dist, weyl, num_p, num_comp
+            )
+        if do_assign:
+            row_comp, row_target, row_dist = self._assign_deficit(
+                row_comp, row_target, row_dist, dist_pc, centers, in_batch, quotas, weyl
+            )
+        return row_comp, row_target, row_dist, None
+
     @no_grad()
-    def update(self, x_fake, rows, comp_c, comp_w, num_particles, *, allow_update=True):
+    def update(self, x_fake, rows, comp_c, comp_w, num_particles, *, allow_update=True, allow_sync=False):
         batch_n, num_comp, num_p, dev = len(x_fake), len(comp_c), int(num_particles), x_fake.device
         _require(rows.ndim == 1 and len(rows) == batch_n and num_comp >= 1 and 1 <= num_p <= MAX_LEDGER_PARTICLES)
         centers = comp_c.detach().to(dev, torch.float32).reshape(num_comp, -1)
@@ -555,47 +607,14 @@ class HamiltonCommitmentLedger:
         nn_dist = (
             safe_cdist(centers, diag_inf=True).amin(1).clamp_min(_EPS) if num_comp >= 2 else ones(num_comp, device=dev)
         )
+        occ_cached = None
         if allow_update and batch_n > 0:
-            in_batch = zeros(num_p, dtype=torch.bool, device=dev)
-            in_batch[row_idx] = True
-            first_pos = full((num_p,), batch_n, dtype=torch.int64, device=dev).scatter_reduce_(
-                0, row_idx, arange(batch_n, device=dev, dtype=torch.int64), reduce="amin"
-            )
-            dist_pc = dist_xc[first_pos.clamp_max(batch_n - 1)]
-            weyl = ((arange(num_p, device=dev, dtype=torch.float32) + 0.5) * PHI1).remainder(1.0)
-            active = row_comp >= 0
-            nearest_c = safe_cdist(row_target, centers).argmin(1)
-            matched_c = centers[nearest_c]
-            row_comp = where(active, nearest_c, row_comp)
-            row_dist = where(
-                in_batch & (row_comp >= 0),
-                dist_pc.gather(1, row_comp.clamp_min(0).unsqueeze(1)).squeeze(1),
-                where(active, maximum(row_dist, (row_target - matched_c).norm(dim=1)), row_dist),
-            )
-            row_target = where(active.unsqueeze(1), matched_c, row_target)
-
-            occ_now = _slot_occupancy(row_comp, num_comp)
-            any_empty = ((quotas >= 1) & (occ_now == 0)).any()
-            q_hyst = maximum(quotas, (num_p * w_norm + 0.80).floor().long())
-            q_settled = where(any_empty, quotas, q_hyst)
-            settled = (row_comp >= 0) & (row_dist <= 0.15 * nn_dist[row_comp.clamp_min(0)])
-            order, sorted_g, rank = _group_rank(where(row_comp >= 0, row_comp, num_comp), row_dist, weyl, num_comp)
-            safe_g = sorted_g.clamp_max(num_comp - 1)
-            evict_bound = where(settled[order], q_settled[safe_g], quotas[safe_g])
-            evict = zeros_like(settled).scatter_(0, order, (sorted_g < num_comp) & (rank >= evict_bound))
-            row_comp, row_target, row_dist = self._assign_deficit(
-                where(evict, -1, row_comp),
-                row_target,
-                where(evict, 1e30, row_dist),
-                dist_pc,
-                centers,
-                in_batch,
-                quotas,
-                weyl,
+            row_comp, row_target, row_dist, occ_cached = self._reconcile_rows(
+                row_comp, row_target, row_dist, row_idx, dist_xc, centers, w_norm, quotas, nn_dist, allow_sync
             )
         self.row_comp, self.row_target, self.row_dist = row_comp, row_target, row_dist
         batch_comp = where(row_comp[row_idx] >= 0, row_comp[row_idx].clamp_min(0), dist_xc.argmin(1))
-        occupancy = _slot_occupancy(row_comp, num_comp)
+        occupancy = occ_cached if occ_cached is not None else _slot_occupancy(row_comp, num_comp)
         unsettled = num_p - ((row_comp >= 0) & (row_dist <= 0.09 * nn_dist[row_comp.clamp_min(0)])).float().sum()
         commit_pen = where(
             (unsettled > 0.5) | (occupancy < quotas).any(),
@@ -650,6 +669,7 @@ class PrototypeAtlas:
 
     def reset(self):
         self.initialized, self.dim, self._last_point_mass = False, 0, False
+        self._warm_rho_batch, self._rho_below_conn = True, False
         for attr in _ATLAS_ALL_TENSORS:
             setattr(self, attr, None)
         self._rho_atom_f, self._g_conn_f = 1.0, 0.0
@@ -678,6 +698,7 @@ class PrototypeAtlas:
         self.beta_n, self.initialized, self.dim = float(val["beta_n"]), val["initialized"], val["dim"]
         self._rho_atom_f, self._g_conn_f = float(val["rho_atom_ema"]), float(val["g_conn_ema"])
         self._last_point_mass, self._rho_atom_t, self._g_conn_t = False, None, None
+        self._warm_rho_batch, self._rho_below_conn = True, False
         for key in _ATLAS_TENSOR_KEYS:
             setattr(self, key, _move_tensor(val[key], dst_dev))
         if val["ledger"] is None:
@@ -771,6 +792,7 @@ class PrototypeAtlas:
         )
 
         self.dim, self.initialized, self._last_point_mass = dim, True, is_pt
+        self._warm_rho_batch, self._rho_below_conn = True, False
         self.proto_c, self.proto_cov = centers, cov_from_scalar(v_init, dim)
         self.proto_w = _normalize(counts.clamp_min(_EPS))
         self.w_fake_ema = self.proto_w.clone()
@@ -946,8 +968,14 @@ class PrototypeAtlas:
             else zeros((), device=x.device, dtype=torch.bool)
         )
         do_split = (~do_uncov) & has_sp & (any_dead | need_geo)
-        pt_flag, pre_flag, uncov_flag, split_flag, dead_flag = stack(
-            (is_pt, uncovered.any(), do_uncov, do_split, any_dead)
+        warm_rho = proto_n.amin() < 8.0
+        rho_zero = (
+            self._rho_atom_t <= 1e-6
+            if self._rho_atom_t is not None
+            else x.new_full((), self._rho_atom_f <= 1e-6, dtype=torch.bool)
+        )
+        pt_flag, pre_flag, uncov_flag, split_flag, dead_flag, warm_flag, rho_z_flag = stack(
+            (is_pt, uncovered.any(), do_uncov, do_split, any_dead, warm_rho, rho_zero)
         ).tolist()
         self._last_point_mass = bool(pt_flag)
         if pre_flag or uncov_flag:
@@ -959,6 +987,8 @@ class PrototypeAtlas:
         if pre_flag or uncov_flag or split_flag:
             _, _, w2, wf2, _, psi2, _ = self._slots()
             self.proto_w, self.w_fake_ema, self.psi = _normalize(w2), _normalize(wf2), psi2 - psi2.mean()
+        self._warm_rho_batch = bool(warm_flag or pre_flag or uncov_flag or split_flag)
+        self._rho_below_conn = bool(rho_z_flag)
 
     @no_grad()
     def update(self, y_real):
@@ -982,13 +1012,18 @@ class PrototypeAtlas:
         if not self.initialized or self.proto_c is None:
             raise RuntimeError("atlas not initialized")
         coal = coalesce_directional_ltc(self.proto_c, self.proto_cov, self.proto_w, self.proto_n)
-        rho_cur = compute_rho_atom(coal.comp_c, coal.comp_cov, coal.comp_n_eff, y_real=y_real)
+        y_rho = y_real if (self._warm_rho_batch or len(coal.comp_c) < 2) else None
+        rho_cur = compute_rho_atom(coal.comp_c, coal.comp_cov, coal.comp_n_eff, y_real=y_rho)
         rho_prev = self._rho_atom_t if self._rho_atom_t is not None else rho_cur.new_full((), self._rho_atom_f)
         self._rho_atom_t = 0.85 * rho_prev + 0.15 * rho_cur
         if y_real is not None:
-            g_cur = compute_connectivity_gate(y_real, rho_atom=self._rho_atom_t)
-            g_prev = self._g_conn_t if self._g_conn_t is not None else g_cur.new_full((), self._g_conn_f)
-            self._g_conn_t = 0.85 * g_prev + 0.15 * g_cur
+            g_prev = self._g_conn_t if self._g_conn_t is not None else rho_cur.new_full((), self._g_conn_f)
+            if self._rho_below_conn:
+                self._rho_below_conn = False
+                self._g_conn_t = 0.85 * g_prev
+            else:
+                g_cur = compute_connectivity_gate(y_real, rho_atom=self._rho_atom_t)
+                self._g_conn_t = 0.85 * g_prev + 0.15 * g_cur
         return coal
 
     @no_grad()
@@ -999,7 +1034,9 @@ class PrototypeAtlas:
         coal = self.coalesce() if coalesced is None else coalesced
         if len(coal.comp_c) < 2 or not bool(coal.all_iso):
             return None
-        return self.ledger.update(x_fake, rows, coal.comp_c, coal.comp_w, int(num_particles), allow_update=allow_update)
+        return self.ledger.update(
+            x_fake, rows, coal.comp_c, coal.comp_w, int(num_particles), allow_update=allow_update, allow_sync=True
+        )
 
 
 __all__ = [
