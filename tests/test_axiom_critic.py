@@ -375,7 +375,7 @@ def test_exact_basis_zero_variance_vs_stochastic_unbiased_and_zero_jensen() -> N
     rec32 = AxiomStepRecord()
     rec32.observe_margin_and_scale(torch.ones(64, 1), -torch.ones(64, 1), xr32, xf32)
     kern32 = AxiomPenaltyKernel(record=rec32, coeff=1.0, kappa=2.0, gamma_gauge=0.0)
-    assert kern32.lambda_floor == 0.025 and kern32.max_lambda == 4.0
+    assert kern32.lambda_floor == 0.005 and kern32.max_lambda == 2.0
 
     shat_samples = []
     for _ in range(40):

@@ -165,10 +165,10 @@ class AxiomPenaltyKernel:
         record=None,
         coeff=1.0,
         kappa=1.0,
-        lambda_floor=0.025,
+        lambda_floor=0.005,
         beta_ema=1.5,
         gamma_gauge=0.03,
-        max_lambda=4.0,
+        max_lambda=2.0,
     ):
         self.record = record or AxiomStepRecord()
         for name, val, sl in (
