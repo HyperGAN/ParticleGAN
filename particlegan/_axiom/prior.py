@@ -3,7 +3,7 @@
 from math import log, tau
 
 import torch
-from torch import Tensor, arange, bmm, cat, eye, full, maximum, nn, stack, where
+from torch import Tensor, arange, bmm, cat, eye, full, maximum, nn, no_grad, stack, where
 from torch.linalg import solve_triangular
 import torch.nn.functional as F
 
@@ -80,7 +80,7 @@ def has_positive_prior_sigma(prior):
     return _kernel_spec(prior)[1] > 0.0
 
 
-@torch.no_grad()
+@no_grad()
 def _cholesky_spd_safe(cov):
     sym = 0.5 * (cov.float() + cov.float().mT)
     iso_var = _diag(sym).mean(-1, keepdim=True).clamp_min(_VAR_FLOOR).unsqueeze(-1)
@@ -89,7 +89,7 @@ def _cholesky_spd_safe(cov):
     return where((info != 0).view(-1, 1, 1), iso_var.sqrt() * eye_d, chol)
 
 
-@torch.no_grad()
+@no_grad()
 def _box_muller_targets(rows, comp_idx, comp_c, comp_chol, spread):
     dim, num_comp = comp_c.shape[1], len(comp_c)
     num_pairs = (dim + 1) // 2
@@ -151,7 +151,7 @@ def _burg_exact(jac_det, whitened, inv_w, eps_g, dim_x, dim_z):
     logdet = 2.0 * _diag(torch.linalg.cholesky(gram + 1e-3 * eye_r)).clamp_min(_EPS).log().sum(-1)
     burg = (_diag(gram).sum(-1) - logdet - rank * (1.0 - log(1.001))) / rank
     burg_bi = 4.0 * ((1.0 + 0.5 * burg.clamp_min(0.0)).sqrt() - 1.0)
-    with torch.no_grad():
+    with no_grad():
         if eps_g is not None:
             tang_var = bmm(jac_det, eps_g.float().unsqueeze(-1)).squeeze(-1).square().sum(-1) / dim_x
         else:
@@ -163,7 +163,7 @@ def _burg_exact(jac_det, whitened, inv_w, eps_g, dim_x, dim_z):
 def _burg_two_sample(jac_det, whitened, inv_w, eps_g, dim_x, dim_z):
     eye_d = eye(dim_x, device=whitened.device)
     gram1, gram2 = (bmm(part, part.mT) * (dim_z / 8.0) for part in (whitened[:, :, :8], whitened[:, :, 8:]))
-    with torch.no_grad():
+    with no_grad():
         trace_var = jac_det.square().sum((-2, -1)) * (dim_z / 16.0) / dim_x
         tang_var = trace_var * (eps_g.float().square().sum(-1) / dim_z if eps_g is not None else 1.0)
         frob_err = (0.5 * (gram1.detach() + gram2.detach()) - eye_d).square().sum((-2, -1)).sqrt() / (dim_x**0.5)
@@ -349,7 +349,7 @@ class AxiomPriorRegularizer(nn.Module):
             return rows[:0].sum()
         sub_n = min(num_rows, 256)
         z = rows[(arange(sub_n, device=rows.device) * num_rows) // sub_n] if num_rows > 256 else rows
-        with torch.no_grad():
+        with no_grad():
             dist2 = safe_cdist(z.detach().float()).square()
             tri_i, tri_j = torch.triu_indices(sub_n, sub_n, 1, device=z.device)
             med_d2 = dist2[tri_i, tri_j].median().clamp_min(_EPS).to(z.dtype)
@@ -361,7 +361,7 @@ class AxiomPriorRegularizer(nn.Module):
         scale = float(getattr(rec, "thermal_scale", 1.0))
         return (loss * scale + loss.detach() * (1.0 - scale)) if (scale < 1.0 and loss.requires_grad) else loss
 
-    @torch.no_grad()
+    @no_grad()
     def update_quantizer(self, y_real):
         dev = y_real.device
         if self._bound_device is None:
@@ -370,7 +370,7 @@ class AxiomPriorRegularizer(nn.Module):
         self.atlas.update(y_real)
         self._sync_atlas(dev)
 
-    @torch.no_grad()
+    @no_grad()
     def update_curvature_ema(self, proto_ids, real_var_i, tang_var_i):
         self._sync_atlas(proto_ids.device)
         if self.v_real_ema is None:
@@ -384,7 +384,7 @@ class AxiomPriorRegularizer(nn.Module):
             for cur, upd in ((self.v_real_ema, real_mean), (self.v_tang_ema, tang_mean), (atlas.v_push, tang_mean))
         )
 
-    @torch.no_grad()
+    @no_grad()
     def curvature_gamma_per_component(self, coal):
         num_comp = len(coal.comp_c)
         if self.v_real_ema is None or self.v_tang_ema is None:
@@ -395,7 +395,7 @@ class AxiomPriorRegularizer(nn.Module):
         den = _scatter_mean(coal.proto_comp_id, self.v_real_ema, num_comp, weights).clamp_min(_VAR_FLOOR)
         return (num / den).clamp(0.80, 1.35)
 
-    @torch.no_grad()
+    @no_grad()
     def update_laguerre_dual(self, xu_det, c_bar, w_mat, r_macro, laguerre_lr, *, row_mask=None):
         self._sync_atlas(xu_det.device)
         (num_k, dim), atlas = c_bar.shape, self.atlas
@@ -427,7 +427,7 @@ class AxiomPriorRegularizer(nn.Module):
         ).clamp_max(1.0)
         return nearest, gate
 
-    @torch.no_grad()
+    @no_grad()
     def apply_prior_row_update(self, z_param, s_idx, is_first, g_rows, part_scale, row_lr, row_settle):
         num_p, dim = z_param.shape
         if not self.rows_initialized or self.row_m is None or self.row_m.shape != (num_p, dim):
@@ -521,7 +521,7 @@ def should_use_axiom_pullback(trainer, real, latent=None, indices=None):
     return is_pt
 
 
-@torch.no_grad()
+@no_grad()
 def _ot_route_targets(x_eval, comp_c, comp_w, dist_xc, scale_ratio, res_prev):
     dist_route = dist_xc
     if len(comp_c) >= 4:
@@ -538,7 +538,7 @@ def _ot_route_targets(x_eval, comp_c, comp_w, dist_xc, scale_ratio, res_prev):
     return (_normalize(plan, 1) @ comp_c).float()
 
 
-@torch.no_grad()
+@no_grad()
 def _empirical_burg_cov(x_ctr, comp_idx, comp_cov_eff, comp_chol, spread, all_iso):
     num_comp, dim = len(comp_cov_eff), x_ctr.shape[1]
     cnt_b = comp_idx.bincount(minlength=num_comp).float()
@@ -671,7 +671,7 @@ class _PullbackStep:
     def _point_mass_step(self, loss_d, penalty):
         reg, rec, fake_flat, y_real, dtype = self.reg, self.recipe, self.fake_flat, self.y_real, self.fake_flat.dtype
         batch_n, dim = y_real.shape
-        with torch.no_grad():
+        with no_grad():
             err = (fake_flat.detach().float() - y_real.float()).norm(dim=-1)
             cur_err, prev_res = max(float(err.mean()), 0.35 * float(err.amax())), float(reg.res_ema)
             clamped = min(cur_err, 10.0)
@@ -712,7 +712,7 @@ class _PullbackStep:
         )
         return loss_g, self.loss_gan, prior_diag, prior_pen, kt, kl
 
-    @torch.no_grad()
+    @no_grad()
     def _build_targets(self, coal, was_init):
         reg, y_real, comp_c, comp_w, comp_var = self.reg, self.y_real, coal.comp_c, coal.comp_w, coal.comp_var
         atlas, dim, dev, y_f, num_comp = reg.atlas, y_real.shape[1], y_real.device, y_real.float(), len(comp_c)
@@ -805,7 +805,7 @@ class _PullbackStep:
             eps_g=self.eps_g,
             phase=float(getattr(self.disc_rec, "chord_phase", 0.0)),
         )
-        with torch.no_grad():
+        with no_grad():
             sub_n = len(tang_var)
             x_ctr = self.x_center[:sub_n].detach().float()
             real_var = (self.fake_flat[:sub_n].detach().float() - x_ctr).square().mean(-1)
@@ -814,7 +814,7 @@ class _PullbackStep:
             reg._ema_t["iso_err_ema"] = iso_err
         return loss_iso.to(self.fake_flat.dtype), iso_err
 
-    @torch.no_grad()
+    @no_grad()
     def _row_targets(self, coal, sorted_idx, is_first, xu_det, dtype, row_floor):
         row_comp = self.reg.atlas.ledger.row_comp
         if self.use_ledger and row_comp is not None:
@@ -846,7 +846,7 @@ class _PullbackStep:
             ).squeeze(-1)
             cost = (0.16 * dim + ew.square().sum(-1)).sqrt() - 0.4 * sqrt_d
             loss_move = (row_w * cost).sum() / (n_unique * sqrt_d)
-            with torch.no_grad():
+            with no_grad():
                 en = ew.detach().norm(dim=-1)
                 far = smoothstep01((en / sqrt_d - 1.5) / 1.5)
                 part_scale = (en / (1.5 * sqrt_d)).clamp(0.02, 2.5).unsqueeze(1) * (
@@ -855,7 +855,7 @@ class _PullbackStep:
             return loss_move, part_scale, row_settle.new_ones(())
         cost = born_infeld_cost(xu, target, (0.4 * sigma_c).clamp_min(_EPS), aligned=True)[0]
         loss_move = (row_w.to(cost.dtype) * cost).sum() / (n_unique * self.sigma_out).to(cost.dtype)
-        with torch.no_grad():
+        with no_grad():
             part_scale = (
                 ((xu_det - target.float()).norm(dim=-1) / (1.5 * sigma_c.float()).clamp_min(_EPS))
                 .clamp(0.02, 1.2)
@@ -892,7 +892,7 @@ class _PullbackStep:
             if z_param.grad is not None:
                 z_param.grad.zero_()
             loss_move.backward()
-            with torch.no_grad():
+            with no_grad():
                 g_rows = z_param.grad[sorted_idx] * n_unique.to(z_param.dtype)
                 z_param.grad.zero_()
                 self.reg.apply_prior_row_update(

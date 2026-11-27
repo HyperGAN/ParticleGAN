@@ -886,6 +886,21 @@ def test_law1_wishart_shrinkage_fisher_isolation_and_hysteresis() -> None:
     out_empty = ledger_empty.update(x_settled, rows, comp_c, torch.tensor([0.52, 0.48]), num_particles=10)
     assert out_empty.occupancy.tolist() == [5, 5]
 
+    # 5. _rebalance_slots never clones dead or low-confidence (proto_n < 0.5) shock-spike slots.
+    at = PrototypeAtlas(max_prototypes=8)
+    at.dim, at.initialized = 2, True
+    at.proto_c = torch.tensor([[0.0, 0.0], [10.0, 0.0], [20.0, 0.0], [30.0, 0.0]])
+    at.proto_cov = cov_from_scalar(torch.tensor([100.0, 1.0, 1.0, 1e-4]), 2)
+    at.proto_w = torch.tensor([0.30, 0.35, 0.34, 0.01])
+    at.w_fake_ema = at.proto_w.clone()
+    at.proto_n = torch.tensor([0.20, 20.0, 20.0, 0.01])  # slot 0 has huge spike cov but proto_n < 0.5
+    at.psi = torch.zeros(4)
+    at.v_push = torch.tensor([100.0, 1.0, 1.0, 1e-4])
+    dead = (at.proto_w < (0.04 / 4)) | (at.proto_n < 0.05)
+    at._rebalance_slots(dead, True, torch.tensor(0), torch.tensor(1.0), 0.5, 0.25)
+    # Dead slot 3 must receive a split of a live slot (1 or 2 near x=10 or 20), NOT shock-spike slot 0 (x=0).
+    assert abs(float(at.proto_c[0, 0])) < 1e-6 and float(at.proto_c[3, 0]) > 5.0
+
 
 @pytest.mark.cuda
 def test_cuda_deterministic_algorithms_atlas_update_and_ledger() -> None:

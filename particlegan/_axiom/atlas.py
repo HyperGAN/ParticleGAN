@@ -4,7 +4,24 @@ import math
 from typing import NamedTuple
 
 import torch
-from torch import Tensor, arange, bincount, cat, eye, full, maximum, ones, stack, where, zeros
+from torch import (
+    Tensor,
+    arange,
+    bincount,
+    cat,
+    eye,
+    full,
+    isfinite,
+    maximum,
+    minimum,
+    no_grad,
+    ones,
+    quantile,
+    stack,
+    where,
+    zeros,
+    zeros_like,
+)
 
 from .math_ops import (
     PHI1,
@@ -100,7 +117,7 @@ def _check_tensor(tensor, shape=None, nonneg=False, dtype=None):
     )
     _require(shape is None or tuple(tensor.shape) == shape)
     if dtype is None:
-        _require(bool(torch.isfinite(tensor).all()) and (not nonneg or not bool((tensor < 0.0).any())))
+        _require(bool(isfinite(tensor).all()) and (not nonneg or not bool((tensor < 0.0).any())))
     return tensor
 
 
@@ -224,7 +241,7 @@ def cov_shrink_mp(cov, n_eff):
     return ((1.0 - mix.unsqueeze(-1)) * cov + (mix * iso_var).unsqueeze(-1)).clamp_min(_VAR_FLOOR)
 
 
-@torch.no_grad()
+@no_grad()
 def batch_annular_gap_ratio(y_real):
     """Continuous sorted-distance max log-gap ratio in ``[0, 1]``."""
     x = _flatten_batch(y_real)
@@ -247,7 +264,7 @@ def batch_annular_gap_ratio(y_real):
     return where(max_d <= _VAR_FLOOR, 0.0, ratio.clamp(0.0, 1.0))
 
 
-@torch.no_grad()
+@no_grad()
 def manifold_connectivity_stats(y_real):
     """Minimax ultrametric connectivity gate and scale statistics for ``y_real``."""
     x = _flatten_batch(y_real)
@@ -260,16 +277,16 @@ def manifold_connectivity_stats(y_real):
     y_sub = (x / scale)[:: max(1, batch_n // 256)] if batch_n > 512 else (x / scale)
     dist = safe_cdist(y_sub)
     off_diag = ~eye(len(y_sub), dtype=torch.bool, device=y_sub.device)
-    nn_q90 = torch.quantile(dist.masked_fill(~off_diag, _INF).amin(-1), 0.90).clamp_min(1e-8)
-    diam_ratio = torch.quantile(dist[off_diag], 0.90) / nn_q90
+    nn_q90 = quantile(dist.masked_fill(~off_diag, _INF).amin(-1), 0.90).clamp_min(1e-8)
+    diam_ratio = quantile(dist[off_diag], 0.90) / nn_q90
     ultra = dist.clone()
     for _ in range(8):
-        ultra = torch.minimum(ultra, maximum(ultra.unsqueeze(2), ultra.unsqueeze(0)).amin(1))
+        ultra = minimum(ultra, maximum(ultra.unsqueeze(2), ultra.unsqueeze(0)).amin(1))
     g_conn = smoothstep01((10.0 - ultra.amax() / nn_q90) / 3.0) * smoothstep01((diam_ratio - 1.15) / 0.25)
     return g_conn, g_conn * smoothstep01((diam_ratio - 3.80) / 1.00), nn_q90.clamp_min(1e-4), scale
 
 
-@torch.no_grad()
+@no_grad()
 def compute_rho_atom(comp_c, comp_cov, comp_n_eff, y_real=None):
     """Continuous annular-gap ratio blended with warmup batch ratio."""
     num_comp, dim = comp_c.shape
@@ -287,7 +304,7 @@ def compute_rho_atom(comp_c, comp_cov, comp_n_eff, y_real=None):
     return ((1.0 - weight) * rho_batch + weight * rho_comp).clamp(0.0, 1.0)
 
 
-@torch.no_grad()
+@no_grad()
 def compute_connectivity_gate(y_real, *, rho_atom=None):
     """Continuous connectivity gate in ``[0, 1]``."""
     g_raw = manifold_connectivity_stats(y_real)[0]
@@ -310,7 +327,7 @@ def _ltc_coalesce_pass(centers, cov, weights, adj, eye_k):
     return reach, comp_size, valid_comp, member_w, comp_centers, comp_cov
 
 
-@torch.no_grad()
+@no_grad()
 def coalesce_directional_ltc(proto_c, proto_cov, proto_w, proto_n=None):
     """Two-pass directional LTC coalescence with 1D Fisher inter-component isolation."""
     centers = proto_c.detach().float()
@@ -327,7 +344,7 @@ def coalesce_directional_ltc(proto_c, proto_cov, proto_w, proto_n=None):
     sigma_dir = cov_directional_var(cov_shrink_mp(cov, hits), unit_ij).sqrt()
     sigma_iso = cov_trace_mean(cov).sqrt()
     scale_compat = maximum(sigma_iso[:, None], sigma_iso[None, :]) <= (
-        2.2 * torch.minimum(sigma_iso[:, None], sigma_iso[None, :]).clamp_min(_EPS)
+        2.2 * minimum(sigma_iso[:, None], sigma_iso[None, :]).clamp_min(_EPS)
     )
     adj_p1 = ((dist <= (2.6 * sqrt_d * maximum(sigma_dir, sigma_dir.T))) & scale_compat).float()
     reach, comp_size, valid_comp, _, _, cov_p1 = _ltc_coalesce_pass(centers, cov, weights, adj_p1, eye_k)
@@ -383,7 +400,7 @@ def coalesce_directional_ltc(proto_c, proto_cov, proto_w, proto_n=None):
     )
 
 
-@torch.no_grad()
+@no_grad()
 def coalesce_pythagorean_ltv(proto_c, proto_var, proto_w):
     """Isotropic LTV wrapper delegating to ``coalesce_directional_ltc``."""
     coal = coalesce_directional_ltc(proto_c, cov_from_scalar(proto_var, proto_c.shape[1]), proto_w)
@@ -491,10 +508,10 @@ class HamiltonCommitmentLedger:
         unassigned = in_batch & (row_comp < 0)
         for _ in range(_PROPOSAL_ROUNDS):
             prop_dist, prop_comp = dist_pc.masked_fill((deficit <= 0).unsqueeze(0), _INF).min(1)
-            group_key = where(unassigned & torch.isfinite(prop_dist), prop_comp, num_comp)
+            group_key = where(unassigned & isfinite(prop_dist), prop_comp, num_comp)
             order, sorted_g, rank = _group_rank(group_key, prop_dist, weyl, num_comp)
             keep = (sorted_g < num_comp) & (rank < deficit[sorted_g.clamp_max(num_comp - 1)])
-            accept = torch.zeros_like(unassigned).scatter_(0, order, keep)
+            accept = zeros_like(unassigned).scatter_(0, order, keep)
             row_comp = where(accept, prop_comp, row_comp)
             row_target = where(accept.unsqueeze(1), comp_c[prop_comp], row_target)
             row_dist = where(accept, prop_dist, row_dist)
@@ -517,7 +534,7 @@ class HamiltonCommitmentLedger:
             where(matched, dist_pc.gather(1, safe_id.unsqueeze(1)).squeeze(1), row_dist),
         )
 
-    @torch.no_grad()
+    @no_grad()
     def update(self, x_fake, rows, comp_c, comp_w, num_particles, *, allow_update=True):
         batch_n, num_comp, num_p, dev = len(x_fake), len(comp_c), int(num_particles), x_fake.device
         _require(rows.ndim == 1 and len(rows) == batch_n and num_comp >= 1 and 1 <= num_p <= MAX_LEDGER_PARTICLES)
@@ -565,7 +582,7 @@ class HamiltonCommitmentLedger:
             order, sorted_g, rank = _group_rank(where(row_comp >= 0, row_comp, num_comp), row_dist, weyl, num_comp)
             safe_g = sorted_g.clamp_max(num_comp - 1)
             evict_bound = where(settled[order], q_settled[safe_g], quotas[safe_g])
-            evict = torch.zeros_like(settled).scatter_(0, order, (sorted_g < num_comp) & (rank >= evict_bound))
+            evict = zeros_like(settled).scatter_(0, order, (sorted_g < num_comp) & (rank >= evict_bound))
             row_comp, row_target, row_dist = self._assign_deficit(
                 where(evict, -1, row_comp),
                 row_target,
@@ -682,7 +699,7 @@ class PrototypeAtlas:
         psi_all = cat((psi, new_c.new_zeros(len(new_c))))
         self.psi = psi_all - psi_all.mean()
 
-    @torch.no_grad()
+    @no_grad()
     def merge_pair(self, slot_a, slot_b):
         """Exact Law-of-Total-Covariance merge of ``slot_b`` into ``slot_a``."""
         c, cov, w, wf, n, psi, v = self._slots()
@@ -700,7 +717,7 @@ class PrototypeAtlas:
         wf[slot_a], wf[slot_b] = wf[slot_a] + wf[slot_b], 0.0
         n[slot_a], n[slot_b] = n[slot_a] + n[slot_b], 0.0
 
-    @torch.no_grad()
+    @no_grad()
     def split_slot(self, parent, dst):
         """Exact LTC principal-axis split of ``parent`` into ``(parent, dst)``."""
         c, cov, w, wf, n, psi, v = self._slots()
@@ -750,9 +767,7 @@ class PrototypeAtlas:
             / (counts - 1.0).clamp_min(1.0)
         ).clamp_min(_VAR_FLOOR)
         v_init = (
-            (torch.quantile(var_emp[counts >= 2.0], 0.25) if bool((counts >= 2.0).any()) else var_base)
-            .expand(num_k)
-            .clone()
+            (quantile(var_emp[counts >= 2.0], 0.25) if bool((counts >= 2.0).any()) else var_base).expand(num_k).clone()
         )
 
         self.dim, self.initialized, self._last_point_mass = dim, True, is_pt
@@ -856,7 +871,7 @@ class PrototypeAtlas:
         return nearest, d2, var_cur, has_sp, pos_sp, alpha_w, uncovered, is_pt
 
     def _rebalance_slots(self, dead, has_dead, parent_idx, med_var, gamma, mean_w):
-        c, cov, w, _, _, _, _ = self._slots()
+        c, cov, w, _, proto_n, _, _ = self._slots()
         num_k, slot_ids = len(c), arange(len(c), device=c.device)
         if not has_dead:
             is_parent = slot_ids == parent_idx
@@ -874,8 +889,9 @@ class PrototypeAtlas:
         else:
             dst_slots = tuple(dead.nonzero().squeeze(-1)[:4])
         for dst in dst_slots:
-            best_p = ((w.clamp_min(_EPS) ** gamma) * cov_trace_mean(cov)).masked_fill(slot_ids == dst, 0.0).argmax()
-            if not bool((best_p != dst) & (w[best_p] > 0.20 * mean_w)):
+            skip = (slot_ids == dst) | dead | (proto_n < 0.5)
+            best_p = ((w.clamp_min(_EPS) ** gamma) * cov_trace_mean(cov)).masked_fill(skip, 0.0).argmax()
+            if not bool((~skip[best_p]) & (w[best_p] > 0.20 * mean_w)):
                 break
             self.split_slot(best_p, dst)
 
@@ -944,7 +960,7 @@ class PrototypeAtlas:
             _, _, w2, wf2, _, psi2, _ = self._slots()
             self.proto_w, self.w_fake_ema, self.psi = _normalize(w2), _normalize(wf2), psi2 - psi2.mean()
 
-    @torch.no_grad()
+    @no_grad()
     def update(self, y_real):
         """Streaming prototype, hit-confidence, covariance, and maintenance update."""
         _require(y_real.ndim >= 2 and len(y_real) >= 1)
@@ -960,7 +976,7 @@ class PrototypeAtlas:
             return
         self._maintain(x, *self._stream_update(x))
 
-    @torch.no_grad()
+    @no_grad()
     def coalesce(self, y_real=None):
         """Coalesce prototypes via directional LTC and update ``rho_atom`` / ``g_conn`` EMAs."""
         if not self.initialized or self.proto_c is None:
@@ -975,7 +991,7 @@ class PrototypeAtlas:
             self._g_conn_t = 0.85 * g_prev + 0.15 * g_cur
         return coal
 
-    @torch.no_grad()
+    @no_grad()
     def commit_particles(self, x_fake, rows, num_particles, *, coalesced=None, allow_update=True):
         """Commit particle rows to isolated components on GPU when ``all_iso`` and ``K_C >= 2``."""
         if not self.initialized or not (1 <= int(num_particles) <= MAX_LEDGER_PARTICLES):
