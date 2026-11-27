@@ -220,8 +220,10 @@ def _validate_measurement_contract(task):
         fixed.update(evaluator="experiments.forge.scaling_adapter:grade", training_feedback=False,
                      qualification_input=False)
     elif kind == "bn_dcgan_rgb32_b256_diagnostic":
+        import torch
         from .bn_dcgan_guard import validate_task
-        validate_task(task)
+        with torch.random.fork_rng(devices=[]):
+            validate_task(task)
         fixed.update(evaluator="experiments.forge.bn_dcgan_guard:grade", qualification_input=False)
     elif kind == "zero_tanh_smoke":
         # The implemented point-mass adapter draws 4,096 clean live samples.

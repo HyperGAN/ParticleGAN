@@ -102,6 +102,7 @@ flowchart LR
 | Candidate | Family | GPU | Outcome | `min_margin` | NVML Energy | Key Recorded Metrics | Receipt |
 | --- | --- | --- | :---: | ---: | ---: | --- | --- |
 | `unified-v15` | `unified` | NVIDIA L4 | **PASS** | `+0.000` | 3.00 kJ (J-to-PASS) | finite_fraction=1, mass_tv=0.02271, max_cov_eig_ratio=1.076, mean_aspect_ratio=9.634 | [98b2e65b529942aaa968e23028618bc9.json](../technique-receipts/98b2e65b529942aaa968e23028618bc9.json) |
+| `axiom-v6` | `axiom` | NVIDIA RTX A6000 | **FAIL** | `-0.321` | 8.84 kJ | finite_fraction=1, mass_tv=0.03418, max_cov_eig_ratio=2.907, mean_aspect_ratio=5.604 | [readout-69f7d043a14e2780fb2cdd4a.json](../records/readout-69f7d043a14e2780fb2cdd4a.json) |
 | `axiom-v4` | `axiom` | NVIDIA RTX A6000 | **FAIL** | `-0.750` | 11.91 kJ | finite_fraction=1, mass_tv=0.02393, max_cov_eig_ratio=3.851, mean_aspect_ratio=3.847 | [readout-9066cb4353eb435be7819b0c.json](../records/readout-9066cb4353eb435be7819b0c.json) |
 | `recipe-prior-refactor-bcap-pure-v1` | `bcap-dualnorm` | NVIDIA L4 | **FAIL** | `-0.754` | 2.56 kJ | finite_fraction=1, mass_tv=0.08521, max_cov_eig_ratio=3.859, mean_aspect_ratio=5.002 | [12997ec0201a41d7a12cd94e464276b4.json](../technique-receipts/12997ec0201a41d7a12cd94e464276b4.json) |
 | `empf-v8` | `empf` | NVIDIA L4 | **FAIL** | `-0.800` | 2.56 kJ | finite_fraction=1, mass_tv=0.04053, max_cov_eig_ratio=3.96, mean_aspect_ratio=4.788 | [9206ab3667a440aabf79f74eaf7f3e8f.json](../technique-receipts/9206ab3667a440aabf79f74eaf7f3e8f.json) |

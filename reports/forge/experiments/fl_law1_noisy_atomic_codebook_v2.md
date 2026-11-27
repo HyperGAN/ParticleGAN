@@ -100,6 +100,7 @@ flowchart LR
 
 | Candidate | Family | GPU | Outcome | `min_margin` | NVML Energy | Key Recorded Metrics | Receipt |
 | --- | --- | --- | :---: | ---: | ---: | --- | --- |
+| `axiom-v6` | `axiom` | NVIDIA RTX A6000 | **PASS** | `+0.000` | 2.20 kJ (J-to-PASS) | atom_recall=1, captured_atoms=64, finite_fraction=1, mass_tv=0.08458 | [readout-69f7d043a14e2780fb2cdd4a.json](../records/readout-69f7d043a14e2780fb2cdd4a.json) |
 | `unified-v15` | `unified` | NVIDIA L4 | **PASS** | `+0.000` | 2.67 kJ (J-to-PASS) | atom_recall=1, captured_atoms=64, finite_fraction=1, mass_tv=0.0809 | [1f3dd91b4115496299c7ea71693fae8f.json](../technique-receipts/1f3dd91b4115496299c7ea71693fae8f.json) |
 | `recipe-prior-refactor-r1r2-v1` | `r1r2` | NVIDIA L4 | **FAIL** | `-0.572` | 1.06 kJ | atom_recall=0.9844, captured_atoms=63, finite_fraction=1, mass_tv=0.1026 | [9fd49244ef6440f9bb6d415ea99f0a74.json](../technique-receipts/9fd49244ef6440f9bb6d415ea99f0a74.json) |
 | `empf-v8` | `empf` | NVIDIA L4 | **FAIL** | `-0.757` | 2.47 kJ | atom_recall=0.9688, captured_atoms=62, finite_fraction=1, mass_tv=0.104 | [e598a6bcd3b84ffa984e540802788f0d.json](../technique-receipts/e598a6bcd3b84ffa984e540802788f0d.json) |

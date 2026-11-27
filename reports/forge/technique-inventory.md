@@ -62,7 +62,7 @@ Backfill coverage: **1109/1109 distinct recipe/test pairs attempted (selected an
 
 | Family / selected recipe | PASS | FAIL | Not measured | Other outcomes | Held or not counted (of these) | Total tests | Tuning budget and selection |
 | --- | ---: | ---: | ---: | --- | --- | ---: | --- |
-| [Axiom](families/axiom.md) | 45 | **2** | 12 | 0 | 23: 18 PASS, 0 FAIL, 5 not measured | 59 | no registered configuration search; 3 declared candidate cards; selected recipe declared directly (no selecting search in its lineage) |
+| [Axiom](families/axiom.md) | 45 | **2** | 12 | 0 | 23: 18 PASS, 0 FAIL, 5 not measured | 59 | no registered configuration search; 4 declared candidate cards; selected recipe declared directly (no selecting search in its lineage) |
 | [BCAP](families/bcap-pure.md) · [BCAP dualnorm (experimental starting point)](families/bcap-dualnorm.md) | 16 | **12** | 31 | 0 | 23: 0 PASS, 7 FAIL, 16 not measured | 59 | 85 registered searches (175 grid configurations); 473 declared candidate cards; selected recipe declared directly (no selecting search in its lineage) |
 | [BISPF](families/bispf.md) | 18 | **11** | 30 | 0 | 23: 0 PASS, 7 FAIL, 16 not measured | 59 | no registered configuration search; 19 declared candidate cards; selected recipe declared directly (no selecting search in its lineage) |
 | [EMPF](families/empf.md) | 23 | **17** | 15 | 4 blocked | 23: 0 PASS, 12 FAIL, 7 not measured, 4 other | 59 | no registered configuration search; 8 declared candidate cards; selected recipe declared directly (no selecting search in its lineage) |
