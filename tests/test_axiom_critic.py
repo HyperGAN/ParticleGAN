@@ -392,6 +392,16 @@ def test_exact_basis_zero_variance_vs_stochastic_unbiased_and_zero_jensen() -> N
         sum(shat_samples) / len(shat_samples), true_shat32, rel_tol=0.15
     )
 
+    # Above EMA gate (ema_g / kappa^2 >= 0.40) for d >= 5, Lipschitz hinge activates cleanly.
+    lin_hi = nn.Linear(32, 1, bias=False)
+    with torch.no_grad():
+        lin_hi.weight.copy_(torch.randn(1, 32) * 2.5)
+    rec_hi = AxiomStepRecord()
+    rec_hi.observe_margin_and_scale(torch.ones(64, 1), -torch.ones(64, 1), xr32, xf32)
+    kern_hi = AxiomPenaltyKernel(record=rec_hi, coeff=1.0, kappa=1.0, gamma_gauge=0.0)
+    pen_hi, st_hi = kern_hi.penalty(lin_hi, xr32, xf32, collect_stats=True)
+    assert float(pen_hi.item()) > 0.5 * st_hi["lambda_eff"] * st_hi["s_hat"] + 1e-3
+
 
 def test_live_endpoint_reuse_fixed_batch_fallback_wrapper_and_zero_global_rng() -> None:
     torch.manual_seed(7)

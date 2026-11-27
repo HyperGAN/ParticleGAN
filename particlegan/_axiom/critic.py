@@ -237,12 +237,15 @@ class AxiomPenaltyKernel:
 
     def _assemble_penalty(self, dr, df, sqr, sqf, *, exact_basis):
         s_hat = 0.5 * (sqr.mean() + sqf.mean())
-        excess = torch.relu(self.record.dev_ema("ema_grad_sq", s_hat.device) - self.kappa * self.kappa)
+        k2 = self.kappa * self.kappa
+        excess = torch.relu(self.record.dev_ema("ema_grad_sq", s_hat.device) - k2)
         lam = (self.lambda_floor * torch.exp((self.beta_ema * excess).clamp_max(self._c_max))).to(s_hat.dtype)
         self.record.observe_grad_sq_tensor(s_hat.detach())
-        slope = lam * s_hat
-        if exact_basis:
-            slope = slope + 0.5 * sum(torch.relu((q + 1e-12).sqrt() - self.kappa).square().mean() for q in (sqr, sqf))
+        ema_g = self.record.dev_ema("ema_grad_sq", s_hat.device).to(s_hat.dtype)
+        cap_w = 1.0 if exact_basis else smoothstep01((ema_g / k2 - 0.25) / 0.15)
+        slope = lam * s_hat + 0.5 * cap_w * sum(
+            torch.relu((q + 1e-12).sqrt() - self.kappa).square().mean() for q in (sqr, sqf)
+        )
         p_slope = 0.5 * self.coeff * slope
         if self.gamma_gauge > 0.0:
             ml = 0.5 * (dr.float().mean() + df.float().mean())
