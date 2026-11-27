@@ -1,0 +1,59 @@
+{
+  "schema": "forge_evidence_corrections_v1",
+  "date": "2026-11-26",
+  "scope": "Scientific scope corrections only; original numerical verdicts, costs, receipts and qualifications are unchanged. These exact observations remain archived diagnostics and cannot establish faithful selected-recipe execution.",
+  "source_coverage": {
+    "path": "reports/forge/attempt-coverage.json",
+    "sha256": "2730efb5c06bf98954050e2e88b12a74df9a21ea50f31fa110c5425411a1d6ee",
+    "commit": "87a124c307172aa49d2fe636987869e8016d5556",
+    "git_blob": "45ce74bab19dfa67f0e0727f340c65223559a339"
+  },
+  "groups": [
+    {
+      "id": "identity_locked_grid100_res16_scaled_tanh",
+      "reason": "Historical grid100_res16_scaled_tanh observations ran ScaledResidualMLPGenerator(preserve_latent_norm=True), which shrunk residual weights by gamma=1e-3, algebraically cancelled LayerNorm, and applied scale * atanh(clamp(u / scale, -0.97, 0.97)) before TanhRailGuard (max |G(z) - z| = 2.38e-7), locking the generator near the identity map rather than testing a genuine 16-layer residual tanh MLP.",
+      "record_keys": [
+        "270311139bc9cf502c360c7f13a7d1cec1bcd42b6ac4c455ca1480589024ddf8"
+      ],
+      "record_sha256": {
+        "270311139bc9cf502c360c7f13a7d1cec1bcd42b6ac4c455ca1480589024ddf8": "9d9980310c49b8ce7a736fde98fe6a35f505592a9c9e7cbbc001ee6693ae6c14"
+      }
+    },
+    {
+      "id": "oracle_leaking_v1_ddgan",
+      "reason": "Historical v1 DDGAN/AE-DDGAN chain observations (model_ddgan_gaussian_chain, model_ddgan_bimodal_chain, model_ae_ddgan_gaussian_chain, model_ae_ddgan_bimodal_chain) executed v1 hosts that read target.variances (div_loss), applied oracle target-covariance whitening / target.means assignment / tether_loss, or silently discarded failed evaluation bounds via reconciled.discard.",
+      "record_keys": [
+        "0a7ee0eda1fe31872fe600d6088d8a23cc8903dfcd4346357f3f65456967aca9",
+        "3b3a798ff54029f8f21595a758810b465121796ae30b2235f933584b6b186d45",
+        "8cde0c6bf9558f7c4f5fe0be0249159dc7b5b53ce8a5662760eb702500d1fb0c",
+        "96d8b17e498a783a0505dea2cf3de6d2972c6488f1cf3e524b1137a87bedf84f",
+        "9fe6c805774f7d904becadd5f5d82b38c9aa2d00a03844c493163f69e5c69d3e",
+        "b59e3dd51e696807125aafd7b9b8edea87b4196710468fc26ff5cc3a3995ec9f",
+        "bba8c37b0dd5a9df89211bf3bc31779de97a05677292eafca60c4c23f3484e7f",
+        "beea8f57b781985a3664a37494e3cb1e7392c72d8ba09585855b710f68717692",
+        "ca1cccb154b05e5e38b0b19664d6a6f661a82b787f1e441b26654a195b01e5b6",
+        "cc730970935db9c59292b2511dd2630c2aea3b6a8be1c2b739c72a2d9446779f",
+        "d247354fc2420f12f1ebac6fb6f8602d25aaedd7f744369ba99163a3fcd57de7",
+        "e71f789d54d36abe77b9fd85d4a12d9246542fa1a4e71646c957811ba3437ac6",
+        "ee9a78b7150b3f6767f8d994040ba63006404bdd10af24473021246f7100d7f7",
+        "fad5d16ad966172a1b7843e74afb5710c6e7294c2d6c3431c48f6a48aa4eaebf"
+      ],
+      "record_sha256": {
+        "0a7ee0eda1fe31872fe600d6088d8a23cc8903dfcd4346357f3f65456967aca9": "8c83a3a6364cdb9d9189c71313a5bc087ebf278dd04339710842572cc64923d8",
+        "3b3a798ff54029f8f21595a758810b465121796ae30b2235f933584b6b186d45": "ba96322433775388f1f0b09a1e624913eeefba2fd098beebd47a5ce12cdcda68",
+        "8cde0c6bf9558f7c4f5fe0be0249159dc7b5b53ce8a5662760eb702500d1fb0c": "0ad14ce02a7c84449d7f4ff5e987420fc27293f5988f019412397b332f19b3e0",
+        "96d8b17e498a783a0505dea2cf3de6d2972c6488f1cf3e524b1137a87bedf84f": "0204f89fee846d212c19c3fa5f16c7c30b5bd0b48f182b31921f3def31c0a93d",
+        "9fe6c805774f7d904becadd5f5d82b38c9aa2d00a03844c493163f69e5c69d3e": "0b7a9c8dc75f35b488ac0c49b02d979a545fbb62c847f211f6b57555ff9de4a3",
+        "b59e3dd51e696807125aafd7b9b8edea87b4196710468fc26ff5cc3a3995ec9f": "8dc9bc91cd52ef4ad7b6762053ddefbfa2ca1e118218fe95e1b2a7296a81d040",
+        "bba8c37b0dd5a9df89211bf3bc31779de97a05677292eafca60c4c23f3484e7f": "fdb9e7631e22e157472aa198c20e852d36f7a71d810ae7c572e97bbe19a3357e",
+        "beea8f57b781985a3664a37494e3cb1e7392c72d8ba09585855b710f68717692": "d54cc2493e52a623a696362c6f765b865e4c698d58f582c50edf1874ddbc37fd",
+        "ca1cccb154b05e5e38b0b19664d6a6f661a82b787f1e441b26654a195b01e5b6": "fac762716e12587c11e06417632151d488fae4e4cd38dc5c6f2ead2ff00eeceb",
+        "cc730970935db9c59292b2511dd2630c2aea3b6a8be1c2b739c72a2d9446779f": "404910bb2257f5634c2ed8c7cfd61d617f1656bdfbc2fe9531477638e2c00232",
+        "d247354fc2420f12f1ebac6fb6f8602d25aaedd7f744369ba99163a3fcd57de7": "4cb40f04a076afdca35df4b3cdd62c7f11fabe3143fe3fd8995344d8b17dac12",
+        "e71f789d54d36abe77b9fd85d4a12d9246542fa1a4e71646c957811ba3437ac6": "caa66b1c72519e95e2fb040fefbd60a5aab506d1551547955b79b30d823e7a2a",
+        "ee9a78b7150b3f6767f8d994040ba63006404bdd10af24473021246f7100d7f7": "a47f8cfa70d7943806862b38cdf2e2e61cb3ac2c7d7e024ed568cbdc2a79ddaa",
+        "fad5d16ad966172a1b7843e74afb5710c6e7294c2d6c3431c48f6a48aa4eaebf": "a1c0b4a56cc66192e6d1ca9579c12f0330808e7af68e6e1b1f1d46b6f944aa40"
+      }
+    }
+  ]
+}

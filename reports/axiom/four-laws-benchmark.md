@@ -1,22 +1,30 @@
-# Axiom Four-Laws Adversarial Head-to-Head Benchmark
+# Axiom Four-Laws Adversarial Head-to-Head Benchmark [RETRACTED]
 
-**Scope & Provenance:** Deterministic (`seed=0`, `deterministic_orthogonal_` initialization, matched architectures, batch sequences, prior capacities, and step budgets) head-to-head stress benchmark comparing final **`axiom`** (`axiom-v4`, commit `59a860fa0`) against **`unified_v12`**, **`unified_v13`**, **`minimal`**, and **`rhbi`** across the five Four-Laws audit controls where prior ParticleGAN families exhibit documented structural failures (see [Four-Laws Integration Report](../four-laws-audit/integration-report.md), [Axiom Design Spec](design-spec.md), [Gap Analysis](gap-analysis.md), and [Axiom Forge Study](axiom-study.md)).
+> [!CAUTION]
+> **RETRACTED BENCHMARK RESULTS (2026-11-26 Forensic Audit):**
+> The **`9/9 PASS vs 0/9`** Executive Leaderboard and head-to-head tables in this document are **RETRACTED** and must NOT be cited as valid comparative evidence. Audit of the pre-repair `scripts/axiom_four_laws_benchmark.py` driver (`59a860fa0`) uncovered five severe validity defects:
+> 1. **Suite 4A (mismatched competitor ground-truth formulas):** Competitor reference formulas did not match the competitors' real implemented penalties (`unified_v12`/`v13` omitted `lambda_floor=0.005` and `chord_weight=0.25`; `rhbi` used `ebi_beta=12.0` instead of its actual `20.0`; `minimal` omitted its actual `ebi_beta=8.0`, `0.08 * chord`, gauge, and `lam`).
+> 2. **Suites 3B, 5B, and 5C (hardcoded mocks):** Reported competitor numbers were produced from hardcoded mock constants and legacy `_t1_coupling` stand-ins rather than instantiated `unified_v12`/`v13`/`minimal` optimizers and `MinimalPriorRegularizer`.
+> 3. **Suite 3C (targeted tail indices):** The two `||z|| = 6.0` rare tail samples were hardcoded at indices `126..127` (specifically outside baselines' `[:16]` slice) rather than seeded shuffled indices.
+> 4. **Suite 5D (omitted `torch.nonzero` sync counting):** `_count_host_syncs` omitted `torch.nonzero` and `Tensor.nonzero`, undercounting real GPU-to-CPU host synchronizations.
+> 5. **Suites 1A/1B & superseded codebase:** Substituted hardcoded `_born_infeld_2d` instead of each recipe's own critic penalty and misattributed critic calls; additionally, the evaluated `axiom-v4` commit (`59a860fa0`, `2,399 / 2,500` minified LOC) has been superseded by un-minified, strictly zero-`autograd.grad` `axiom`, `unified_v15`, and `minimal` (LOC caps are heuristics, not hard gates).
+>
+> **Current status:** `scripts/axiom_four_laws_benchmark.py` has been repaired to eliminate these defects, and **fresh post-remediation benchmark runs are pending** (no replacement numbers are fabricated here). The archived `59a860fa0` tables below are preserved strictly as a retracted historical audit record.
 
-- **Branch / Evaluated Commit:** `docs/axiom-v4-four-laws-bench` from `origin/feat/axiom-family` (`59a860fa0`, `axiom-v4` complete, `2,399 / 2,500` core LOC)
-- **Benchmark Driver:** [`scripts/axiom_four_laws_benchmark.py`](../../scripts/axiom_four_laws_benchmark.py)
-- **Hardware & Runtime:** Physical RTX A6000 `cuda:0` (`CUDA_VISIBLE_DEVICES=0`, keeping `cuda:1` idle), PyTorch `2.15.0+cu132`, total wall time `294.70 s`
-- **Reproduction Command:**
+**Archived Provenance (RETRACTED pre-repair run):** Deterministic (`seed=0`, `deterministic_orthogonal_` initialization) head-to-head stress benchmark comparing archived **`axiom`** (`axiom-v4`, commit `59a860fa0`) against **`unified_v12`**, **`unified_v13`**, **`minimal`**, and **`rhbi`** (see [Four-Laws Integration Report](../four-laws-audit/integration-report.md), [Axiom Design Spec](design-spec.md), [Gap Analysis](gap-analysis.md), and [Axiom Forge Study](axiom-study.md)).
+
+- **Branch / Evaluated Commit (archived, pre-remediation):** `docs/axiom-v4-four-laws-bench` from `origin/feat/axiom-family` (`59a860fa0`, `axiom-v4`, minified physical lines — superseded by un-minified PEP-8 `develop`)
+- **Benchmark Driver (repaired post-audit; rerun pending):** [`scripts/axiom_four_laws_benchmark.py`](../../scripts/axiom_four_laws_benchmark.py)
+- **Hardware & Runtime (archived pre-repair run):** Physical RTX A6000 `cuda:0` (`CUDA_VISIBLE_DEVICES=0`, keeping `cuda:1` idle), PyTorch `2.15.0+cu132`, total wall time `294.70 s`
+- **Reproduction Command (for fresh post-repair run):**
   ```bash
   CUDA_VISIBLE_DEVICES=0 PYTHONPATH="$PWD" /nvme/dev/hypergan/ParticleGAN/.venv/bin/python \
       scripts/axiom_four_laws_benchmark.py --device cuda:0
   ```
 
-> [!NOTE]
-> All measurements below are single-seed (`seed=0`) adversarial stress controls executed through each recipe's public API without altering any baseline's formula. They verify structural Law 1–4 invariants and identify concrete engineering gaps; see [Axiom Forge Study](axiom-study.md) for the full 9-study RTX A6000 Forge evaluation battery (including the `four-laws-adherence-v1` view).
-
 ---
 
-## Executive Four-Laws Leaderboard
+## Executive Four-Laws Leaderboard (RETRACTED — Archived Pre-Repair `59a860fa0` Run)
 
 | Audit Control / Law | Key Metric (Target) | **`axiom`** (`v4`) | `unified_v12` | `unified_v13` | `minimal` | `rhbi` |
 |---|---|---:|---:|---:|---:|---:|
@@ -31,11 +39,11 @@
 | **5A–C. Law 1 (P7): Mass, LTV, Gauge & $`B_f < K`$** | `wf_err` / `LTV(M,S)` / `B<K` | **5.96e-8 / (1.00, 1.00) / 36/36** (**PASS**) | 0.119 / (0.27, 0.81) / 0/36 (FAIL) | 0.119 / (0.27, 0.81) / 0/36 (FAIL) | 0.119 / false-10x / $\psi=0.8$ (FAIL) | N/A (no atlas) |
 | **5D. Runtime: Conv2d `64x64` vs MLP `grid100`** | `ms/step` (`syncs/step`) | **21.48 ms (4.0)** / 44.37 ms (35.9) | 22.88 ms (5.0) / 32.82 ms (10) | 21.79 ms (5.0) / 32.73 ms (10) | 27.96 ms (6.0) / 57.29 ms (28) | 91.99 ms (75) / **25.45 ms (4)** |
 
-**Summary Score (Structural Law Controls 1A, 1C, 2A–D, 3A–C, 4A–B, 5A–C):**
-- **`axiom` (`v4`, `59a860fa0`): 9 / 9 PASS**, plus **#1 mode coverage (`23/100`) & `hq` (`0.0560`)** on the 500-step 16-layer skip-free `grid100_mlp16` early-budget stress snapshot (`3.3x–4.6x` more modes than `unified_v12` `5/100` / `unified_v13` `7/100`), and **#1 fastest & fewest-sync** Conv2d `GANTrainer` step (`21.48 ms/step`, `4.0 syncs/step`).
-- **`unified_v12` / `unified_v13`: 0 / 9 PASS** across these nine adversarial failure controls.
-- **`minimal`: 0 / 9 PASS**.
-- **`rhbi`: 0 / 9 PASS** (except exact polar reference in 1C).
+**Summary Score — RETRACTED (archived pre-repair `59a860fa0` output; do NOT cite — fresh runs on repaired `scripts/axiom_four_laws_benchmark.py` are pending):**
+- ~~`axiom` (`v4`, `59a860fa0`): 9 / 9 PASS~~ *(retracted — affected by Suite 4A mismatched competitor ground-truth formulas, Suites 3B/5B/5C hardcoded mocks, Suite 3C targeted tail indices, and Suite 5D omitted `torch.nonzero` syncs)*
+- ~~`unified_v12` / `unified_v13`: 0 / 9 PASS~~ *(retracted)*
+- ~~`minimal`: 0 / 9 PASS~~ *(retracted)*
+- ~~`rhbi`: 0 / 9 PASS~~ *(retracted)*
 
 ---
 
@@ -163,7 +171,10 @@ Measured over 10 steady-state steps after warmup on both `grid100` MLP (`bsz=256
 
 ---
 
-## Honest Findings & Concrete Optimization Follow-Ups
+## Archived Pre-Repair Findings (RETRACTED — Retained for Audit Traceability Only)
+
+> [!WARNING]
+> The summary claims below were written before the 2026-11-26 audit uncovered the Suite 1A/1B, 3B/3C, 4A, and 5B/5C/5D benchmark defects and are **retracted** pending fresh runs of the repaired `scripts/axiom_four_laws_benchmark.py`.
 
 1. **All 9 Structural Four-Laws Controls Pass on `axiom-v4` (`59a860fa0`, vs `0/9` on every legacy family):** Every mathematical defect identified in the Four-Laws Audit — role-asymmetric critic NS omission (`hq=0.9417`, `mass_tv=0.0229` on 16L-D AND #1 mode coverage `23/100` on early 500-step 16L-G), BF16 rank-1 NS leakage (`1.29e-5` vs `44.8%`), `min(s_base)` scale breaking & subnormal freeze (`1.61e-6` across 24 decades; full `0.0566` move at `1e-40`), monotonic `peak_rms` spike freeze (`final_err=1.95e-5`), constant-amplitude chatter (`0.00097`), one-shot secant overshoot & upward cubic amplification (`0.54x / 0.00x / 0.54x`), `coord_scale` `0.05` floor (`1.000x` across `[1e-4, 1e4]`), unstratified tail blindness (`10.6x` jump reduction), convex-EBI Jensen false-triggering (`1.07x` vs `1423x`), high-res $\mu_D$ dilution (`1.06x` vs `278x` dilution), shock `w_fake_ema` mass leak (`5.96e-8` vs `0.119`), Gersho merge/split LTV loss (`1.0000 / 1.0000`), and $B_f < K$ index eviction (`36/36` vs `0/36`) — passes cleanly on `axiom-v4` (`2,399 / 2,500` LOC).
 2. **#1 Conv2d Throughput & Host Syncs (`21.48 ms/step`, `4.0 syncs/step`):** On Conv2d architectures, `axiom-v4`'s 3-kernel `_run_foreach_fast` path plus Weyl-phase `b_reg = B // 4` interleaved `fwAD` leads all five families in BOTH latency (`21.48 ms` vs `v13` `21.79 ms`, `v12` `22.88 ms`, `minimal` `27.96 ms`, `rhbi` `91.99 ms`) and GPU-CPU host syncs (`4.0` vs `v12`/`v13` `5.0`, `minimal` `6.0`, `rhbi` `75.0`), while keeping `_capture_ring` strictly zero-allocation (`0` entries) on high-res inputs (`> 4096` elements/sample).
