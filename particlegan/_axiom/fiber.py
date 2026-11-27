@@ -1,465 +1,532 @@
 """Axiom L1 Law 3B / 5C conditional fiber bank and loss."""
 
-from math import exp, isfinite, sqrt
+from __future__ import annotations
 
-from torch import (
-    Tensor,
-    arange,
-    bool as _B,
-    cat,
-    cdist,
-    device as _dev,
-    einsum,
-    eye,
-    finfo,
-    float32 as _F32,
-    float64 as _F64,
-    full,
-    int64 as _I64,
-    is_grad_enabled,
-    long as _L,
-    no_grad,
-    ones,
-    outer,
-    softmax,
-    tensor,
-    where,
-    zeros,
-    zeros_like,
-)
-from torch.nn.functional import relu as _rl, softplus as _sp
+import math
+from typing import Any
+
+import torch
+from torch import Tensor, arange, cat, einsum, eye, full, ones, softmax, tensor, where, zeros, zeros_like
+import torch.nn.functional as F
 
 from .math_ops import (
-    safe_cdist as _cd,
-    smoothstep01 as _ss,
-    solve_spd_cholesky as _solve,
-    sym_eigensplit_halley as _eig,
-    sym_inv_sqrt_ns as _isqrt,
+    safe_cdist,
+    smoothstep01,
+    solve_spd_cholesky,
+    sym_eigensplit_halley,
+    sym_inv_sqrt_ns,
 )
 
-SCHEMA_VERSION, _MAX_S, _MAX_R = 2, 64, 384
-_PKT = frozenset("schema d_c d_x strata".split())
-_SC = tuple("n_eff n_fast w_eff w_fast".split())
-_PSD = frozenset("s_cc g_pp g_pp_fast s_xx s_yy".split())
-_RNG = tuple("ring_c ring_x ring_y".split())
-_F64_KEYS = tuple("mu_c s_cc g_pp g_px g_py g_pp_fast g_px_fast g_py_fast s_xx s_yy".split()) + _RNG
-_STK = frozenset(("key", *_SC, *_F64_KEYS))
-_QK = tuple("n_eff ring_len omega m_x m_pool w_mat delta_m_bank delta_m_loo delta_cov_loc mean_err_sq z_innov".split())
-_DK = (
-    "gamma_base gamma_fast gamma_min innov_threshold lin_ridge nl_ridge "
-    "ring_capacity knn_k tail_leverage_gain knn_res_weight"
-)
-_DEF = dict(zip(_DK.split(), (0.96, 0.88, 0.5, 2.5, 1e-3, 0.025, _MAX_R, 20, 0.9, 0.3)))
+SCHEMA_VERSION = 2
+MAX_STRATA = 64
+MAX_RING_CAPACITY = 384
+
+_PACKET_KEYS = frozenset(("schema", "d_c", "d_x", "strata"))
+_SCALAR_KEYS = ("n_eff", "n_fast", "w_eff", "w_fast")
+_PSD_KEYS = frozenset(("s_cc", "g_pp", "g_pp_fast", "s_xx", "s_yy"))
+_RING_KEYS = ("ring_c", "ring_x", "ring_y")
+_F64_KEYS = (
+    "mu_c",
+    "s_cc",
+    "g_pp",
+    "g_px",
+    "g_py",
+    "g_pp_fast",
+    "g_px_fast",
+    "g_py_fast",
+    "s_xx",
+    "s_yy",
+) + _RING_KEYS
+_STRATUM_KEYS = frozenset(("key", *_SCALAR_KEYS, *_F64_KEYS))
+_BANK_DEFAULTS: dict[str, Any] = {
+    "gamma_base": 0.96,
+    "gamma_fast": 0.88,
+    "gamma_min": 0.5,
+    "innov_threshold": 2.5,
+    "lin_ridge": 1e-3,
+    "nl_ridge": 0.025,
+    "ring_capacity": MAX_RING_CAPACITY,
+    "knn_k": 20,
+    "tail_leverage_gain": 0.9,
+    "knn_res_weight": 0.3,
+}
 
 
-def _req(ok):
-    if not ok:
-        raise ValueError("invalid state")
+def _require(cond: bool, msg: str = "invalid fiber bank state") -> None:
+    if not cond:
+        raise ValueError(msg)
 
 
-def _c64(t):
-    return t.detach().cpu().to(_F64)
+def _can_mutate_state(record: Any, allow_update: bool) -> bool:
+    in_probe = getattr(record, "_in_probe", False) or getattr(record, "_in_protected_probe", False)
+    return allow_update and torch.is_grad_enabled() and not in_probe
 
 
-def _sym(m):
-    return 0.5 * (m + m.mT)
+def _clone_stratum(entry: dict[str, Any]) -> dict[str, Any]:
+    return {
+        **{k: float(entry[k]) for k in _SCALAR_KEYS},
+        **{k: entry[k].detach().cpu().double().clone() for k in _F64_KEYS},
+    }
 
 
-def _clone(s):
-    return {**{k: float(s[k]) for k in _SC}, **{k: _c64(s[k]).clone() for k in _F64_KEYS}}
+def _whiten_cov(cov: Tensor, floor: float = 1e-4) -> Tensor:
+    """Symmetric FP64 inverse-square-root whitener via Newton-Schulz."""
+    sym = 0.5 * (cov + cov.mT)
+    diag_mean = sym.diagonal().mean().clamp_min(0).item()
+    eps = max(1e-4 * max(diag_mean, floor), 1e-6) if floor > 0 else (1e-4 * diag_mean if diag_mean > 1e-12 else 1e-6)
+    return sym_inv_sqrt_ns(sym, eps=eps)
 
 
-def _mix3(st, ks, xs, g):
-    return tuple(g * st[k] + v for k, v in zip(ks, xs))
+def _eval_basis(c: Tensor, mu_c: Tensor, w_c: Tensor, tail_gain: float):
+    """Evaluate whitened context basis, tail-leverage weights, and whitened coordinates."""
+    u = (c - mu_c[None]) @ w_c
+    r_sq = u.square().mean(1)
+    r = r_sq.clamp_min(1e-6).sqrt()
+    h = (2 * (F.softplus(r - 1) - 0.3133))[:, None]
+    q = (2 * (F.softplus(r - 0.8) - 0.3711) / (1 + 0.25 * r))[:, None]
+    return cat((c.new_ones((c.shape[0], 1)), u, h, q * u), 1), 1 + tail_gain * r_sq.clamp_max(4.5), u
 
 
-def _mut(rec, allow):
-    pr = getattr(rec, "_in_probe", False) or getattr(rec, "_in_protected_probe", False)
-    return allow and is_grad_enabled() and not pr
+def _imq_kernel_3scale(a: Tensor, b: Tensor, eps: Tensor) -> Tensor:
+    """Three-scale IMQ kernel on whitened conditional fiber residuals."""
+    sq_dist = a.square().sum(-1, keepdim=True) + b.square().sum(-1)[None] - 2 * (a @ b.T)
+    sq_dist = sq_dist + (sq_dist.detach().clamp_min(0) - sq_dist.detach())
+    acc = sq_dist.new_zeros(sq_dist.shape)
+    for mult in (0.35, 1.0, 2.8):
+        e_m = eps * mult
+        rad = (e_m.square() + sq_dist).sqrt()
+        acc = acc + (e_m * sq_dist) / (rad * (e_m + rad)).clamp_min(1e-30)
+    return acc * (1 / 3)
 
 
-def _mv(a, b):
-    return einsum("nij,nj->ni", a, b)
+def _check_f64_tensor(val: Any, shape: tuple[int, ...] | None = None) -> Tensor:
+    _require(isinstance(val, Tensor) and val.dtype == torch.float64 and (shape is None or tuple(val.shape) == shape))
+    _require(bool(val.isfinite().all()))
+    return val
 
 
-def _whiten(m, fl=1e-4):
-    s = _sym(m)
-    d = s.diagonal().mean().clamp_min(0).item()
-    return _isqrt(s, eps=max(1e-4 * max(d, fl), 1e-6) if fl > 0 else (1e-4 * d if d > 1e-12 else 1e-6))
+def _validate_stratum(entry: Any, d_c: int, d_x: int, p_dim: int, seen: set[tuple[int, ...]]) -> None:
+    _require(isinstance(entry, dict) and set(entry) == _STRATUM_KEYS)
+    key = entry["key"]
+    _require(isinstance(key, tuple) and bool(key) and all(type(v) is int for v in key) and key not in seen)
+    seen.add(key)
+    for name in _SCALAR_KEYS:
+        val = entry[name]
+        _require(not isinstance(val, bool) and isinstance(val, (int, float)) and math.isfinite(val) and val > 0)
+    shapes = (
+        (d_c,),
+        (d_c, d_c),
+        (p_dim, p_dim),
+        (p_dim, d_x),
+        (p_dim, d_x),
+        (p_dim, p_dim),
+        (p_dim, d_x),
+        (p_dim, d_x),
+        (d_x, d_x),
+        (d_x, d_x),
+    )
+    for name, shp in zip(_F64_KEYS[:10], shapes):
+        mat = _check_f64_tensor(entry[name], shp)
+        _require(name not in _PSD_KEYS or not bool((mat.diagonal() < -1e-9).any()))
+    ring_lens: set[int] = set()
+    for name, cols in zip(_RING_KEYS, (d_c, d_x, d_x)):
+        ring = _check_f64_tensor(entry[name])
+        _require(ring.ndim == 2 and ring.shape[1] == cols and ring.shape[0] <= MAX_RING_CAPACITY)
+        ring_lens.add(ring.shape[0])
+    _require(len(ring_lens) == 1)
 
 
-def _basis(c, mu, w, g):
-    u = (c - mu[None]) @ w
-    r2 = (u**2).mean(1)
-    r = r2.clamp_min(1e-6).sqrt()
-    h = (2 * (_sp(r - 1) - 0.3133))[:, None]
-    q = (2 * (_sp(r - 0.8) - 0.3711) / (1 + 0.25 * r))[:, None]
-    return cat((c.new_ones((len(c), 1)), u, h, q * u), 1), 1 + g * r2.clamp_max(4.5), u
-
-
-def _sat(t, tau, dims):
-    n = (t**2).sum(dims, keepdim=True).sqrt().clamp_min(1e-8)
-    return t * ((tau * (n / tau).tanh()) / n)
-
-
-def _imq3(a, b, e):
-    s = (a**2).sum(-1)[:, None] + (b**2).sum(-1)[None] - 2 * (a @ b.T)
-    s = s + (s.detach().clamp_min(0) - s.detach())
-    o = s.new_zeros(s.shape)
-    for m in (0.35, 1.0, 2.8):
-        em = e * m
-        r = (em**2 + s).sqrt()
-        o = o + (em * s) / (r * (em + r)).clamp_min(1e-30)
-    return o * (1 / 3)
-
-
-def _chk_t(v, shp=None):
-    _req(isinstance(v, Tensor) and v.dtype == _F64 and (shp is None or tuple(v.shape) == shp))
-    _req(bool(v.isfinite().all()))
-    return v
-
-
-def _chk_st(st, dc, dx, p, seen):
-    _req(isinstance(st, dict) and set(st) == _STK)
-    k = st["key"]
-    _req(isinstance(k, tuple) and bool(k) and all(type(v) is int for v in k) and k not in seen)
-    seen.add(k)
-    for s in _SC:
-        v = st[s]
-        _req(not isinstance(v, bool) and isinstance(v, (int, float)) and isfinite(v) and v > 0)
-    shps = ((dc,), (dc, dc), (p, p), (p, dx), (p, dx), (p, p), (p, dx), (p, dx), (dx, dx), (dx, dx))
-    for n, shp in zip(_F64_KEYS[:10], shps):
-        t = _chk_t(st[n], shp)
-        _req(n not in _PSD or not bool((t.diagonal() < -1e-9).any()))
-    lens = set()
-    for n, c in zip(_RNG, (dc, dx, dx)):
-        r = _chk_t(st[n])
-        _req(r.ndim == 2 and r.shape[1] == c and len(r) <= _MAX_R)
-        lens.add(len(r))
-    _req(len(lens) == 1)
-
-
-def validate_fiber_bank_state(state):
-    _req(isinstance(state, dict) and set(state) == _PKT and type(state["schema"]) is int)
-    _req(state["schema"] == SCHEMA_VERSION)
-    dc, dx, st = state["d_c"], state["d_x"], state["strata"]
-    _req(isinstance(st, list) and len(st) <= _MAX_S)
-    if dc is None and dx is None:
-        _req(not st)
+def validate_fiber_bank_state(state: Any) -> dict[str, Any]:
+    """Validate a schema-2 conditional fiber bank checkpoint (fail-closed)."""
+    _require(isinstance(state, dict) and set(state) == _PACKET_KEYS)
+    _require(type(state["schema"]) is int and state["schema"] == SCHEMA_VERSION)
+    d_c, d_x, strata = state["d_c"], state["d_x"], state["strata"]
+    _require(isinstance(strata, list) and len(strata) <= MAX_STRATA)
+    if d_c is None and d_x is None:
+        _require(not strata)
         return state
-    _req(type(dc) is int and type(dx) is int and dc >= 1 and dx >= 1)
-    seen, p = set(), AxiomCondFiberBank.basis_dim(dc)
-    for e in st:
-        _chk_st(e, dc, dx, p, seen)
+    _require(type(d_c) is int and type(d_x) is int and d_c >= 1 and d_x >= 1)
+    seen: set[tuple[int, ...]] = set()
+    p_dim = AxiomCondFiberBank.basis_dim(d_c)
+    for entry in strata:
+        _validate_stratum(entry, d_c, d_x, p_dim, seen)
     return state
 
 
 class AxiomCondFiberBank:
-    """Schema-2 FP64 conditional fiber bank."""
+    """Schema-2 FP64 innovation-adaptive conditional fiber bank."""
 
-    def __init__(self, **kw):
-        bad = set(kw) - set(_DEF)
-        if bad:
-            raise TypeError(f"bad kwargs: {sorted(bad)}")
-        for k, v in _DEF.items():
-            x = kw.get(k, v)
-            val = max(1, int(x)) if k in ("ring_capacity", "knn_k") else float(x)
-            setattr(self, k, min(val, _MAX_R) if k == "ring_capacity" else val)
-        self.d_c = self.d_x = None
-        self.strata = {}
+    def __init__(self, **kwargs: Any) -> None:
+        unknown = set(kwargs) - set(_BANK_DEFAULTS)
+        if unknown:
+            raise TypeError(f"unexpected kwargs: {sorted(unknown)}")
+        for name, default in _BANK_DEFAULTS.items():
+            raw = kwargs.get(name, default)
+            val = max(1, int(raw)) if name in ("ring_capacity", "knn_k") else float(raw)
+            setattr(self, name, min(val, MAX_RING_CAPACITY) if name == "ring_capacity" else val)
+        self.d_c: int | None = None
+        self.d_x: int | None = None
+        self.strata: dict[tuple[int, ...], dict[str, Any]] = {}
 
     @staticmethod
-    def basis_dim(d_c):
+    def basis_dim(d_c: int) -> int:
         return 2 + 2 * int(d_c)
 
-    def reset(self):
+    def reset(self) -> None:
         self.d_c, self.d_x, self.strata = None, None, {}
 
-    def copy(self):
-        d = AxiomCondFiberBank(**{k: getattr(self, k) for k in _DEF})
-        d.load_state_dict(self.state_dict())
-        return d
+    def copy(self) -> AxiomCondFiberBank:
+        dup = AxiomCondFiberBank(**{k: getattr(self, k) for k in _BANK_DEFAULTS})
+        dup.load_state_dict(self.state_dict())
+        return dup
 
-    def _ridge(self, dc):
-        r = full((self.basis_dim(dc),), self.nl_ridge * sqrt(dc), dtype=_F64, device="cpu")
-        r[: 1 + dc] = self.lin_ridge
-        return r
+    def _ridge_vec(self, d_c: int) -> Tensor:
+        ridge = full((self.basis_dim(d_c),), self.nl_ridge * math.sqrt(d_c), dtype=torch.float64, device="cpu")
+        ridge[: 1 + d_c] = self.lin_ridge
+        return ridge
 
-    def _sxy(self, g, gx, gy, iw, dc, ri=False):
-        return _solve(g * iw, cat((gx, gy), 1) * iw, ridge=self._ridge(dc), return_inv=ri)
+    def state_dict(self) -> dict[str, Any]:
+        """Serialize bank state to a schema-2 CPU FP64 checkpoint dict."""
+        strata = [{"key": tuple(int(v) for v in k), **_clone_stratum(s)} for k, s in sorted(self.strata.items())]
+        return {"schema": SCHEMA_VERSION, "d_c": self.d_c, "d_x": self.d_x, "strata": strata}
 
-    def _knn(self, uq, ur, dc):
-        m, d = len(ur), cdist(uq, ur, p=2.0)
-        h = d.topk(min(self.knn_k, max(6, m // 5), m), 1, largest=False).values[:, -1].clamp_min(0.25 * sqrt(dc))
-        lg = -0.5 * (d / h[:, None]) ** 2 - (arange(m - 1, -1, -1, dtype=_F64, device=uq.device) / 128)[None]
-        return softmax(lg - lg.amax(1, keepdim=True), 1)
-
-    def state_dict(self):
-        st = [{"key": tuple(int(v) for v in k), **_clone(s)} for k, s in sorted(self.strata.items())]
-        return {"schema": SCHEMA_VERSION, "d_c": self.d_c, "d_x": self.d_x, "strata": st}
-
-    def load_state_dict(self, state):
+    def load_state_dict(self, state: dict[str, Any]) -> None:
+        """Validate and restore a schema-2 checkpoint dict."""
         validate_fiber_bank_state(state)
         self.d_c, self.d_x = state["d_c"], state["d_x"]
-        self.strata = {tuple(int(v) for v in e["key"]): _clone(e) for e in state["strata"]}
+        self.strata = {tuple(int(v) for v in entry["key"]): _clone_stratum(entry) for entry in state["strata"]}
 
     validate_state_dict = staticmethod(validate_fiber_bank_state)
     to_packet, load_packet, validate_packet = state_dict, load_state_dict, validate_state_dict
 
-    def _decay(self, st, c, zi):
-        ng, cb = float(len(c)), c.mean(0)
-        d = c - cb
-        cov = d.T @ d
-        if st is None:
-            return 1.0, 0.0, 0.0, ng, cb.clone(), _sym(cov)
-        ex = max(0.0, zi - self.innov_threshold)
-        dm = exp(-0.5 * ex * ex)
-        gs = self.gamma_min + (self.gamma_base - self.gamma_min) * dm
-        gf = self.gamma_min + (self.gamma_fast - self.gamma_min) * dm
-        no = gs * st["n_eff"]
-        nn, dc = no + ng, cb - st["mu_c"]
-        return dm, gs, gf, nn, st["mu_c"] + (ng / nn) * dc, _sym(gs * st["s_cc"] + cov + (no * ng / nn) * outer(dc, dc))
-
-    @no_grad()
-    def query_stratum(self, key, c_g, x_g, y_g):
-        dc, dx, dev = c_g.shape[1], x_g.shape[1], c_g.device
-        st = self.strata.get(key) if (self.d_c == dc and self.d_x == dx) else None
-        p = self.basis_dim(dc)
-        if st is None or st["n_eff"] < max(p + 2, 12) or len(st["ring_c"]) < 8:
+    @torch.no_grad()
+    def query_stratum(self, key: tuple[int, ...], c_g: Tensor, x_g: Tensor, y_g: Tensor) -> dict[str, Any] | None:
+        """Query pre-update FP64 stratum drift, whitener, and local covariance operators."""
+        d_c, d_x, dev = c_g.shape[1], x_g.shape[1], c_g.device
+        st = self.strata.get(key) if (self.d_c == d_c and self.d_x == d_x) else None
+        p_dim = self.basis_dim(d_c)
+        if st is None or st["n_eff"] < max(p_dim + 2, 12) or st["ring_c"].shape[0] < 8:
             return None
-        with _dev("cpu"):
-            ne, we, wf = st["n_eff"], st["w_eff"], st["w_fast"]
-            mu, sc, g, gx, gy, gf, gxf, gyf, sx, sy, rc, rx, ry = map(st.__getitem__, _F64_KEYS)
-            ng, rl = len(c_g), len(rc)
-            c, x, y = map(_c64, (c_g, x_g, y_g))
-            wc = _whiten(sc / max(ne, 1), 0)
-            pq, om, uq = _basis(c, mu, wc, self.tail_leverage_gain)
-            sol, mis = self._sxy(g, gx, gy, 1 / max(we, 1), dc, True)
-            bx, by = sol[:, :dx], sol[:, dx:]
-            bp = 0.5 * (bx + by)
-            mx, my, mp = pq @ bx, pq @ by, pq @ bp
-            iwf = 1 / max(wf, 1)
-            dmb = 0.5 * (pq @ _solve(gf * iwf, (gxf - gyf) * iwf, ridge=self._ridge(dc))[0] + mx - my)
-            if ng >= 2 and mis is not None:
-                u, wp, prj = x - y, pq * om[:, None], pq @ mis
-                den = (om.sum().item() - om).clamp_min(1)[:, None]
-                dml = (prj @ (wp.T @ u) - (prj * wp).sum(1, keepdim=True) * u) / den
+        with torch.device("cpu"):
+            n_eff, inv_we, inv_wf = st["n_eff"], 1 / max(st["w_eff"], 1), 1 / max(st["w_fast"], 1)
+            mu_c, s_cc, ring_c, ring_x, ring_y = st["mu_c"], st["s_cc"], st["ring_c"], st["ring_x"], st["ring_y"]
+            n_g, ring_len, ridge = c_g.shape[0], ring_c.shape[0], self._ridge_vec(d_c)
+            c, x, y = c_g.detach().cpu().double(), x_g.detach().cpu().double(), y_g.detach().cpu().double()
+            w_c = _whiten_cov(s_cc / max(n_eff, 1), floor=0)
+            phi_q, omega, u_q = _eval_basis(c, mu_c, w_c, self.tail_leverage_gain)
+            rhs_slow = cat((st["g_px"], st["g_py"]), 1) * inv_we
+            sol, mat_inv = solve_spd_cholesky(st["g_pp"] * inv_we, rhs_slow, ridge=ridge, return_inv=True)
+            b_x, b_y = sol[:, :d_x], sol[:, d_x:]
+            b_pool = 0.5 * (b_x + b_y)
+            m_x, m_y, m_pool = phi_q @ b_x, phi_q @ b_y, phi_q @ b_pool
+            b_fast = solve_spd_cholesky(
+                st["g_pp_fast"] * inv_wf, (st["g_px_fast"] - st["g_py_fast"]) * inv_wf, ridge=ridge
+            )[0]
+            delta_m_bank = 0.5 * (phi_q @ b_fast + m_x - m_y)
+            if n_g >= 2 and mat_inv is not None:
+                diff_xy, w_phi, proj = x - y, phi_q * omega[:, None], phi_q @ mat_inv
+                loo_den = (omega.sum().item() - omega).clamp_min(1)[:, None]
+                delta_m_loo = (proj @ (w_phi.T @ diff_xy) - (proj * w_phi).sum(1, keepdim=True) * diff_xy) / loo_den
             else:
-                dml = dmb
-            wm = _whiten(0.5 * (sx + sy) / ne)
-            pr, _, ur = _basis(rc, mu, wc, self.tail_leverage_gain)
-            al, mpr = self._knn(uq, ur, dc), pr @ bp
-            rx0, ry0 = rx - mpr, ry - mpr
-            dcov = einsum("nm,mij->nij", al, rx0[:, :, None] * rx0[:, None] - ry0[:, :, None] * ry0[:, None])
-            kd = al @ ((rx - pr @ bx) - (ry - pr @ by))
+                delta_m_loo = delta_m_bank
+            w_mat = _whiten_cov(0.5 * (st["s_xx"] + st["s_yy"]) / n_eff)
+            phi_r, _, u_r = _eval_basis(ring_c, mu_c, w_c, self.tail_leverage_gain)
+            dist_qr = torch.cdist(u_q, u_r, p=2.0)
+            k_eff = min(self.knn_k, max(6, ring_len // 5), ring_len)
+            bw = dist_qr.topk(k_eff, 1, largest=False).values[:, -1].clamp_min(0.25 * math.sqrt(d_c))
+            age = arange(ring_len - 1, -1, -1, dtype=torch.float64, device=u_q.device) / 128
+            logits = -0.5 * (dist_qr / bw[:, None]).square() - age[None]
+            alpha, m_pool_r = softmax(logits - logits.amax(1, keepdim=True), 1), phi_r @ b_pool
+            res_x_r, res_y_r = ring_x - m_pool_r, ring_y - m_pool_r
+            dcov_r = res_x_r[:, :, None] * res_x_r[:, None] - res_y_r[:, :, None] * res_y_r[:, None]
+            delta_cov_loc = einsum("nm,mij->nij", alpha, dcov_r)
+            knn_diff = alpha @ ((ring_x - phi_r @ b_x) - (ring_y - phi_r @ b_y))
+            mean_err_sq = max(
+                0.0, ((b_x - b_y) @ w_mat).square().sum().item() / max(1, d_x) - 2 * p_dim / max(n_eff, 1)
+            )
+            err_xy = max(((x - m_x).mean(0) @ w_mat).norm().item(), ((y - m_y).mean(0) @ w_mat).norm().item())
+            err_c = ((c.mean(0) - mu_c) @ w_c).norm().item() * math.sqrt(n_g / max(1, d_c))
+            z_innov = max(math.sqrt(n_g / max(1, d_x)) * err_xy, err_c)
+            out: dict[str, Any] = {
+                "n_eff": n_eff,
+                "ring_len": ring_len,
+                "omega": omega,
+                "m_x": m_x + 0.5 * knn_diff,
+                "m_pool": m_pool,
+                "w_mat": w_mat,
+                "delta_m_bank": delta_m_bank + self.knn_res_weight * knn_diff,
+                "delta_m_loo": delta_m_loo,
+                "delta_cov_loc": delta_cov_loc,
+                "mean_err_sq": mean_err_sq,
+                "z_innov": z_innov,
+            }
+        if dev.type != "cpu":
+            for k, v in out.items():
+                if isinstance(v, Tensor):
+                    out[k] = v.to(dev)
+        return out
 
-            def nrm(v):
-                return v.norm().item()
-
-            me = max(0.0, (((bx - by) @ wm) ** 2).sum().item() / max(1, dx) - 2 * p / max(ne, 1))
-            e_xy = max(nrm((x - mx).mean(0) @ wm), nrm((y - my).mean(0) @ wm))
-            zi = max(sqrt(ng / max(1, dx)) * e_xy, nrm((c.mean(0) - mu) @ wc) * sqrt(ng / max(1, dc)))
-            vals = (ne, rl, om, mx + 0.5 * kd, mp, wm, dmb + self.knn_res_weight * kd, dml, dcov, me, zi)
-
-        def mv(v):
-            return v.to(dev) if dev.type != "cpu" and isinstance(v, Tensor) else v
-
-        return dict(zip(_QK, map(mv, vals)))
-
-    @no_grad()
-    def update_stratum(self, key, c_g, x_g, y_g, *, z_innov=0.0):
-        with _dev("cpu"):
-            c, x, y = map(_c64, (c_g, x_g, y_g))
-            ng, dc, dx = len(c), c.shape[1], x.shape[1]
-            if ng == 0 or (key not in self.strata and len(self.strata) >= _MAX_S):
+    @torch.no_grad()
+    def update_stratum(
+        self, key: tuple[int, ...], c_g: Tensor, x_g: Tensor, y_g: Tensor, *, z_innov: float = 0.0
+    ) -> None:
+        """Update innovation-adaptive stratum moments and FIFO ring."""
+        with torch.device("cpu"):
+            c, x, y = c_g.detach().cpu().double(), x_g.detach().cpu().double(), y_g.detach().cpu().double()
+            n_g, d_c, d_x = c.shape[0], c.shape[1], x.shape[1]
+            if n_g == 0 or (key not in self.strata and len(self.strata) >= MAX_STRATA):
                 return
-            if self.d_c != dc or self.d_x != dx:
+            if self.d_c != d_c or self.d_x != d_x:
                 self.reset()
-                self.d_c, self.d_x = dc, dx
-            st = self.strata.get(key)
-            dm, gs, gf, nn, mu, sc = self._decay(st, c, float(z_innov))
-            phi, om, _ = _basis(c, mu, _whiten(sc / max(nn, 1), 0), self.tail_leverage_gain)
-            wb, wp, cap = om.sum().item(), phi * om[:, None], self.ring_capacity
-            bg = (wp.T @ phi, wp.T @ x, wp.T @ y)
+                self.d_c, self.d_x = d_c, d_x
+            st, c_mean = self.strata.get(key), c.mean(0)
+            c_cent = c - c_mean
+            cov = c_cent.T @ c_cent
             if st is None:
-                we = wf = wb
-                nf = nn
-                up, upf = bg, tuple(map(Tensor.clone, bg))
-                rng = tuple(t[-cap:].clone() for t in (c, x, y))
+                decay_mult, g_s, g_f, n_new, mu_c, s_cc = (
+                    1.0,
+                    0.0,
+                    0.0,
+                    float(n_g),
+                    c_mean.clone(),
+                    0.5 * (cov + cov.mT),
+                )
             else:
-                we, wf, nf = gs * st["w_eff"] + wb, gf * st["w_fast"] + wb, gf * st["n_fast"] + ng
-                up, upf = _mix3(st, _F64_KEYS[2:5], bg, gs), _mix3(st, _F64_KEYS[5:8], bg, gf)
-                cur = len(st["ring_c"])
-                kp = int(round(cur * max(0.25, dm))) if dm < 0.9 else cur
-                sl = slice(-kp, None) if kp > 0 else slice(0, 0)
-                rng = tuple(cat((st[k][sl], t))[-cap:] for k, t in zip(_RNG, (c, x, y)))
-            sol = self._sxy(*up, 1 / max(we, 1), dc)[0]
-            rx, ry = x - phi @ sol[:, :dx], y - phi @ sol[:, dx:]
-            sx, sy = rx.T @ rx, ry.T @ ry
+                excess = max(0.0, float(z_innov) - self.innov_threshold)
+                decay_mult = math.exp(-0.5 * excess * excess)
+                g_s = self.gamma_min + (self.gamma_base - self.gamma_min) * decay_mult
+                g_f = self.gamma_min + (self.gamma_fast - self.gamma_min) * decay_mult
+                n_old = g_s * st["n_eff"]
+                n_new, delta_c = n_old + n_g, c_mean - st["mu_c"]
+                mu_c = st["mu_c"] + (n_g / n_new) * delta_c
+                s_cc = g_s * st["s_cc"] + cov + (n_old * n_g / n_new) * torch.outer(delta_c, delta_c)
+                s_cc = 0.5 * (s_cc + s_cc.mT)
+            phi, omega, _ = _eval_basis(c, mu_c, _whiten_cov(s_cc / max(n_new, 1), floor=0), self.tail_leverage_gain)
+            w_batch, w_phi, cap = omega.sum().item(), phi * omega[:, None], self.ring_capacity
+            g_pp, g_px, g_py = w_phi.T @ phi, w_phi.T @ x, w_phi.T @ y
+            if st is None:
+                w_eff = w_fast = w_batch
+                n_fast = n_new
+                g_slow, g_fast = (g_pp, g_px, g_py), (g_pp.clone(), g_px.clone(), g_py.clone())
+                ring = (c[-cap:].clone(), x[-cap:].clone(), y[-cap:].clone())
+            else:
+                w_eff, w_fast, n_fast = (
+                    g_s * st["w_eff"] + w_batch,
+                    g_f * st["w_fast"] + w_batch,
+                    g_f * st["n_fast"] + n_g,
+                )
+                g_slow = (g_s * st["g_pp"] + g_pp, g_s * st["g_px"] + g_px, g_s * st["g_py"] + g_py)
+                g_fast = (g_f * st["g_pp_fast"] + g_pp, g_f * st["g_px_fast"] + g_px, g_f * st["g_py_fast"] + g_py)
+                cur = st["ring_c"].shape[0]
+                keep = int(round(cur * max(0.25, decay_mult))) if decay_mult < 0.9 else cur
+                sl = slice(-keep, None) if keep > 0 else slice(0, 0)
+                ring = (
+                    cat((st["ring_c"][sl], c))[-cap:],
+                    cat((st["ring_x"][sl], x))[-cap:],
+                    cat((st["ring_y"][sl], y))[-cap:],
+                )
+            inv_w = 1 / max(w_eff, 1)
+            sol = solve_spd_cholesky(g_slow[0] * inv_w, cat(g_slow[1:], 1) * inv_w, ridge=self._ridge_vec(d_c))[0]
+            res_x, res_y = x - phi @ sol[:, :d_x], y - phi @ sol[:, d_x:]
+            s_xx, s_yy = res_x.T @ res_x, res_y.T @ res_y
             if st is not None:
-                sx, sy = gs * st["s_xx"] + sx, gs * st["s_yy"] + sy
-            vals = (nn, nf, we, wf, mu, sc, *up, *upf, _sym(sx), _sym(sy), *rng)
-            self.strata[key] = dict(zip(_SC + _F64_KEYS, vals))
+                s_xx, s_yy = g_s * st["s_xx"] + s_xx, g_s * st["s_yy"] + s_yy
+            s_xx, s_yy = 0.5 * (s_xx + s_xx.mT), 0.5 * (s_yy + s_yy.mT)
+            vals = (n_new, n_fast, w_eff, w_fast, mu_c, s_cc, *g_slow, *g_fast, s_xx, s_yy, *ring)
+            self.strata[key] = dict(zip(_SCALAR_KEYS + _F64_KEYS, vals))
 
 
-def _part(bn, cd):
-    if cd is None:
-        return [((0,), arange(bn, dtype=_L))], ones((bn, bn), dtype=_B)
-    rows = cd.detach().reshape(bn, -1).to("cpu", _I64)
-    bkt = {}
-    for i, r in enumerate(rows.tolist()):
-        bkt.setdefault(tuple(int(v) for v in r), []).append(i)
-    return [(k, tensor(bkt[k], dtype=_L)) for k in sorted(bkt)], (rows[:, None] == rows[None]).all(-1)
+def _partition_strata(batch_n: int, cond_disc: Tensor | None):
+    if cond_disc is None:
+        return [((0,), arange(batch_n, dtype=torch.long))], ones((batch_n, batch_n), dtype=torch.bool)
+    rows = cond_disc.detach().reshape(batch_n, -1).to("cpu", torch.int64)
+    buckets: dict[tuple[int, ...], list[int]] = {}
+    for idx, row in enumerate(rows.tolist()):
+        buckets.setdefault(tuple(int(v) for v in row), []).append(idx)
+    return [(k, tensor(buckets[k], dtype=torch.long)) for k in sorted(buckets)], (rows[:, None] == rows[None]).all(-1)
 
 
-def _fb(c, z, grps):
-    dc, mh = c.shape[1], zeros_like(z)
-    for _, i in grps:
-        zg, zm = z[i], z[i].mean(0)
-        if i.numel() < max(4, dc + 2):
-            mh[i] = zm
+def _fallback_midpoint_regression(c: Tensor, z: Tensor, groups):
+    d_c, m_hat = c.shape[1], zeros_like(z)
+    for _, idx in groups:
+        z_g, z_mean = z[idx], z[idx].mean(0)
+        if idx.numel() < max(4, d_c + 2):
+            m_hat[idx] = z_mean
             continue
-        d = c[i] - c[i].mean(0)
-        rg = 1e-4 * (d**2).sum().clamp_min(1e-8).item() / max(1, dc)
-        mh[i] = zm + d @ _solve(d.T @ d, d.T @ (zg - zm), ridge=rg)[0]
-    return mh
+        c_cent = c[idx] - c[idx].mean(0)
+        ridge = 1e-4 * c_cent.square().sum().clamp_min(1e-8).item() / max(1, d_c)
+        m_hat[idx] = z_mean + c_cent @ solve_spd_cholesky(c_cent.T @ c_cent, c_cent.T @ (z_g - z_mean), ridge=ridge)[0]
+    return m_hat
 
 
-def _qu(bank, grps, c, x, y, mut, blend):
-    bn, d = x.shape
-    ho, ow = zeros(bn, dtype=_B), eye(d, dtype=_F64)[None].expand(bn, d, d).clone()
-    dm, mx, mp = x.new_zeros((3, bn, d)).unbind(0)
-    ec, rw, mg = x.new_zeros((bn, d, d)), x.new_zeros(bn), x.new_zeros((bn, 1))
-    pend, rmax = [], 0.0
+def _query_and_update_bank(bank, groups, c: Tensor, x: Tensor, y: Tensor, mutate: bool, mean_blend: float):
+    """Query pre-update bank operators per stratum, apply cold-start fallback, then update."""
+    batch_n, d_x = x.shape
+    has_op, w_op = (
+        zeros(batch_n, dtype=torch.bool),
+        eye(d_x, dtype=torch.float64)[None].expand(batch_n, d_x, d_x).clone(),
+    )
+    delta_m, m_x, m_pool = x.new_zeros((3, batch_n, d_x)).unbind(0)
+    err_cov, row_w, m_gate = x.new_zeros((batch_n, d_x, d_x)), x.new_zeros(batch_n), x.new_zeros((batch_n, 1))
+    pending, max_mean_err = [], 0.0
     if bank is not None:
-        for k, i in grps:
-            q, zi = bank.query_stratum(k, c[i], x[i], y[i]), 0.0
-            if q is not None:
-                _, rl, om, mq, mpq, wm, dmb, dml, dcov, me, zi = map(q.__getitem__, _QK)
-                wg = rl / (rl + 32)
-                mp[i], mg[i], ho[i], ow[i], mx[i] = mpq, wg, True, wm[None], mq
-                dm[i] = _sat(((1 - blend) * dml + blend * dmb) @ wm, 3, (-1,))
-                ec[i] = _sat(_sym(einsum("ab,nbc,cd->nad", wm, dcov, wm)), 1.5, (-2, -1))
-                rw[i], rmax = wg * (om / om.mean().clamp_min(1e-6)), max(rmax, me)
-            pend.append((k, i, zi))
-    ao = bool(ho.any())
-    if bool(ho.all()):
-        mh = mp
+        for key, idx in groups:
+            query, z_innov = bank.query_stratum(key, c[idx], x[idx], y[idx]), 0.0
+            if query is not None:
+                ring_len, omega, w_mat = query["ring_len"], query["omega"], query["w_mat"]
+                gate = ring_len / (ring_len + 32)
+                m_pool[idx], m_gate[idx], has_op[idx] = query["m_pool"], gate, True
+                w_op[idx], m_x[idx] = w_mat[None], query["m_x"]
+                dm_w = ((1 - mean_blend) * query["delta_m_loo"] + mean_blend * query["delta_m_bank"]) @ w_mat
+                dm_n = dm_w.square().sum(-1, keepdim=True).sqrt().clamp_min(1e-8)
+                delta_m[idx] = dm_w * ((3 * (dm_n / 3).tanh()) / dm_n)
+                cov_w = einsum("ab,nbc,cd->nad", w_mat, query["delta_cov_loc"], w_mat)
+                cov_s = 0.5 * (cov_w + cov_w.mT)
+                cov_n = cov_s.square().sum((-2, -1), keepdim=True).sqrt().clamp_min(1e-8)
+                err_cov[idx] = cov_s * ((1.5 * (cov_n / 1.5).tanh()) / cov_n)
+                row_w[idx] = gate * (omega / omega.mean().clamp_min(1e-6))
+                max_mean_err, z_innov = max(max_mean_err, query["mean_err_sq"]), query["z_innov"]
+            pending.append((key, idx, z_innov))
+    any_op = bool(has_op.any())
+    if bool(has_op.all()):
+        m_hat = m_pool
     else:
-        fb = _fb(c, 0.5 * (x + y), grps)
-        mh = (mg * mp + (1 - mg) * fb) if ao else fb
-    if bank is not None and mut:
-        for k, i, zi in pend:
-            bank.update_stratum(k, c[i], x[i], y[i], z_innov=zi)
-    ep, en = _eig(ec) if ao else (ec, ec)
-    return mh, ow, dm, mx, ep, en, rw, ao, rmax
+        fb = _fallback_midpoint_regression(c, 0.5 * (x + y), groups)
+        m_hat = (m_gate * m_pool + (1 - m_gate) * fb) if any_op else fb
+    if bank is not None and mutate:
+        for key, idx, z_innov in pending:
+            bank.update_stratum(key, c[idx], x[idx], y[idx], z_innov=z_innov)
+    err_pos, err_neg = sym_eigensplit_halley(err_cov) if any_op else (err_cov, err_cov)
+    return m_hat, w_op, delta_m, m_x, err_pos, err_neg, row_w, any_op, max_mean_err
 
 
-def _imq_g(cw, yw, st, mv, vr):
-    d = _cd(cw).to(cw.dtype)
-    dm = d.amax()
-    du = where(dm > 0, d / dm.clamp_min(1e-30), d)
-    ds, si = du.masked_fill(~mv, float("inf")).topk(min(4, len(cw)), 1, largest=False)
-    sr = ds.gather(1, (mv.sum(1).clamp(1, min(3, ds.shape[1])) - 1)[:, None])[:, 0]
-    s = where(vr, where(sr.isfinite(), sr, 0.0).clamp_min(0) + 1e-3 * du.amax() + 1e-6, 1.0)
-    kc = where(mv, (-(du**2) / (2 * s[:, None] * s[None]).clamp_min(1e-12)).exp(), 0.0)
-    isd = (1 + kc.sum(1)).rsqrt()
-    fm = (st & vr[None] & vr[:, None]).to(yw.dtype)
-    es = (fm @ (0.5 * ((yw - yw[si[:, 0]]) ** 2).sum(-1, keepdim=True))) / fm.sum(1, keepdim=True).clamp_min(1)
-    yl = yw.norm(dim=-1).amax()
-    ef = where(yl > 0, 1e-2 * yl, 1e-5).clamp_min(1e-12)
-    return _sym((kc * isd[:, None] * isd[None]) / len(cw)), where(vr[:, None], es.sqrt().clamp_min(ef), 1.0)
+def _compute_imq_graph(c_w: Tensor, y_w: Tensor, same_stratum: Tensor, mask_valid: Tensor, valid_rows: Tensor):
+    """Build adaptive local-bandwidth Gaussian context graph and IMQ kernel scales."""
+    dist = safe_cdist(c_w).to(c_w.dtype)
+    d_max = dist.amax()
+    d_unit = where(d_max > 0, dist / d_max.clamp_min(1e-30), dist)
+    d_knn, idx_knn = d_unit.masked_fill(~mask_valid, float("inf")).topk(min(4, c_w.shape[0]), 1, largest=False)
+    k_idx = mask_valid.sum(1).clamp(1, min(3, d_knn.shape[1])) - 1
+    s_raw = d_knn.gather(1, k_idx[:, None])[:, 0]
+    sigma = where(valid_rows, where(s_raw.isfinite(), s_raw, 0.0).clamp_min(0) + 1e-3 * d_unit.amax() + 1e-6, 1.0)
+    k_ctx = where(mask_valid, (-d_unit.square() / (2 * sigma[:, None] * sigma[None]).clamp_min(1e-12)).exp(), 0.0)
+    inv_sqrt_deg = (1 + k_ctx.sum(1)).rsqrt()
+    weights = (k_ctx * inv_sqrt_deg[:, None] * inv_sqrt_deg[None]) / c_w.shape[0]
+    full_mask = (same_stratum & valid_rows[None] & valid_rows[:, None]).to(y_w.dtype)
+    nn_sq = 0.5 * (y_w - y_w[idx_knn[:, 0]]).square().sum(-1, keepdim=True)
+    eps_sq = (full_mask @ nn_sq) / full_mask.sum(1, keepdim=True).clamp_min(1)
+    y_norm_max = y_w.norm(dim=-1).amax()
+    eps_floor = where(y_norm_max > 0, 1e-2 * y_norm_max, 1e-5).clamp_min(1e-12)
+    return 0.5 * (weights + weights.mT), where(valid_rows[:, None], eps_sq.sqrt().clamp_min(eps_floor), 1.0)
 
 
-def _bank(rec, b):
-    if b is not None or rec is None:
-        return b
-    ex = getattr(rec, "_cond_bank_obj", None)
-    if ex is not None:
-        return ex
-    f, s = AxiomCondFiberBank(), getattr(rec, "cond_fiber_bank", None)
-    if s is not None:
-        f.load_state_dict(s)
-    rec._cond_bank_obj = f
-    return f
+def _resolve_fiber_bank(record: Any, bank: AxiomCondFiberBank | None) -> AxiomCondFiberBank | None:
+    if bank is not None or record is None:
+        return bank
+    cached = getattr(record, "_cond_bank_obj", None)
+    if cached is not None:
+        return cached
+    new_bank, saved = AxiomCondFiberBank(), getattr(record, "cond_fiber_bank", None)
+    if saved is not None:
+        new_bank.load_state_dict(saved)
+    record._cond_bank_obj = new_bank
+    return new_bank
 
 
-def _op_loss(xw, yd, ow, ops, mw, cw, odt):
-    dev, dt, inv = xw.device, xw.dtype, 1 / max(1, xw.shape[-1])
-    dm, mx, ep, en, rw = (t.to(dev, dt) for t in ops)
-    lo = xw.new_zeros((), dtype=odt)
-    if mw > 0:
-        lo = lo + mw * (rw * (_mv(ow, xw - yd) * dm).sum(-1) * inv).mean().to(odt)
-    if cw > 0:
-        rx = _mv(ow, xw - mx)
-        ex = _rl((rx**2).sum(-1, keepdim=True) * inv - (1 + 5 * sqrt(2 * inv)))
-        rs = rx * (1 + 0.25 * (ex**2) / (1 + ex)).rsqrt()
-        q = 0.5 * einsum("ni,nij,nj->n", rx, ep, rx) + 0.5 * einsum("ni,nij,nj->n", rs, en, rs)
-        lo = lo + cw * (rw * q * inv).mean().to(odt)
-    return lo
+def _fiber_operator_loss(x_w: Tensor, y_det: Tensor, w_op: Tensor, ops, mean_w: float, cov_w: float, out_dt):
+    dev, dt, inv_d = x_w.device, x_w.dtype, 1 / max(1, x_w.shape[-1])
+    delta_m, m_x, err_pos, err_neg, row_w = (t.to(dev, dt) for t in ops)
+    loss = x_w.new_zeros((), dtype=out_dt)
+    if mean_w > 0:
+        proj_diff = einsum("nij,nj->ni", w_op, x_w - y_det)
+        loss = loss + mean_w * (row_w * (proj_diff * delta_m).sum(-1) * inv_d).mean().to(out_dt)
+    if cov_w > 0:
+        res_x = einsum("nij,nj->ni", w_op, x_w - m_x)
+        excess = F.relu(res_x.square().sum(-1, keepdim=True) * inv_d - (1 + 5 * math.sqrt(2 * inv_d)))
+        res_soft = res_x * (1 + 0.25 * excess.square() / (1 + excess)).rsqrt()
+        q_pos = einsum("ni,nij,nj->n", res_x, err_pos, res_x)
+        q_neg = einsum("ni,nij,nj->n", res_soft, err_neg, res_soft)
+        loss = loss + cov_w * (row_w * 0.5 * (q_pos + q_neg) * inv_d).mean().to(out_dt)
+    return loss
 
 
-def _upd_ema(rec, wi, pxy, pxx, pyy, rw):
-    num = (wi * (2 * pxy.detach() - pxx.detach() - pyy)).sum()
-    ri = max(-0.5, min(0.5, (num / (wi * pyy).sum().clamp_min(1e-8)).item()))
-    rc = ri + min(0.5, 0.11 * max(0.0, rw - 0.1))
-    rec.cond_ema = 0.99 * float(rec.cond_ema) + 0.01 * rc if rec.cond_initialized else max(0.18, rc)
-    rec.cond_initialized = True
-    if hasattr(rec, "step_scale"):
-        rec.step_scale = float(1 - 0.85 * _ss((0.05 - max(0.0, float(rec.cond_ema))) / 0.024))
+def _update_cond_ema(
+    record: Any, weights: Tensor, p_xy: Tensor, p_xx: Tensor, p_yy: Tensor, max_mean_err: float
+) -> None:
+    num = (weights * (2 * p_xy.detach() - p_xx.detach() - p_yy)).sum()
+    rel_imq = max(-0.5, min(0.5, (num / (weights * p_yy).sum().clamp_min(1e-8)).item()))
+    rel_cond = rel_imq + min(0.5, 0.11 * max(0.0, max_mean_err - 0.1))
+    record.cond_ema = (
+        0.99 * float(record.cond_ema) + 0.01 * rel_cond if record.cond_initialized else max(0.18, rel_cond)
+    )
+    record.cond_initialized = True
+    if hasattr(record, "step_scale"):
+        record.step_scale = float(1 - 0.85 * smoothstep01((0.05 - max(0.0, float(record.cond_ema))) / 0.024))
 
 
 def conditional_fiber_loss(
-    x_fake,
-    y_real,
-    c_cont,
+    x_fake: Tensor,
+    y_real: Tensor,
+    c_cont: Tensor,
     *,
-    cond_disc=None,
-    record=None,
-    bank=None,
-    mean_op_weight=0.36,
-    cov_op_weight=0.35,
-    imq_active_scale=0.40,
-    bank_mean_blend=0.75,
-    allow_state_update=True,
-):
-    bn = len(x_fake)
-    if bn <= 1 or len(y_real) != bn or len(c_cont) != bn:
+    cond_disc: Tensor | None = None,
+    record: Any = None,
+    bank: AxiomCondFiberBank | None = None,
+    mean_op_weight: float = 0.36,
+    cov_op_weight: float = 0.35,
+    imq_active_scale: float = 0.40,
+    bank_mean_blend: float = 0.75,
+    allow_state_update: bool = True,
+) -> Tensor:
+    """Law 3B conditional fiber loss combining 3-scale IMQ and bank drift/covariance operators."""
+    batch_n = x_fake.shape[0]
+    if batch_n <= 1 or y_real.shape[0] != batch_n or c_cont.shape[0] != batch_n:
         return x_fake[:0].sum()
-    xf, yf = x_fake.reshape(bn, -1), y_real.detach().reshape(bn, -1)
-    dev, d = xf.device, xf.shape[-1]
-    dim, dt = max(1, d), (_F64 if xf.dtype == _F64 else _F32)
-    fmax = finfo(xf.dtype).max * (0.25 / sqrt(dim + 1))
-    mut, bk = _mut(record, allow_state_update), _bank(record, bank)
-    with no_grad():
-        grps, sc = _part(bn, cond_disc)
-        if not any(i.numel() >= 2 for _, i in grps):
+    x_flat, y_flat = x_fake.reshape(batch_n, -1), y_real.detach().reshape(batch_n, -1)
+    dev, d_raw = x_flat.device, x_flat.shape[-1]
+    dim, work_dt = max(1, d_raw), (torch.float64 if x_flat.dtype == torch.float64 else torch.float32)
+    fmax = torch.finfo(x_flat.dtype).max * (0.25 / math.sqrt(dim + 1))
+    mutate, resolved_bank = _can_mutate_state(record, allow_state_update), _resolve_fiber_bank(record, bank)
+    with torch.no_grad():
+        groups, same_cpu = _partition_strata(batch_n, cond_disc)
+        if not any(idx.numel() >= 2 for _, idx in groups):
             return x_fake[:0].sum()
-        cw, xd, yd = c_cont.detach().reshape(bn, -1).to(dt), xf.detach().to(dt), yf.to(dt)
-        c0, x0, y0 = cat((cw, xd, yd), 1).to("cpu", _F64).split((cw.shape[1], d, d), 1)
-        mh_c, ow_c, *ops, ao, rw = _qu(bk, grps, c0, x0, y0, mut, float(bank_mean_blend))
-        mh, ow = mh_c.to(dev, dt), ow_c.to(dev, dt)
-        owi = ow / ((ow**2).sum((-2, -1), keepdim=True) / dim).sqrt().clamp_min(1e-8)
-        st = sc.to(dev)
-        m0 = st.clone().fill_diagonal_(False)
-        vr = m0.any(1)
-        yw = _mv(owi, yd - mh)
-        wi, ef = _imq_g(cw, yw, st, m0 & vr[:, None] & vr[None], vr)
-        pyy = _imq3(yw, yw, ef)
-    xw0 = xf.to(dt)
-    xw = _mv(owi, xw0 - mh)
-    pxy, pxx = _imq3(xw, yw, ef), _imq3(xw, xw, ef)
-
-    def cm(t):
-        return t.clamp_max(fmax)
-
-    li = (wi.to(xf.dtype) * (cm(pxy) - 0.5 * cm(pxx) - 0.5 * cm(pyy)).to(xf.dtype)).sum()
-    ho = ao and (mean_op_weight > 0 or cov_op_weight > 0)
-    lo = _op_loss(xw0, yd, ow, ops, mean_op_weight, cov_op_weight, xf.dtype) if ho else xf.new_zeros(())
-    if mut and hasattr(record, "cond_initialized"):
-        with no_grad():
-            _upd_ema(record, wi, pxy, pxx, pyy, rw)
-    return ((imq_active_scale if ho else 1) * li + lo).clamp(-fmax, fmax).to(xf.dtype)
+        c_w, x_det, y_det = (
+            c_cont.detach().reshape(batch_n, -1).to(work_dt),
+            x_flat.detach().to(work_dt),
+            y_flat.to(work_dt),
+        )
+        c_cpu, x_cpu, y_cpu = (
+            cat((c_w, x_det, y_det), 1).to("cpu", torch.float64).split((c_w.shape[1], d_raw, d_raw), 1)
+        )
+        m_hat_c, w_op_c, *ops, any_op, max_err = _query_and_update_bank(
+            resolved_bank, groups, c_cpu, x_cpu, y_cpu, mutate, float(bank_mean_blend)
+        )
+        m_hat, w_op = m_hat_c.to(dev, work_dt), w_op_c.to(dev, work_dt)
+        w_imq = w_op / (w_op.square().sum((-2, -1), keepdim=True) / dim).sqrt().clamp_min(1e-8)
+        same_stratum = same_cpu.to(dev)
+        off_diag = same_stratum.clone().fill_diagonal_(False)
+        valid_rows = off_diag.any(1)
+        y_w = einsum("nij,nj->ni", w_imq, y_det - m_hat)
+        weights, eps_imq = _compute_imq_graph(
+            c_w, y_w, same_stratum, off_diag & valid_rows[:, None] & valid_rows[None], valid_rows
+        )
+        p_yy = _imq_kernel_3scale(y_w, y_w, eps_imq)
+    x_work = x_flat.to(work_dt)
+    x_w = einsum("nij,nj->ni", w_imq, x_work - m_hat)
+    p_xy, p_xx = _imq_kernel_3scale(x_w, y_w, eps_imq), _imq_kernel_3scale(x_w, x_w, eps_imq)
+    diff_imq = p_xy.clamp_max(fmax) - 0.5 * p_xx.clamp_max(fmax) - 0.5 * p_yy.clamp_max(fmax)
+    loss_imq = (weights.to(x_flat.dtype) * diff_imq.to(x_flat.dtype)).sum()
+    has_ops = any_op and (mean_op_weight > 0 or cov_op_weight > 0)
+    loss_op = (
+        _fiber_operator_loss(x_work, y_det, w_op, ops, float(mean_op_weight), float(cov_op_weight), x_flat.dtype)
+        if has_ops
+        else x_flat.new_zeros(())
+    )
+    if mutate and hasattr(record, "cond_initialized"):
+        with torch.no_grad():
+            _update_cond_ema(record, weights, p_xy, p_xx, p_yy, max_err)
+    return ((float(imq_active_scale) if has_ops else 1) * loss_imq + loss_op).clamp(-fmax, fmax).to(x_flat.dtype)
 
 
 __all__ = ["AxiomCondFiberBank", "SCHEMA_VERSION", "conditional_fiber_loss", "validate_fiber_bank_state"]
