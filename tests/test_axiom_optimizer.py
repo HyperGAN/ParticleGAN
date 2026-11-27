@@ -32,9 +32,7 @@ def test_static_l1_imports_forbidden_ops_and_hygiene() -> None:
     for node in ast.walk(tree):
         if isinstance(node, ast.ImportFrom):
             if node.level > 0:
-                assert node.module in ("math_ops", "state"), (
-                    f"Disallowed relative import: {node.module}"
-                )
+                assert node.module in ("math_ops", "state"), f"Disallowed relative import: {node.module}"
             else:
                 assert node.module is None or not node.module.startswith("particlegan")
         elif isinstance(node, ast.Import):
@@ -45,11 +43,7 @@ def test_static_l1_imports_forbidden_ops_and_hygiene() -> None:
     for node in ast.walk(tree):
         if isinstance(node, ast.Attribute):
             assert node.attr not in forbidden_attrs, f"Forbidden op {node.attr!r}"
-            is_ag = (
-                node.attr == "grad"
-                and isinstance(node.value, ast.Attribute)
-                and node.value.attr == "autograd"
-            )
+            is_ag = node.attr == "grad" and isinstance(node.value, ast.Attribute) and node.value.attr == "autograd"
             assert not is_ag, "Forbidden torch.autograd.grad"
 
     for forbidden_token in (
@@ -59,9 +53,7 @@ def test_static_l1_imports_forbidden_ops_and_hygiene() -> None:
         "BatchDistance",
         "Emulated",
     ):
-        assert forbidden_token not in source, (
-            f"Legacy smell {forbidden_token!r} must not appear"
-        )
+        assert forbidden_token not in source, f"Legacy smell {forbidden_token!r} must not appear"
 
     for lineno, line in enumerate(source.splitlines(), start=1):
         assert len(line) <= 120, f"Line {lineno} exceeds 120 chars"
@@ -151,15 +143,13 @@ def test_law4_p1_spike_chatter_and_decay() -> None:
     p0 = xc.detach().clone()
     opt_ch.step()
     init_step = float((xc - p0).norm().item())
-    for t in range(1, 80):
+    for t in range(1, 105):
         prev = xc.detach().clone()
         xc.grad = torch.full_like(xc, 1.0 if t % 2 == 0 else -1.0)
         opt_ch.step()
     settled = float((xc - prev).norm().item())
-    assert opt_ch.ema_step_cos < -0.5 and math.isclose(
-        opt_ch.log2_damp, -4.0, abs_tol=1e-6
-    )
-    assert settled < 0.1 * init_step
+    assert opt_ch.ema_step_cos < -0.5 and math.isclose(opt_ch.log2_damp, -10.0, abs_tol=1e-6)
+    assert settled < 0.01 * init_step
     for _ in range(60):
         prev = xc.detach().clone()
         xc.grad = torch.ones_like(xc)
@@ -180,9 +170,7 @@ def test_law4_p1_spike_chatter_and_decay() -> None:
 def test_bn_weight_norm_invariance_and_zero_byte_conv2d_state() -> None:
     gen = torch.Generator().manual_seed(17)
     w_base = torch.randn(16, 16, generator=gen)
-    g_seq = [
-        torch.randn(16, 16, generator=gen) * (0.25 if t >= 2 else 1.0) for t in range(5)
-    ]
+    g_seq = [torch.randn(16, 16, generator=gen) * (0.25 if t >= 2 else 1.0) for t in range(5)]
 
     # Exact BN weight-norm invariance on log2_ref and step size under W -> alpha W, g -> g / alpha.
     for alpha in (0.01, 10.0, 100.0):
@@ -228,20 +216,13 @@ def test_bn_weight_norm_invariance_and_zero_byte_conv2d_state() -> None:
             p.grad = torch.randn(p.shape, generator=gen)
         opt_c.step()
     tensor_bytes = sum(
-        v.numel() * v.element_size()
-        for st in opt_c.state.values()
-        for v in st.values()
-        if isinstance(v, torch.Tensor)
+        v.numel() * v.element_size() for st in opt_c.state.values() for v in st.values() if isinstance(v, torch.Tensor)
     )
-    assert tensor_bytes == 0, (
-        f"Expected 0 B/param tensor state on Conv2d+BN, got {tensor_bytes} B"
-    )
+    assert tensor_bytes == 0, f"Expected 0 B/param tensor state on Conv2d+BN, got {tensor_bytes} B"
     assert opt_c.ns_2d_activations == 0 and opt_c.fast_path_steps == 5
 
 
-def test_conv1x1_linear_parity_and_spectral_bounded_critic_vs_deep16_pathology() -> (
-    None
-):
+def test_conv1x1_linear_parity_and_spectral_bounded_critic_vs_deep16_pathology() -> None:
     gen = torch.Generator().manual_seed(33)
     w0 = torch.randn(32, 32, generator=gen) * 0.1
     g0 = torch.randn(32, 32, generator=gen) * 0.05
@@ -253,9 +234,7 @@ def test_conv1x1_linear_parity_and_spectral_bounded_critic_vs_deep16_pathology()
         with torch.no_grad():
             m_lin.weight.copy_(w0)
             m_c1.weight.copy_(w0.view(32, 32, 1, 1))
-        opt_l = AxiomOptimizer(
-            m_lin.parameters(), lr=0.014, critic=(m_lin if is_critic else None)
-        )
+        opt_l = AxiomOptimizer(m_lin.parameters(), lr=0.014, critic=(m_lin if is_critic else None))
         opt_c = AxiomOptimizer(
             m_c1.parameters(),
             lr=0.014,
@@ -266,9 +245,7 @@ def test_conv1x1_linear_parity_and_spectral_bounded_critic_vs_deep16_pathology()
         m_c1.weight.grad = g0.view(32, 32, 1, 1).clone()
         opt_l.step()
         opt_c.step()
-        assert torch.allclose(
-            m_lin.weight, m_c1.weight.view(32, 32), rtol=1e-5, atol=1e-6
-        )
+        assert torch.allclose(m_lin.weight, m_c1.weight.view(32, 32), rtol=1e-5, atol=1e-6)
 
     # Healthy 0-NS critic caps rank-1 spectral step at <= 2.0 * lr (vs sqrt(64) = 8.0 * lr in v5!).
     lr = 0.01
@@ -276,9 +253,7 @@ def test_conv1x1_linear_parity_and_spectral_bounded_critic_vs_deep16_pathology()
     with torch.no_grad():
         c_mod.weight.zero_()
     opt_d = AxiomOptimizer(c_mod.parameters(), lr=lr, critic=c_mod)
-    c_mod.weight.grad = torch.randn(64, 1, generator=gen) @ torch.randn(
-        1, 64, generator=gen
-    )
+    c_mod.weight.grad = torch.randn(64, 1, generator=gen) @ torch.randn(1, 64, generator=gen)
     opt_d.step()
     assert opt_d.ns_2d_activations == 0 and opt_d.fast_path_steps == 1
     s1_r1 = float(torch.linalg.svdvals(c_mod.weight.detach())[0].item())
@@ -291,9 +266,7 @@ def test_conv1x1_linear_parity_and_spectral_bounded_critic_vs_deep16_pathology()
     opt_iso = AxiomOptimizer(c_iso.parameters(), lr=lr, critic=c_iso)
     c_iso.weight.grad = torch.eye(64)
     opt_iso.step()
-    assert math.isclose(
-        float(c_iso.weight.detach().norm().item()), math.sqrt(64.0) * lr, rel_tol=1e-4
-    )
+    assert math.isclose(float(c_iso.weight.detach().norm().item()), math.sqrt(64.0) * lr, rel_tol=1e-4)
 
     # Deep 16L pathological critic (skew > 4x AND rank-1) triggers FP32 Tikhonov NS identically to G.
     g16 = nn.Sequential(*[nn.Linear(16, 16, bias=False) for _ in range(16)])
@@ -316,9 +289,7 @@ def test_direction_blend_1loss_2loss_and_backward_with_protected() -> None:
     w1 = nn.Parameter(torch.tensor([1.0, 2.0, -1.0]))
     opt1 = AxiomOptimizer([w1], lr=0.1, direction_blend=True)
     l_prot = (w1[0] - 0.0).square()  # grad = [2, 0, 0]
-    l_aux = (w1[0] - 10.0).square() + (
-        w1[1] - 0.0
-    ).square()  # pushes w1[0] upward, violating l_prot!
+    l_aux = (w1[0] - 10.0).square() + (w1[1] - 0.0).square()  # pushes w1[0] upward, violating l_prot!
     opt1.bind_protected_losses([l_prot])
     g_prot_ref = torch.tensor([2.0, 0.0, 0.0])
     w1_before = w1.detach().clone()
@@ -329,52 +300,82 @@ def test_direction_blend_1loss_2loss_and_backward_with_protected() -> None:
     assert opt1.constraint_geometry_stats["projected_steps"] == 1
     assert opt1.constraint_geometry_stats["max_derivative_after"] <= 1e-6
 
-    # 2) Single-backward backward_with_protected matches bind_protected_losses([loss_gan]) bit-for-bit!
+    # 2) Single-backward backward_with_protected binds ONLY aux-touched params (zero G clones on prior-only aux).
     torch.manual_seed(5)
     g_a = nn.Sequential(nn.Linear(4, 8), nn.SiLU(), nn.Linear(8, 2))
     g_b = deepcopy(g_a)
+    g_c = deepcopy(g_a)
     z_a = nn.Parameter(torch.randn(10, 4))
     z_b = nn.Parameter(z_a.detach().clone())
+    z_c = nn.Parameter(z_a.detach().clone())
     opt_a = AxiomOptimizer(
-        [
-            {"params": list(g_a.parameters()), "role": "generator"},
-            {"params": [z_a], "role": "prior"},
-        ],
+        [{"params": list(g_a.parameters()), "role": "generator"}, {"params": [z_a], "role": "prior"}],
         lr=0.05,
         direction_blend=True,
     )
     opt_b = AxiomOptimizer(
-        [
-            {"params": list(g_b.parameters()), "role": "generator"},
-            {"params": [z_b], "role": "prior"},
-        ],
+        [{"params": list(g_b.parameters()), "role": "generator"}, {"params": [z_b], "role": "prior"}],
+        lr=0.05,
+        direction_blend=True,
+    )
+    opt_c = AxiomOptimizer(
+        [{"params": list(g_c.parameters()), "role": "generator"}, {"params": [z_c], "role": "prior"}],
         lr=0.05,
         direction_blend=True,
     )
     rows = torch.tensor([0, 2, 4, 7])
-    opt_a.set_sampled_rows(z_a, rows)
-    opt_b.set_sampled_rows(z_b, rows)
+    for opt_i, z_i in ((opt_a, z_a), (opt_b, z_b), (opt_c, z_c)):
+        opt_i.set_sampled_rows(z_i, rows)
     # Verify weak registry used (zero monkey-patched attrs on z_a).
     assert not hasattr(z_a, "_axiom_active_rows")
     assert get_active_prior_rows(z_a) is not None
 
-    loss_gan_a = (g_a(z_a[rows]) - 1.0).square().mean()
-    aux_a = (
-        5.0 * (z_a[rows] + 3.0).square().mean()
-    )  # localized on prior.z, conflicts with loss_gan
-    opt_a.bind_protected_losses([loss_gan_a])
-    (loss_gan_a + aux_a).backward()
-    opt_a.step()
-
+    # 2a) Prior-only aux_loss: G is never bound/cloned/projected, z satisfies exact per-subset non-ascent.
+    z_b_before = z_b.detach().clone()
     loss_gan_b = (g_b(z_b[rows]) - 1.0).square().mean()
     aux_b = 5.0 * (z_b[rows] + 3.0).square().mean()
     opt_b.backward_with_protected(loss_gan_b, aux_b)
+    assert opt_b._protected is not None and len(opt_b._protected) == 1
+    assert all(normal is None for normal in opt_b._protected[0][:-1])
+    z_gan_normal = opt_b._protected[0][-1]
+    assert z_gan_normal is not None
+    z_gan_normal = z_gan_normal.detach().clone()
     opt_b.step()
-
-    for pa, pb in zip(g_a.parameters(), g_b.parameters()):
-        assert torch.allclose(pa, pb, rtol=1e-6, atol=1e-6)
-    assert torch.allclose(z_a, z_b, rtol=1e-6, atol=1e-6)
+    assert float((z_gan_normal * (z_b.detach() - z_b_before)).sum().item()) <= 1e-6
     assert opt_b.constraint_geometry_stats["max_derivative_after"] <= 1e-6
+
+    # 2b) aux_loss=None skips all param clones/projection and matches G of prior-only aux_loss bit-for-bit!
+    loss_gan_c = (g_c(z_c[rows]) - 1.0).square().mean()
+    opt_c.backward_with_protected(loss_gan_c, None)
+    assert opt_c._protected is not None and all(normal is None for normal in opt_c._protected[0])
+    opt_c.step()
+    assert opt_c.constraint_geometry_stats["steps"] == 1
+    for pb, pc in zip(g_b.parameters(), g_c.parameters()):
+        assert torch.equal(pb, pc)
+
+    # 2c) Full-model aux_loss (touching both G and z) matches bind_protected_losses([loss_gan])!
+    g_d = deepcopy(g_a)
+    z_d = nn.Parameter(z_a.detach().clone())
+    opt_d = AxiomOptimizer(
+        [{"params": list(g_d.parameters()), "role": "generator"}, {"params": [z_d], "role": "prior"}],
+        lr=0.05,
+        direction_blend=True,
+    )
+    opt_d.set_sampled_rows(z_d, rows)
+    loss_gan_a = (g_a(z_a[rows]) - 1.0).square().mean()
+    aux_all_a = 5.0 * (g_a(z_a[rows]) + 3.0).square().mean()
+    opt_a.bind_protected_losses([loss_gan_a])
+    (loss_gan_a + aux_all_a).backward()
+    opt_a.step()
+
+    loss_gan_d = (g_d(z_d[rows]) - 1.0).square().mean()
+    aux_all_d = 5.0 * (g_d(z_d[rows]) + 3.0).square().mean()
+    opt_d.backward_with_protected(loss_gan_d, aux_all_d)
+    opt_d.step()
+    for pa, pd in zip(g_a.parameters(), g_d.parameters()):
+        assert torch.allclose(pa, pd, rtol=1e-5, atol=1e-5)
+    assert torch.allclose(z_a, z_d, rtol=1e-5, atol=1e-5)
+    assert opt_d.constraint_geometry_stats["max_derivative_after"] <= 1e-6
 
     # 3) Exact 2-loss direction_blend non-ascent with 1.5x Pythagorean cap.
     w2 = nn.Parameter(torch.tensor([1.0, 1.0, 1.0]))
@@ -419,9 +420,7 @@ def test_verified_trust_and_zero_global_rng_consumption() -> None:
     assert np.array_equal(np_before[1], np.random.get_state()[1])
 
     with torch.no_grad():
-        d_obs = float(
-            (gen(z).double() - y_pre_det.double()).square().mean().sqrt().item()
-        )
+        d_obs = float((gen(z).double() - y_pre_det.double()).square().mean().sqrt().item())
     assert opt_g.last_probe_consumed and opt_g.trust_backtracks_total > 0
     assert d_obs <= 0.045 * 1.005
 
@@ -446,10 +445,7 @@ def test_bf16_fp32_state_checkpoint_and_schema2_fail_closed() -> None:
         record=rec,
     )
     opt.set_sampled_rows(tab_bf16, torch.tensor([0, 2, 5]))
-    loss = (
-        w_bf16.float().square().sum()
-        + tab_bf16[torch.tensor([0, 2, 5])].float().square().sum()
-    )
+    loss = w_bf16.float().square().sum() + tab_bf16[torch.tensor([0, 2, 5])].float().square().sum()
     opt.bind_protected_losses([loss])
     loss.backward()
     opt.step()
@@ -457,10 +453,7 @@ def test_bf16_fp32_state_checkpoint_and_schema2_fail_closed() -> None:
     # Bind a second pending loss and checkpoint BEFORE step() to verify pending direction_blend roundtrip!
     opt.zero_grad(set_to_none=True)
     opt.set_sampled_rows(tab_bf16, torch.tensor([1, 3]))
-    loss2 = (
-        w_bf16.float().square().sum()
-        + tab_bf16[torch.tensor([1, 3])].float().square().sum()
-    )
+    loss2 = w_bf16.float().square().sum() + tab_bf16[torch.tensor([1, 3])].float().square().sum()
     opt.bind_protected_losses([loss2])
     loss2.backward()
     sd = opt.state_dict()
@@ -491,7 +484,7 @@ def test_bf16_fp32_state_checkpoint_and_schema2_fail_closed() -> None:
     # Fail-closed rejection of schema-1, legacy m_u, out-of-range log2_damp, wrong sketch len, non-finite state.
     for tamper in (
         lambda s: s["axiom"].__setitem__("schema", 1),
-        lambda s: s["axiom"].__setitem__("log2_damp", -5.0),
+        lambda s: s["axiom"].__setitem__("log2_damp", -11.0),
         lambda s: s["axiom"].__setitem__("prev_step_sketch", [0.0] * 128),
         lambda s: s["state"][0].__setitem__("m_u", torch.zeros(8, 8)),
         lambda s: s["state"][0].__setitem__("m_unit", torch.full((8, 8), float("nan"))),
@@ -517,19 +510,14 @@ def test_cuda_conv2d_fast_path_and_zero_byte_state() -> None:
         nn.BatchNorm2d(32),
         nn.Conv2d(32, 1, 4, 1, 0, bias=False),
     ).to(dev)
-    opt = AxiomOptimizer(
-        net.parameters(), lr=0.02, critic=net, conv_layouts=collect_conv_layouts((net,))
-    )
+    opt = AxiomOptimizer(net.parameters(), lr=0.02, critic=net, conv_layouts=collect_conv_layouts((net,)))
     for _ in range(4):
         for p in net.parameters():
             p.grad = torch.randn(p.shape, device=dev, generator=gen)
         opt.step()
     assert opt.ns_2d_activations == 0 and opt.fast_path_steps == 4
     tensor_bytes = sum(
-        v.numel() * v.element_size()
-        for st in opt.state.values()
-        for v in st.values()
-        if isinstance(v, torch.Tensor)
+        v.numel() * v.element_size() for st in opt.state.values() for v in st.values() if isinstance(v, torch.Tensor)
     )
     assert tensor_bytes == 0
 
@@ -578,3 +566,24 @@ def test_cuda_conv2d_fast_path_and_zero_byte_state() -> None:
         torch.Tensor.item = orig_item  # type: ignore[method-assign]
         torch.Tensor.tolist = orig_tolist  # type: ignore[method-assign]
     assert syncs[0] <= 4, f"Too many GPU host syncs for D+G MLP step: {syncs[0]}"
+
+    # Verify deterministic CUDA mode works with backward_with_protected + duplicate sampled prior rows.
+    prev_det = torch.are_deterministic_algorithms_enabled()
+    torch.use_deterministic_algorithms(True)
+    try:
+        z_det = nn.Parameter(torch.randn(16, 4, device=dev, generator=gen))
+        opt_det = AxiomOptimizer(
+            [{"params": list(mlp_g.parameters()), "role": "generator"}, {"params": [z_det], "role": "prior"}],
+            lr=0.014,
+            direction_blend=True,
+        )
+        dup_rows = torch.tensor([0, 2, 2, 5, 0, 9], device=dev)
+        opt_det.zero_grad()
+        opt_det.set_sampled_rows(z_det, dup_rows)
+        lg = mlp_g(z_det[dup_rows]).square().mean()
+        aux = (z_det[dup_rows] + 2.0).square().mean()
+        opt_det.backward_with_protected(lg, aux)
+        opt_det.step()
+        assert opt_det.constraint_geometry_stats["max_derivative_after"] <= 1e-5
+    finally:
+        torch.use_deterministic_algorithms(prev_det)
