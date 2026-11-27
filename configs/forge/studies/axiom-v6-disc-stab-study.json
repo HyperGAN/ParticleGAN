@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "id": "axiom-v6-disc-stab-study",
+    "budget_seconds": 86400,
+    "candidate_budget_seconds": 86400
+  },
+  "candidate": "axiom-v6",
+  "competing_explanation": "Faithful numerical FAIL on any discriminator_stability Tier 1-2 task where axiom-v6 misses a gate.",
+  "control": {
+    "candidate_id": "unified-v12",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "valid_unique_bytes",
+    "op": "<",
+    "phase": "final",
+    "task_id": "bytegan_hypercube8",
+    "threshold": 256
+  },
+  "hypothesis": "Unchanged global axiom-v6 clean-slate rewrite (1157930ef): evaluate through Tier 2 of discriminator_stability (RTX A6000, protocol seed 0).",
+  "id": "axiom-v6-disc-stab-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "valid_unique_bytes",
+    "op": ">=",
+    "phase": "final",
+    "task_id": "bytegan_hypercube8",
+    "threshold": 256
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "unified-v12",
+        "candidate_revision": "f16b8465a125d20c372aacad0607555ac78d5f74545d734931b6f4c61cdd1f9f"
+      },
+      "path": "reports/forge/records/readout-b51ab67c4d97526186e23651.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "view": "discriminator_stability",
+    "through_tier": 2,
+    "execution_backend": "cuda",
+    "cuda_model": "NVIDIA RTX A6000"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}
