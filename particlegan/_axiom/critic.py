@@ -26,23 +26,29 @@ _SECANT_DELTA_REL = 0.02
 
 @torch.no_grad()
 def effective_dimension(x):
+    """Uniform U-statistic intrinsic effective dimension (O(D) and scale invariant)."""
     b, d = x.shape[0], max(1, x[0].numel())
     if b < 4 or d <= 1:
         return x.new_full((), float(d), dtype=torch.float64)
-    xc = x.detach().reshape(b, d).float()
-    xc = xc - xc.mean(0, True)
+    if x.ndim == 4 and x.is_contiguous(memory_format=torch.channels_last):
+        flat = x.detach().permute(0, 2, 3, 1).reshape(b, d)
+    else:
+        flat = x.detach().reshape(b, d)
+    xc = flat.float()
+    xc = xc - xc.mean(0, keepdim=True)
     sx = xc.abs().amax()
-    xu = xc / torch.where(sx > 0, sx, sx.new_ones(()))
-    gram = (xu @ xu.T).double()
+    xc.div_(torch.where(sx > 0, sx, 1.0))
+    gram = (xc @ xc.T).double()
     diag = gram.diagonal()
-    s1, s11, s2 = diag.sum(), diag.square().sum(), gram.square().sum()
+    s1, s11, s2 = diag.sum(), torch.dot(diag, diag), torch.dot(gram.reshape(-1), gram.reshape(-1))
     a, c = (b - 1) * (b - 2), b * (b - 1)
     num, den = a * s1 * s1 - c * s11 + 2.0 * s2, a * s2 - c * s11 + s1 * s1
     d_est = (num / den.clamp_min(1e-30)).clamp(1.0, d)
-    return torch.where((sx > 0) & (num > 0) & (den > 0), d_est, s1.new_full((), float(d)))
+    return torch.where((sx > 0) & (num > 0) & (den > 0), d_est, float(d))
 
 
 def probe_schedule(batch_size, dim):
+    """Continuous element-budget probe count and sub-batch size."""
     d, b = max(1, int(dim)), max(1, int(batch_size))
     k = min(d, max(1, 16 // d))
     return k, min(b, max(min(b, max(2, b // 4)), 32_768 // (d * k)))
@@ -50,18 +56,25 @@ def probe_schedule(batch_size, dim):
 
 @torch.no_grad()
 def _coord_scale(x_real, x_fake, record):
-    dev, sd = x_real.device, effective_dimension(x_real).sqrt()
-    xr, xf = (t.detach().reshape(t.shape[0], -1).double() for t in (x_real, x_fake))
+    """Coordinate scale s_scale = s_data / sqrt(d_eff) without host syncs."""
+    dev = x_real.device
+    sd = effective_dimension(x_real).sqrt()
+    if record._ema["margin_initialized"] or "margin_initialized" in record._ema_t:
+        return (record.dev_ema("ema_data_scale", dev) / sd).clamp(1e-30, 1e30).float()
+    work_dt = torch.float64 if x_real.dtype == torch.float64 else torch.float32
+    xr = x_real.detach() if x_real.dtype == work_dt else x_real.detach().to(work_dt)
+    xf = x_fake.detach() if x_fake.dtype == work_dt else x_fake.detach().to(work_dt)
     xm = torch.maximum(xr.abs().amax(), xf.abs().amax())
     sx = torch.where(xm > 0, xm, xm.new_ones(()))
     xru, xfu = xr / sx, xf / sx
-    mr, mf = xru.mean(0, True), xfu.mean(0, True)
-    vr, vf = ((t - m).square().sum(-1).mean() for t, m in ((xru, mr), (xfu, mf)))
-    sp = torch.maximum(torch.maximum(vr, 0.25 * vf), (mr - mf).square().sum())
-    tot = torch.where(sp > 0, sp, xru.square().sum(-1).mean())
-    s_cur = torch.where(xm > 0, tot.sqrt() * sx, sd)
-    raw = torch.where(record.dev_ema("margin_initialized", dev) > 0.5, record.dev_ema("ema_data_scale", dev), s_cur)
-    return (raw / sd).clamp(1e-30, 1e30).float()
+    mr, mf = xru.mean(0, keepdim=True), xfu.mean(0, keepdim=True)
+    vr = ((xru - mr).square().sum() / xr.shape[0]).double()
+    vf = ((xfu - mf).square().sum() / xf.shape[0]).double()
+    md = (mr - mf).square().sum().double()
+    sp = torch.maximum(torch.maximum(vr, 0.25 * vf), md)
+    tot = torch.where(sp > 0, sp, (xru.square().sum() / xr.shape[0]).double())
+    s_cur = torch.where(xm > 0, tot.sqrt() * sx.double(), sd)
+    return (s_cur / sd).clamp(1e-30, 1e30).float()
 
 
 def _cyclic_slice(val, b, start, count):
@@ -100,11 +113,14 @@ def _sparse_rademacher(b, d, s, phase, salt, dev):
 
 @torch.no_grad()
 def _probe_dirs(x, k, phase, salt, sec, dtype):
+    """Generate deterministic exact-basis or Rademacher probe tangents."""
     b, d, dev = x.shape[0], max(1, x[0].numel()), x.device
     dt = torch.float32 if sec else dtype
     if k == d:
         eye = torch.eye(d, device=dev, dtype=dt)
         return [eye[i].expand(b, d).reshape_as(x) for i in range(d)]
+    if not sec and k == 1:
+        return [weyl_rademacher((b, d), phase=phase, salt=salt, device=dev, dtype=dt).reshape_as(x)]
     s = _secant_sparsity(d, _SECANT_DELTA_REL, x.dtype) if sec else d
     u0 = _sparse_rademacher(b, d, s, phase, salt, dev)
     sc = 1.0 if sec else math.sqrt(d)
@@ -236,17 +252,19 @@ class AxiomPenaltyKernel:
             return call((xr.detach(), args, kwargs), (xf.detach(), args, kwargs))
 
     def _assemble_penalty(self, dr, df, sqr, sqf, *, exact_basis):
+        """Combine zero-Jensen slope penalty, Lipschitz hinge, logit gauge, and thermal damping."""
         s_hat = 0.5 * (sqr.mean() + sqf.mean())
         k2 = self.kappa * self.kappa
         excess = torch.relu(self.record.dev_ema("ema_grad_sq", s_hat.device) - k2)
         lam = (self.lambda_floor * torch.exp((self.beta_ema * excess).clamp_max(self._c_max))).to(s_hat.dtype)
         self.record.observe_grad_sq_tensor(s_hat.detach())
-        ema_g = self.record.dev_ema("ema_grad_sq", s_hat.device).to(s_hat.dtype)
-        cap_w = 1.0 if exact_basis else smoothstep01((ema_g / k2 - 0.25) / 0.15)
-        slope = lam * s_hat + 0.5 * cap_w * sum(
-            torch.relu((q + 1e-12).sqrt() - self.kappa).square().mean() for q in (sqr, sqf)
-        )
-        p_slope = 0.5 * self.coeff * slope
+        if exact_basis:
+            cap_w = 1.0
+        else:
+            ema_g = self.record.dev_ema("ema_grad_sq", s_hat.device).to(s_hat.dtype)
+            cap_w = 0.5 * smoothstep01((ema_g / k2 - 0.65) / 0.25)
+        hinge = cap_w * sum(torch.relu((q + 1e-12).sqrt() - self.kappa).square().mean() for q in (sqr, sqf))
+        p_slope = 0.5 * self.coeff * (lam * s_hat + hinge)
         if self.gamma_gauge > 0.0:
             ml = 0.5 * (dr.float().mean() + df.float().mean())
             p_gauge = 0.5 * self.coeff * self.gamma_gauge * ml.square()
