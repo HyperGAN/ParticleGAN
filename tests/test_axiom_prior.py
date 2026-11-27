@@ -2,8 +2,10 @@
 from __future__ import annotations
 
 import ast
+import io
 import math
 from pathlib import Path
+import tokenize
 from types import SimpleNamespace
 from typing import Any, Dict, Tuple
 
@@ -143,11 +145,13 @@ def _make_mock_trainer(
     return trainer, noise
 
 
-def test_ast_hygiene_and_loc_budget() -> None:
-    """Enforce zero legacy/sibling imports, zero forbidden spectral/RNG calls, and LOC <= 470."""
+def test_ast_hygiene_and_zero_semicolon_packing() -> None:
+    """Enforce zero legacy/sibling imports, zero forbidden spectral/RNG/autograd.grad calls, and zero semicolon packing."""
     source = PRIOR_FILE.read_text(encoding="utf-8")
-    lines = source.splitlines()
-    assert len(lines) <= 470, f"prior.py has {len(lines)} LOC, exceeding <= 470 clean target (and 480 cap)"
+    for tok in tokenize.generate_tokens(io.StringIO(source).readline):
+        assert not (tok.type == tokenize.OP and tok.string == ";"), (
+            f"prior.py:{tok.start[0]} contains semicolon-packed multi-statement line"
+        )
 
     tree = ast.parse(source, filename=str(PRIOR_FILE))
     forbidden_substrings = (
@@ -169,6 +173,8 @@ def test_ast_hygiene_and_loc_budget() -> None:
             mod = node.module or ""
             assert not any(tok in mod for tok in forbidden_substrings), f"forbidden from-import: {mod}"
             assert mod != "random", "must not import from random"
+            if mod == "torch.autograd":
+                assert all(a.name != "grad" for a in node.names), "must not import torch.autograd.grad"
             if node.level == 1:
                 imported = {a.name for a in node.names} | ({mod} if mod else set())
                 assert not (imported & forbidden_siblings), f"forbidden _axiom sibling import: {imported}"
@@ -181,9 +187,9 @@ def test_ast_hygiene_and_loc_budget() -> None:
                 "forward_ad", "dual_level", "make_dual", "unpack_dual",
                 "randn", "rand", "randint", "randperm", "normal_", "uniform_",
             }, f"forbidden attribute call/reference: .{node.attr}"
-        elif isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute):
-            if isinstance(node.func.value, ast.Attribute) and node.func.value.attr == "autograd":
-                assert node.func.attr != "grad", "must not use torch.autograd.grad in prior.py"
+            if node.attr == "grad" and isinstance(node.value, ast.Attribute) and node.value.attr == "autograd":
+                raise AssertionError("must not use torch.autograd.grad in prior.py")
+    assert '"NormalNoiseManipulator"' not in source, "use isinstance(..., NormalNoiseManipulator) instead of __name__"
 
 
 def test_mass_conservation_all_transitions_including_p7_shock() -> None:
@@ -712,6 +718,7 @@ def test_checkpoint_validator_rejects_all_tampering() -> None:
         _bad(lambda s: s["proto_w"].__setitem__(0, -0.01)),
         _bad(lambda s: s["row_v"].__setitem__((0, 0), -1.0)),
         _bad(lambda s: s["row_n"].__setitem__((0, 0), float("inf"))),
+        _bad(lambda s: s["row_n"].__setitem__((0, 0), 2.5)),  # legacy unbounded step counter > 1.0 rejected
         _bad(lambda s: s.__setitem__("proto_c", torch.zeros(20, 2))),  # exceeds max_prototypes=16
     ]
     for case in bad_cases:

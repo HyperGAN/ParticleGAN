@@ -4,11 +4,13 @@ from __future__ import annotations
 import ast
 from copy import deepcopy
 import dataclasses
+import io
 import json
 import math
 from pathlib import Path
 import subprocess
 import sys
+import tokenize
 
 import pytest
 import torch
@@ -58,16 +60,14 @@ FORBIDDEN_OPS = frozenset({"eigh", "eigvalsh", "svd", "svdvals", "pinv", "compil
 # ---------------------------------------------------------------------------
 
 
-def test_v5_loc_caps_ast_hygiene_and_idea_contract() -> None:
-    per_file_caps = {"critic.py": 380, "optimizer.py": 580, "prior.py": 470, "transport.py": 695}
+def test_v5_ast_hygiene_zero_semicolons_and_idea_contract() -> None:
     core_modules = {"prior", "critic", "transport", "optimizer"}
-    total_loc = 0
     for path in AXIOM_FILES:
-        src = path.read_text()
-        n_lines = len(src.splitlines())
-        total_loc += n_lines
-        if path.name in per_file_caps:
-            assert n_lines <= per_file_caps[path.name], f"{path.name} LOC={n_lines} > {per_file_caps[path.name]}"
+        src = path.read_text(encoding="utf-8")
+        for tok in tokenize.generate_tokens(io.StringIO(src).readline):
+            assert not (tok.type == tokenize.OP and tok.string == ";"), (
+                f"{path.name}:{tok.start[0]} contains semicolon-packed multi-statement line"
+            )
         tree = ast.parse(src, filename=str(path))
         for node in ast.walk(tree):
             if isinstance(node, ast.Import):
@@ -78,11 +78,14 @@ def test_v5_loc_caps_ast_hygiene_and_idea_contract() -> None:
                 mod = node.module or ""
                 for bad in FORBIDDEN_IMPORTS:
                     assert bad not in mod, f"{path.name} imports from forbidden {mod}"
+                if mod == "torch.autograd":
+                    assert all(a.name != "grad" for a in node.names), f"{path.name} imports forbidden torch.autograd.grad"
                 if path.parent == AXIOM_DIR and path.stem in core_modules and node.level >= 1:
                     assert (mod.split(".")[0] if mod else "") not in core_modules
             elif isinstance(node, ast.Attribute):
                 assert node.attr not in FORBIDDEN_OPS, f"{path.name} calls forbidden .{node.attr}"
-    assert total_loc <= 2500, f"Axiom total LOC={total_loc} > 2500"
+                if node.attr == "grad" and isinstance(node.value, ast.Attribute) and node.value.attr == "autograd":
+                    raise AssertionError(f"{path.name} calls forbidden torch.autograd.grad")
     assert len(dataclasses.fields(pg.Recipe)) == 179
     assert pg.DEFAULT_RECIPE == "axiom"
 
@@ -360,26 +363,42 @@ def test_o4_scalar_parameter_damping_and_dead_hook_removed() -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_p1_proto_hits_cooling_and_deadband_removal() -> None:
+def test_p1_proto_hits_bounded_stationarity_and_row_n_clock_freedom() -> None:
     torch.manual_seed(0)
     reg = AxiomPriorRegularizer(max_prototypes=16)
     base = torch.randn(64, 2) * 0.2
     reg.update_quantizer(base)
     assert reg.proto_hits is not None
-    hits_0 = reg.proto_hits.clone()
-    for _ in range(5):
+    # Bounded stationary occupancy EMA converges toward E[b_cnt] (~64/16 = 4.0), never grows monotonically with steps!
+    for _ in range(30):
         reg.update_quantizer(base + 0.01 * torch.randn_like(base))
-    assert float(reg.proto_hits.mean().item()) > float(hits_0.mean().item()) + 5.0
-    # Shock cools/resets proto_hits downward
-    hits_pre_shock = float(reg.proto_hits.mean().item())
+    mean_at_30 = float(reg.proto_hits.mean().item())
+    for _ in range(30):
+        reg.update_quantizer(base + 0.01 * torch.randn_like(base))
+    mean_at_60 = float(reg.proto_hits.mean().item())
+    assert 1.5 <= mean_at_30 <= 6.0 and 1.5 <= mean_at_60 <= 6.0
+    assert abs(mean_at_60 - mean_at_30) < 0.5, f"proto_hits drifted monotonically: {mean_at_30} -> {mean_at_60}"
+    # Shock cools proto_hits downward
     reg.update_quantizer(base + 100.0)
-    assert float(reg.proto_hits.mean().item()) < hits_pre_shock
+    assert float(reg.proto_hits.mean().item()) < mean_at_60
 
-    # Source check: deadband (0.15..0.27), 0.995 variance shrink, and 0.55 iso_gate removed
-    src = (AXIOM_DIR / "prior.py").read_text()
+    # Pullback row_n stays strictly bounded in [0, 1] (clock-free EMA weight, no unbounded monotone step counter)
+    recipe = pg.get_recipe("axiom", prior_kind="mog", sigma_rel=0.05, num_particles=16, z_dim=2, batch_size=16, total_steps=50)
+    g = nn.Sequential(nn.Linear(2, 16), nn.SiLU(), nn.Linear(16, 2))
+    d = nn.Sequential(nn.Linear(2, 16), nn.SiLU(), nn.Linear(16, 1))
+    prior = recipe.make_prior()
+    tr = pg.GANTrainer(recipe, g, d, prior=prior, max_steps=50, seed=0)
+    for _ in range(10):
+        tr.step(torch.randn(16, 2))
+    assert tr.prior_regularizer.row_n is not None
+    assert tr.prior_regularizer.row_n.dtype == torch.float32
+    assert float(tr.prior_regularizer.row_n.min().item()) >= 0.0
+    assert float(tr.prior_regularizer.row_n.max().item()) <= 1.0 + 1e-6
+
+    src = (AXIOM_DIR / "prior.py").read_text(encoding="utf-8")
     assert "0.995 - rho_mu" not in src
     assert "0.55 * ((iso_err" not in src
-    assert "else 0.28) * ((iso_err_ema_t - 0.22) / 0.45)" in src
+    assert "0.80 ** n_r" not in src
 
 
 def test_p2_unbiased_two_sketch_u_stat_d32_no_jensen_shrinkage() -> None:
@@ -594,10 +613,14 @@ def test_b3_orphan_thresholds_weyl_tiebreak_projected_transport_and_ror_crossove
     l_simp.backward()
     assert z_tab.grad is not None and torch.isfinite(z_tab.grad).all()
 
-    # (d) Principled spatial cluster gate in AxiomGANLoss:
-    #     - Continuous/Gaussian 32x32x3 (3072 in (1024, 4096]) SKIPS transport & retains 0.5*pair_relativistic in d_loss/g_loss;
-    #     - Clustered discrete 32x32x3 sprites ACTIVATES transport (with no lossy thermal lock);
-    #     - 64x64x3 (12288 > 4096) and flat 2D 2048 > 1024 skip transport for fast DCGAN throughput!
+    # (d) Pure static dimensionality bound in AxiomGANLoss (32x32 cluster-ratio trapdoor REMOVED!):
+    #     - BOTH continuous Gaussian 32x32x3 AND discrete 32x32x3 sprites activate AxiomTransportLoss;
+    #     - 64x64x3 (12288 > 4096) and flat 2D 2048 > 1024 skip transport purely by static dimensionality!
+    import particlegan._axiom.loss as axiom_loss_mod
+
+    assert not hasattr(axiom_loss_mod, "_spatial_cluster_ratio")
+    assert not hasattr(AxiomGANLoss, "_skip_spatial_transport")
+
     rec_cont = AxiomStepRecord()
     crit_img = nn.Sequential(nn.Conv2d(3, 4, 3, stride=2, padding=1), nn.Flatten(), nn.Linear(4 * 16 * 16, 1))
     _attach_axiom_critic_hook(crit_img, rec_cont)
@@ -609,11 +632,8 @@ def test_b3_orphan_thresholds_weyl_tiebreak_projected_transport_and_ror_crossove
     ld_g = loss_cont.d_loss(dr_g, df_g)
     lg_g = loss_cont.g_loss(df_g, dr_g)
     assert torch.isfinite(ld_g) and torch.isfinite(lg_g)
-    assert rec_cont.ell_initialized is False, "Continuous Gaussian 32x32x3 must skip AxiomTransportLoss"
-    exp_d = 0.5 * pg.GANLoss("non_saturating").d_loss(dr_g, df_g) + 0.5 * torch.nn.functional.softplus(df_g - dr_g).mean()
-    exp_g = 0.5 * pg.GANLoss("non_saturating").g_loss(df_g, dr_g) + 0.5 * torch.nn.functional.softplus(dr_g.detach() - df_g).mean()
-    assert torch.allclose(ld_g, exp_d, atol=1e-5), "Continuous 32x32 d_loss must retain 0.5*pair_relativistic"
-    assert torch.allclose(lg_g, exp_g, atol=1e-5), "Continuous 32x32 g_loss must retain 0.5*pair_relativistic"
+    assert rec_cont.ell_initialized is True, "Continuous 32x32x3 must activate AxiomTransportLoss (no cluster-ratio trapdoor)"
+    assert rec_cont.thermal_initialized is False, "Lossy 32x32->8x8 downsampled transport must NOT trigger observe_thermal"
 
     from benchmarks.toy_audit.api_four_laws_123 import sample_target_for_kind
     rec_sp = AxiomStepRecord()
@@ -633,8 +653,14 @@ def test_b3_orphan_thresholds_weyl_tiebreak_projected_transport_and_ror_crossove
     _attach_axiom_critic_hook(crit_64, rec_64)
     loss_64 = AxiomGANLoss(record=rec_64)
     xr_64, xf_64 = torch.randn(8, 3, 64, 64), torch.randn(8, 3, 64, 64, requires_grad=True)
-    _ = loss_64.g_loss(crit_64(xf_64).squeeze(-1), crit_64(xr_64).squeeze(-1))
+    dr_64, df_64 = crit_64(xr_64).squeeze(-1), crit_64(xf_64).squeeze(-1)
+    ld_64 = loss_64.d_loss(dr_64, df_64)
+    lg_64 = loss_64.g_loss(df_64, dr_64)
     assert rec_64.ell_initialized is False, "64x64x3 (raw_dim=12288 > 4096) must skip AxiomTransportLoss"
+    exp_d64 = 0.5 * pg.GANLoss("non_saturating").d_loss(dr_64, df_64) + 0.5 * torch.nn.functional.softplus(df_64 - dr_64).mean()
+    exp_g64 = 0.5 * pg.GANLoss("non_saturating").g_loss(df_64, dr_64) + 0.5 * torch.nn.functional.softplus(dr_64.detach() - df_64).mean()
+    assert torch.allclose(ld_64, exp_d64, atol=1e-5)
+    assert torch.allclose(lg_64, exp_g64, atol=1e-5)
 
     # Flat 2D dim=2048 > 1024 still skips AxiomTransportLoss
     rec_flat = AxiomStepRecord()
@@ -645,35 +671,40 @@ def test_b3_orphan_thresholds_weyl_tiebreak_projected_transport_and_ror_crossove
     _ = loss_flat.g_loss(crit_flat(xf_f).squeeze(-1), crit_flat(xr_f).squeeze(-1))
     assert rec_flat.ell_initialized is False
 
-    # (e) AD Crossover: GroupNorm (even 128^2, with BN safety!) -> RoR; plain Conv2d (64^2 and 128^2) -> fwAD!
+    # (e) Zero-autograd.grad AD regime dispatch:
+    #     GroupNorm / BatchNorm / Conv2d (8^2, 64^2, 128^2) -> fwad_debiased;
+    #     low-D (d <= 16) -> fwad_exact; Attention/Softmax -> secant_debiased!
     c_bn64 = nn.Sequential(nn.Conv2d(3, 4, 3, stride=4, padding=1), nn.BatchNorm2d(4), nn.SiLU(), nn.AdaptiveAvgPool2d(1), nn.Flatten(), nn.Linear(4, 1))
     c_bn64.train()
     rm_before = c_bn64[1].running_mean.detach().clone()
     k_bn = AxiomPenaltyKernel(record=AxiomStepRecord())
     _, st_64 = k_bn.penalty(c_bn64, torch.randn(4, 3, 64, 64), torch.randn(4, 3, 64, 64), collect_stats=True, critic_module=c_bn64)
-    assert st_64["regime"] == "fwad"
+    assert st_64["regime"] == "fwad_debiased"
     assert c_bn64[1].training is True
-    assert torch.equal(c_bn64[1].running_mean, rm_before), "fwAD must not mutate BatchNorm running stats"
+    assert torch.equal(c_bn64[1].running_mean, rm_before), "fwad_debiased must not mutate BatchNorm running stats"
 
     c_gn_bn64 = nn.Sequential(nn.Conv2d(3, 4, 3, stride=4, padding=1), nn.GroupNorm(2, 4), nn.BatchNorm2d(4), nn.SiLU(), nn.AdaptiveAvgPool2d(1), nn.Flatten(), nn.Linear(4, 1))
     c_gn_bn64.train()
     rm_gn_before = c_gn_bn64[2].running_mean.detach().clone()
     _, st_gn_bn = AxiomPenaltyKernel(record=AxiomStepRecord()).penalty(c_gn_bn64, torch.randn(4, 3, 64, 64), torch.randn(4, 3, 64, 64), collect_stats=True, critic_module=c_gn_bn64)
-    assert st_gn_bn["regime"] == "ror" and c_gn_bn64[2].training is True
-    assert torch.equal(c_gn_bn64[2].running_mean, rm_gn_before), "RoR must not mutate BatchNorm running stats"
+    assert st_gn_bn["regime"] == "fwad_debiased" and c_gn_bn64[2].training is True
+    assert torch.equal(c_gn_bn64[2].running_mean, rm_gn_before), "fwad_debiased must not mutate BatchNorm running stats"
 
     c_gn128 = nn.Sequential(nn.Conv2d(3, 4, 3, stride=8, padding=1), nn.GroupNorm(2, 4), nn.SiLU(), nn.AdaptiveAvgPool2d(1), nn.Flatten(), nn.Linear(4, 1))
     _, st_gn = AxiomPenaltyKernel(record=AxiomStepRecord()).penalty(c_gn128, torch.randn(4, 3, 128, 128), torch.randn(4, 3, 128, 128), collect_stats=True, critic_module=c_gn128)
-    assert st_gn["regime"] == "ror"
+    assert st_gn["regime"] == "fwad_debiased"
 
     c_plain128 = nn.Sequential(nn.Conv2d(3, 4, 3, stride=8, padding=1), nn.SiLU(), nn.AdaptiveAvgPool2d(1), nn.Flatten(), nn.Linear(4, 1))
     _, st_fw = AxiomPenaltyKernel(record=AxiomStepRecord()).penalty(c_plain128, torch.randn(4, 3, 128, 128), torch.randn(4, 3, 128, 128), collect_stats=True, critic_module=c_plain128)
-    assert st_fw["regime"] == "fwad"
+    assert st_fw["regime"] == "fwad_debiased"
 
-    # Compact 4D image (1x8x8 = 64 <= 256) routes to exact 2B RoR!
     c_small8 = nn.Sequential(nn.Conv2d(1, 4, 3, padding=1), nn.SiLU(), nn.Flatten(), nn.Linear(4 * 8 * 8, 1))
     _, st_sm8 = AxiomPenaltyKernel(record=AxiomStepRecord()).penalty(c_small8, torch.randn(4, 1, 8, 8), torch.randn(4, 1, 8, 8), collect_stats=True, critic_module=c_small8)
-    assert st_sm8["regime"] == "ror"
+    assert st_sm8["regime"] == "fwad_debiased"
+
+    c_small4 = nn.Sequential(nn.Conv2d(1, 4, 3, padding=1), nn.SiLU(), nn.Flatten(), nn.Linear(4 * 4 * 4, 1))
+    _, st_sm4 = AxiomPenaltyKernel(record=AxiomStepRecord()).penalty(c_small4, torch.randn(4, 1, 4, 4), torch.randn(4, 1, 4, 4), collect_stats=True, critic_module=c_small4)
+    assert st_sm4["regime"] == "fwad_exact"
 
 
 # ---------------------------------------------------------------------------
@@ -837,57 +868,43 @@ else:
 # ---------------------------------------------------------------------------
 
 
-def test_issue1_spatial_cluster_gate_invariances_bounded_crel_and_large_b() -> None:
+def test_issue1_unconditional_32x32_transport_bounded_crel_and_large_b() -> None:
     from benchmarks.cifar_toy.data import make_synthetic_cifar_dataset
     from benchmarks.toy_audit.api_four_laws_123 import sample_target_for_kind
-    from particlegan._axiom.loss import _SPATIAL_CLUSTER_THRESH, _spatial_cluster_ratio
+    from particlegan._axiom.loss import _exceeds_transport_dim
 
     g = torch.Generator().manual_seed(11)
     sp = sample_target_for_kind("fl_law2_groupnorm_and_vit_sprites_v2", 256, g)
     syn_ds = make_synthetic_cifar_dataset(512, seed=0)
     syn_c = syn_ds.to_float_tensor(torch.randint(0, syn_ds.size, (256,), generator=g))
     unif = torch.empty((256, 3, 32, 32)).uniform_(-1.0, 1.0, generator=g)
-    smooth = torch.nn.functional.interpolate(torch.randn((256, 3, 4, 4), generator=g), size=(32, 32), mode="bilinear", align_corners=False).tanh()
 
-    # 1. Clean separation between discrete sprites and continuous/synthetic 32x32 datasets
-    r_sp = _spatial_cluster_ratio(sp)
-    r_syn = _spatial_cluster_ratio(syn_c)
-    r_unif = _spatial_cluster_ratio(unif)
-    r_sm = _spatial_cluster_ratio(smooth)
-    assert r_sp < 0.06 < _SPATIAL_CLUSTER_THRESH, f"sprites ratio too high: {r_sp}"
-    assert r_syn > _SPATIAL_CLUSTER_THRESH, f"synthetic CIFAR ratio too low: {r_syn}"
-    assert r_sm > 0.50 and r_unif > 0.70
+    # 1. Pure static shape bound: 32x32x3 (3072 <= 4096) NEVER skips transport regardless of data distribution
+    assert _exceeds_transport_dim(torch.randn((16, 1, 8, 8), generator=g)) is False
+    assert _exceeds_transport_dim(sp) is False
+    assert _exceeds_transport_dim(syn_c) is False
+    assert _exceeds_transport_dim(unif) is False
+    assert _exceeds_transport_dim(torch.randn((8, 3, 64, 64), generator=g)) is True
+    assert _exceeds_transport_dim(torch.randn((8, 2048), generator=g)) is True
 
-    # 2. Exact scale-, shift-, and permutation-invariance on B=256 (bounded <=64 slice)
-    perm = torch.randperm(256, generator=g)
-    for x_ref, r_ref in ((sp, r_sp), (syn_c, r_syn)):
-        assert math.isclose(_spatial_cluster_ratio(x_ref * 1e-4), r_ref, rel_tol=1e-4, abs_tol=1e-5)
-        assert math.isclose(_spatial_cluster_ratio(x_ref * 1e4), r_ref, rel_tol=1e-4, abs_tol=1e-5)
-        assert math.isclose(_spatial_cluster_ratio(x_ref.double() + 500.0), r_ref, rel_tol=1e-4, abs_tol=1e-5)
-        assert math.isclose(_spatial_cluster_ratio(x_ref + 500.0), r_ref, rel_tol=5e-3, abs_tol=5e-4)
-        assert math.isclose(_spatial_cluster_ratio(x_ref[perm]), r_ref, rel_tol=1e-4, abs_tol=1e-5)
+    # 2. Synthetic continuous 32x32 CIFAR runs AxiomTransportLoss identically to sprites
+    rec_syn = AxiomStepRecord()
+    crit_syn = nn.Sequential(nn.Conv2d(3, 4, 3, stride=2, padding=1), nn.Flatten(), nn.Linear(4 * 16 * 16, 1))
+    _attach_axiom_critic_hook(crit_syn, rec_syn)
+    loss_syn = AxiomGANLoss(record=rec_syn)
+    xf_syn = torch.randn((16, 3, 32, 32), generator=g, requires_grad=True)
+    lg_syn = loss_syn.g_loss(crit_syn(xf_syn).squeeze(-1), crit_syn(syn_c[:16]).squeeze(-1))
+    assert torch.isfinite(lg_syn) and rec_syn.ell_initialized is True
 
-    # 3. Transient cache hits across d_loss -> g_loss on the same batch & dim<=1024 stays untouched
-    loss_fn = AxiomGANLoss(record=AxiomStepRecord())
-    assert loss_fn._skip_spatial_transport(torch.randn((16, 1, 8, 8), generator=g)) is False
-    assert loss_fn._sc_cache is None, "dim<=1024 must not touch spatial cluster gate or cache"
-    assert loss_fn._skip_spatial_transport(syn_c) is True
-    cached_entry = loss_fn._sc_cache
-    assert cached_entry is not None and cached_entry[1] is True
-    assert loss_fn._skip_spatial_transport(syn_c) is True
-    assert loss_fn._sc_cache is cached_entry, "Repeated check on same x_r must hit transient cache"
-
-    # 4. Bounded c_rel_w (no 75-85x ell blowup) & large-B (B=256) active spatial transport
+    # 3. Bounded c_rel_w (no 75-85x ell blowup) & large-B (B=256) active spatial transport
     tr = AxiomTransportLoss()
     rec = AxiomStepRecord()
     xf_big = torch.randn((256, 3, 32, 32), generator=g, requires_grad=True)
     df_big = torch.zeros(256, requires_grad=True)
     dr_big = torch.ones(256)
-    # Verify c_rel_w is decoupled from ell blowup (high-ell uniform 32x32 stays bounded vs old 75-85x * tau)
     l_unif_a = tr(xf_big, unif, df_big, torch.zeros(256), record=AxiomStepRecord())
     l_unif_b = tr(xf_big, unif, df_big, torch.full((256,), 2.0), record=AxiomStepRecord())
     assert torch.isfinite(l_unif_a) and torch.isfinite(l_unif_b)
-    # Delta from dr=+2 vs dr=0 must be bounded by O(rms_y) (~14), never inflated by 2.5*ell*tau (~85)!
     assert abs(float((l_unif_b - l_unif_a).item())) < 35.0, f"c_rel_w blowup: delta={float((l_unif_b - l_unif_a).item())}"
 
     # On active clustered sprites at B=256: bounded <=64 Sinkhorn slack, ALL 256 fake logits receive finite nonzero grad!

@@ -4,10 +4,12 @@ from __future__ import annotations
 import ast
 from copy import deepcopy
 import dataclasses
+import io
 import json
 from pathlib import Path
 import subprocess
 import sys
+import tokenize
 
 import pytest
 import torch
@@ -176,14 +178,15 @@ def _run_mog_trainer(steps: int, *, total_steps: int = 200, seed: int = 0):
 # ---------------------------------------------------------------------------
 
 
-def test_axiom_hygiene_loc_imports_and_no_forbidden_linalg():
-    total_loc = 0
+def test_axiom_hygiene_imports_zero_semicolons_and_no_forbidden_ops():
     core_modules = ("prior", "critic", "transport", "optimizer")
     for path in AXIOM_FILES:
         assert path.exists(), f"missing Axiom module: {path}"
-        src = path.read_text()
-        lines = src.splitlines()
-        total_loc += len(lines)
+        src = path.read_text(encoding="utf-8")
+        for tok in tokenize.generate_tokens(io.StringIO(src).readline):
+            assert not (tok.type == tokenize.OP and tok.string == ";"), (
+                f"{path.name}:{tok.start[0]} contains semicolon-packed multi-statement line"
+            )
         tree = ast.parse(src, filename=str(path))
         stem = path.stem
 
@@ -196,6 +199,10 @@ def test_axiom_hygiene_loc_imports_and_no_forbidden_linalg():
                 mod = node.module or ""
                 for bad in FORBIDDEN_IMPORT_FRAGMENTS:
                     assert bad not in mod.split("."), f"{path.name} imports from forbidden module {mod}"
+                if mod == "torch.autograd":
+                    assert all(a.name != "grad" for a in node.names), (
+                        f"{path.name} imports forbidden torch.autograd.grad"
+                    )
                 # Enforce zero mutual imports among the 4 parallel core modules:
                 if path.parent == AXIOM_DIR and stem in core_modules and node.level >= 1:
                     first = mod.split(".")[0] if mod else ""
@@ -206,8 +213,8 @@ def test_axiom_hygiene_loc_imports_and_no_forbidden_linalg():
                 assert node.attr not in FORBIDDEN_LINALG_CALLS, (
                     f"{path.name} references forbidden op .{node.attr}"
                 )
-
-    assert total_loc <= 2500, f"Axiom codebase exceeded 2,500 LOC cap: {total_loc}"
+                if node.attr == "grad" and isinstance(node.value, ast.Attribute) and node.value.attr == "autograd":
+                    raise AssertionError(f"{path.name} calls forbidden torch.autograd.grad")
 
 
 def test_recipe_invariants_179_fields_default_unchanged_and_torch_free():

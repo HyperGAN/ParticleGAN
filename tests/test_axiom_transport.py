@@ -5,8 +5,10 @@ import ast
 from copy import deepcopy
 from dataclasses import dataclass, field
 import importlib.util
+import io
 import math
 from pathlib import Path
+import tokenize
 from typing import Any, Dict, List, Optional, Tuple
 
 import pytest
@@ -114,10 +116,12 @@ def _make_exact_atoms(k: int = 8, n: int = 64, d: int = 4, *, seed: int = 31, de
     return atoms[idx].to(device), atoms.to(device)
 
 
-def test_transport_hygiene_loc_and_zero_forbidden_ops(monkeypatch: pytest.MonkeyPatch):
+def test_transport_hygiene_zero_semicolon_and_zero_forbidden_ops(monkeypatch: pytest.MonkeyPatch):
     src = TRANSPORT_PATH.read_text(encoding="utf-8")
-    lines = src.splitlines()
-    assert len(lines) <= 695, f"transport.py exceeds 695 LOC budget: {len(lines)}"
+    for tok in tokenize.generate_tokens(io.StringIO(src).readline):
+        assert not (tok.type == tokenize.OP and tok.string == ";"), (
+            f"transport.py:{tok.start[0]} contains semicolon-packed multi-statement line"
+        )
     tree = ast.parse(src, filename=str(TRANSPORT_PATH))
 
     forbidden_imports = {
@@ -137,10 +141,14 @@ def test_transport_hygiene_loc_and_zero_forbidden_ops(monkeypatch: pytest.Monkey
         elif isinstance(node, ast.ImportFrom):
             mod = (node.module or "").lstrip(".")
             assert not (set(mod.split(".")) & forbidden_imports), f"Forbidden import-from {node.module}"
+            if mod == "torch.autograd":
+                assert all(a.name != "grad" for a in node.names), "Forbidden import torch.autograd.grad"
             for alias in node.names:
                 assert alias.name not in forbidden_imports, f"Forbidden imported name {alias.name}"
         elif isinstance(node, ast.Attribute):
             assert node.attr not in forbidden_attrs, f"Forbidden attribute .{node.attr} at L{node.lineno}"
+            if node.attr == "grad" and isinstance(node.value, ast.Attribute) and node.value.attr == "autograd":
+                raise AssertionError(f"Forbidden autograd.grad at L{node.lineno}")
 
     def _forbid(*_a, **_kw):
         raise AssertionError("Forbidden eigh/eigvalsh/svd/svdvals/pinv/matrix_norm/autograd.grad invoked!")

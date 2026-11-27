@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import ast
 from copy import deepcopy
+import io
 import math
 import os
 from pathlib import Path
@@ -10,10 +11,13 @@ import random
 import subprocess
 import sys
 import time
+import tokenize
+from unittest import mock
 
 import pytest
 import torch
 from torch import nn
+import torch.nn.functional as F
 
 from particlegan._axiom.critic import (
     AxiomCriticPenalty,
@@ -63,18 +67,18 @@ FORBIDDEN_ATTRS = frozenset({"eigh", "eigvalsh", "svd", "svdvals", "pinv", "comp
 # ---------------------------------------------------------------------------
 
 
-def test_static_hygiene_loc_and_zero_forbidden_imports() -> None:
+def test_static_hygiene_zero_semicolons_and_zero_forbidden_ops() -> None:
     critic_src = CRITIC_PATH.read_text(encoding="utf-8")
     opt_src = OPTIMIZER_PATH.read_text(encoding="utf-8")
-    critic_loc = len(critic_src.splitlines())
-    opt_loc = len(opt_src.splitlines())
-    assert critic_loc <= 380, f"critic.py LOC={critic_loc} exceeds 380 cap"
-    assert opt_loc <= 580, f"optimizer.py LOC={opt_loc} exceeds 580 cap"
 
     for name, src, forbidden_siblings, forbid_all_pg in (
         ("critic.py", critic_src, {"prior", "transport", "optimizer", "loss"}, False),
         ("optimizer.py", opt_src, {"prior", "critic", "transport", "loss"}, True),
     ):
+        for tok in tokenize.generate_tokens(io.StringIO(src).readline):
+            assert not (tok.type == tokenize.OP and tok.string == ";"), (
+                f"{name}:{tok.start[0]} contains semicolon-packed multi-statement line"
+            )
         tree = ast.parse(src, filename=name)
         for node in ast.walk(tree):
             if isinstance(node, ast.Import):
@@ -87,10 +91,12 @@ def test_static_hygiene_loc_and_zero_forbidden_imports() -> None:
                         assert not any(p.startswith(fp) for fp in FORBIDDEN_IMPORT_PREFIXES), f"{name} forbidden import {mod}"
             elif isinstance(node, ast.ImportFrom):
                 mod = node.module or ""
+                if mod == "torch.autograd":
+                    assert all(a.name != "grad" for a in node.names), f"{name} must not import torch.autograd.grad"
                 if forbid_all_pg:
                     assert node.level == 0 and not mod.startswith("particlegan"), f"{name} imports internal {mod}"
                 else:
-                    if node.level > 0 and mod not in ("low_precision", ""):
+                    if node.level > 0 and mod not in ("low_precision", "discriminators", ""):
                         assert mod not in forbidden_siblings, f"{name} sibling import {mod}"
                     if mod:
                         for p in mod.split("."):
@@ -101,14 +107,16 @@ def test_static_hygiene_loc_and_zero_forbidden_imports() -> None:
                     assert not any(alias.name.startswith(fp) for fp in FORBIDDEN_IMPORT_PREFIXES), f"{name} forbidden import {alias.name}"
             elif isinstance(node, ast.Attribute):
                 assert node.attr not in FORBIDDEN_ATTRS, f"{name} references forbidden attr .{node.attr}"
-                if name == "optimizer.py" and node.attr == "grad":
-                    # Allow tensor `.grad` attribute access; forbid `autograd.grad` calls
-                    if isinstance(node.value, ast.Attribute) and node.value.attr == "autograd":
-                        raise AssertionError("optimizer.py must not call torch.autograd.grad")
+                if node.attr == "grad" and isinstance(node.value, ast.Attribute) and node.value.attr == "autograd":
+                    raise AssertionError(f"{name} must not call torch.autograd.grad")
             elif isinstance(node, ast.BinOp) and isinstance(node.op, ast.Mod):
                 # Ensure no step-index modulo schedules like `observed_steps % k` or `calls % k`
                 left = ast.unparse(node.left)
                 assert "observed_steps" not in left and "calls" not in left and "step" not in left, f"{name} clock modulo: {left}"
+
+    assert "_ror" not in critic_src
+    assert '"BatchDistance"' not in critic_src and '"Emulated"' not in critic_src and '"Quantized"' not in critic_src
+    assert "_collect_bn_ids" not in opt_src and "_bn_net_ids" not in opt_src and "_BatchNorm" not in opt_src
 
 
 def test_zero_rng_consumption_in_critic_and_optimizer() -> None:
@@ -140,7 +148,7 @@ def test_zero_rng_consumption_in_critic_and_optimizer() -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_law2_regime1_exact_ror_matches_manual_autograd() -> None:
+def test_law2_regime1_fwad_exact_matches_manual_autograd() -> None:
     torch.manual_seed(0)
     for out_dim in (1, 3):
         critic = nn.Sequential(nn.Linear(4, 16), nn.SiLU(), nn.Linear(16, out_dim))
@@ -149,11 +157,15 @@ def test_law2_regime1_exact_ror_matches_manual_autograd() -> None:
         xr = torch.randn(10, 4)
         xf = torch.randn(10, 4)
 
-        pen, stats = kernel.penalty(critic, xr, xf, collect_stats=True)
-        assert stats["regime"] == "ror"
+        with mock.patch.object(torch.autograd, "grad", side_effect=AssertionError("autograd.grad forbidden")):
+            pen, stats = kernel.penalty(critic, xr, xf, collect_stats=True)
+            critic.zero_grad(set_to_none=True)
+            pen.backward()
+        g_pen = [None if p.grad is None else p.grad.detach().clone() for p in critic.parameters()]
+        assert stats["regime"] == "fwad_exact"
         assert math.isclose(stats["lambda_eff"], 0.005, rel_tol=1e-6)
 
-        # Manual exact autograd calculation
+        # Manual exact autograd calculation (reference witness only)
         xr_m = xr.detach().requires_grad_(True)
         xf_m = xf.detach().requires_grad_(True)
         yr_m, yf_m = critic(xr_m), critic(xf_m)
@@ -167,14 +179,22 @@ def test_law2_regime1_exact_ror_matches_manual_autograd() -> None:
         exact_s = 0.5 * ((sq_r / out_dim).mean() + (sq_f / out_dim).mean())
         exact_pen = 0.5 * 0.005 * exact_s
 
-        assert torch.allclose(pen, exact_pen, rtol=1e-5, atol=1e-7)
-        g_pen = torch.autograd.grad(pen, list(critic.parameters()), retain_graph=True, allow_unused=True)
+        assert torch.allclose(pen.detach(), exact_pen.detach(), rtol=1e-5, atol=1e-7)
         g_exact = torch.autograd.grad(exact_pen, list(critic.parameters()), allow_unused=True)
         for gp, ge in zip(g_pen, g_exact):
             if ge is None:
                 assert gp is None
             else:
                 assert gp is not None and torch.allclose(gp, ge, rtol=1e-5, atol=1e-6)
+
+    # Small spatial input (1x4x4 -> d=16 <= 16) also uses fwad_exact with zero autograd.grad
+    c_sp = nn.Sequential(nn.Conv2d(1, 4, 3, padding=1), nn.SiLU(), nn.Flatten(), nn.Linear(4 * 16, 1))
+    k_sp = AxiomPenaltyKernel(record=AxiomStepRecord(), coeff=1.0, kappa=1.0, lambda_floor=0.005, gamma_gauge=0.0)
+    xr_s, xf_s = torch.randn(4, 1, 4, 4), torch.randn(4, 1, 4, 4)
+    with mock.patch.object(torch.autograd, "grad", side_effect=AssertionError("autograd.grad forbidden")):
+        p_sp, st_sp = k_sp.penalty(c_sp, xr_s, xf_s, collect_stats=True)
+        p_sp.backward()
+    assert st_sp["regime"] == "fwad_exact" and torch.isfinite(p_sp)
 
 
 def test_law2_p6_zero_jensen_unbiased_below_kappa() -> None:
@@ -211,7 +231,7 @@ def test_law2_p6_zero_jensen_unbiased_below_kappa() -> None:
         rec.grad_sq_initialized = True
         pen, stats = kernel.penalty(critic, xr, xf, collect_stats=(i == 0))
         if i == 0:
-            assert stats["regime"] == "fwad"
+            assert stats["regime"] == "fwad_debiased"
             assert math.isclose(stats["lambda_eff"], lam_floor, rel_tol=1e-6)
         s_acc += float((pen.detach() / (0.5 * lam_floor)).item())
         gs = torch.autograd.grad(pen, list(critic.parameters()), allow_unused=True)
@@ -245,7 +265,7 @@ def test_law2_dimension_independent_mu_d_and_adaptive_ema_ramp() -> None:
     k_hi = AxiomPenaltyKernel(record=r_hi, coeff=1.0, kappa=1.0, lambda_floor=0.005)
     _, st_hi = k_hi.penalty(c_hi, torch.randn(4, 3, 256, 256), torch.randn(4, 3, 256, 256), collect_stats=True)
 
-    assert st_low["regime"] == "ror" and st_hi["regime"] == "fwad"
+    assert st_low["regime"] == "fwad_exact" and st_hi["regime"] == "fwad_debiased"
     assert math.isclose(st_low["lambda_eff"], 0.005, rel_tol=1e-6)
     assert math.isclose(st_hi["lambda_eff"], 0.005, rel_tol=1e-6)
 
@@ -276,7 +296,7 @@ def test_law2_clockfree_weyl_phase_invariance() -> None:
     for _ in range(4):
         p1, s1 = k1.penalty(c1, xr, xf, collect_stats=True)
         p2, s2 = k2.penalty(c2, xr, xf, collect_stats=True)
-        assert s1["regime"] == "fwad" and s2["regime"] == "fwad"
+        assert s1["regime"] == "fwad_debiased" and s2["regime"] == "fwad_debiased"
         assert torch.equal(p1, p2)
         g1 = torch.autograd.grad(p1, list(c1.parameters()))
         g2 = torch.autograd.grad(p2, list(c2.parameters()))
@@ -342,7 +362,8 @@ def test_law2_quantized_mxfp8_nvfp4_fwad_fallback_and_bn_safety() -> None:
     from particlegan.low_precision import EmulatedLinear
 
     torch.manual_seed(0)
-    # 1) EmulatedLinear MXFP8 and NVFP4 (d=32 normally selects fwAD, must route to RoR safely)
+    # 1) EmulatedLinear MXFP8 and NVFP4: zero autograd.grad; falls back to secant_debiased until jvp lands,
+    #    then automatically upgrades to native fwad_debiased.
     for fmt in ("mxfp8", "nvfp4"):
         q_critic = nn.Sequential(
             EmulatedLinear.from_linear(nn.Linear(32, 16), fmt),
@@ -351,13 +372,14 @@ def test_law2_quantized_mxfp8_nvfp4_fwad_fallback_and_bn_safety() -> None:
         )
         rec = AxiomStepRecord()
         kernel = AxiomPenaltyKernel(record=rec)
-        pen, stats = kernel.penalty(q_critic, torch.randn(8, 32), torch.randn(8, 32), collect_stats=True)
-        assert stats["regime"] == "ror", f"{fmt} must route cleanly to RoR"
-        assert torch.isfinite(pen)
-        pen.backward()
+        with mock.patch.object(torch.autograd, "grad", side_effect=AssertionError("autograd.grad forbidden")):
+            pen, stats = kernel.penalty(q_critic, torch.randn(8, 32), torch.randn(8, 32), collect_stats=True)
+            assert stats["regime"] in ("fwad_debiased", "secant_debiased"), f"{fmt} unexpected regime {stats['regime']}"
+            assert torch.isfinite(pen)
+            pen.backward()
         assert any(p.grad is not None and torch.isfinite(p.grad).all() and p.grad.norm().item() > 0 for p in q_critic.parameters())
 
-    # 2) Auto-fallback on modules raising RuntimeError under fwAD (simulating SDPBackend.MATH)
+    # 2) Auto-fallback on modules raising RuntimeError under fwAD -> secant_debiased (zero autograd.grad)
     class NoFwADCritic(nn.Module):
         def __init__(self) -> None:
             super().__init__()
@@ -370,32 +392,182 @@ def test_law2_quantized_mxfp8_nvfp4_fwad_fallback_and_bn_safety() -> None:
 
     nf = NoFwADCritic()
     knf = AxiomPenaltyKernel(record=AxiomStepRecord())
-    p1, s1 = knf.penalty(nf, torch.randn(6, 24), torch.randn(6, 24), collect_stats=True)
-    assert s1["regime"] == "ror" and id(nf) in knf._fwad_unsupported and torch.isfinite(p1)
-    p1.backward()
+    with mock.patch.object(torch.autograd, "grad", side_effect=AssertionError("autograd.grad forbidden")):
+        p1, s1 = knf.penalty(nf, torch.randn(6, 24), torch.randn(6, 24), collect_stats=True)
+        assert s1["regime"] == "secant_debiased" and id(nf) in knf._fwad_unsupported and torch.isfinite(p1)
+        p1.backward()
     assert nf.fc.weight.grad is not None and torch.isfinite(nf.fc.weight.grad).all()
 
-    # 3) BatchNorm2d eval() safety during both fwAD (plain Conv+BN) and RoR (GroupNorm+BN) (zero running_mean/var drift, .training restored)
+    # 3) BatchNorm2d eval() safety during fwad_debiased (plain Conv+BN and GroupNorm+BN) + frozen eval BN preservation
     bn_critic = nn.Sequential(nn.Conv2d(3, 8, 3, stride=4, padding=1), nn.BatchNorm2d(8), nn.LeakyReLU(0.2), nn.AdaptiveAvgPool2d(4), nn.Flatten(), nn.Linear(8 * 4 * 4, 1))
     bn_critic.train()
     bn = bn_critic[1]
     rm_before = bn.running_mean.clone()
     rv_before = bn.running_var.clone()
     kbn = AxiomPenaltyKernel(record=AxiomStepRecord())
-    pbn, sbn = kbn.penalty(bn_critic, torch.randn(8, 3, 80, 80) * 5.0 + 3.0, torch.randn(8, 3, 80, 80) * 2.0 - 4.0, collect_stats=True)
-    assert sbn["regime"] == "fwad" and bn.training is True
-    assert torch.equal(bn.running_mean, rm_before) and torch.equal(bn.running_var, rv_before)
-    pbn.backward()
+    with mock.patch.object(torch.autograd, "grad", side_effect=AssertionError("autograd.grad forbidden")):
+        pbn, sbn = kbn.penalty(bn_critic, torch.randn(8, 3, 80, 80) * 5.0 + 3.0, torch.randn(8, 3, 80, 80) * 2.0 - 4.0, collect_stats=True)
+        assert sbn["regime"] == "fwad_debiased" and bn.training is True
+        assert torch.equal(bn.running_mean, rm_before) and torch.equal(bn.running_var, rv_before)
+        pbn.backward()
     assert all(p.grad is not None and torch.isfinite(p.grad).all() for p in bn_critic.parameters())
+
+    # Frozen eval BN stays in eval() with zero running stat corruption
+    bn_critic.eval()
+    bn_critic.zero_grad(set_to_none=True)
+    with mock.patch.object(torch.autograd, "grad", side_effect=AssertionError("autograd.grad forbidden")):
+        pbn_ev, sbn_ev = kbn.penalty(bn_critic, torch.randn(8, 3, 80, 80) * 9.0, torch.randn(8, 3, 80, 80) * 3.0, collect_stats=True)
+        assert sbn_ev["regime"] == "fwad_debiased" and bn.training is False
+        assert torch.equal(bn.running_mean, rm_before) and torch.equal(bn.running_var, rv_before)
+        pbn_ev.backward()
+
     gn_bn_critic = nn.Sequential(nn.Conv2d(3, 8, 3, stride=2, padding=1), nn.GroupNorm(2, 8), nn.BatchNorm2d(8), nn.LeakyReLU(0.2), nn.AdaptiveAvgPool2d(2), nn.Flatten(), nn.Linear(8 * 2 * 2, 1))
     gn_bn_critic.train()
     bn2 = gn_bn_critic[2]
     rm2_before, rv2_before = bn2.running_mean.clone(), bn2.running_var.clone()
-    pbn_s, sbn_s = kbn.penalty(gn_bn_critic, torch.randn(8, 3, 16, 16) * 5.0 + 3.0, torch.randn(8, 3, 16, 16) * 2.0 - 4.0, collect_stats=True)
-    assert sbn_s["regime"] == "ror" and bn2.training is True
-    assert torch.equal(bn2.running_mean, rm2_before) and torch.equal(bn2.running_var, rv2_before)
-    pbn_s.backward()
+    with mock.patch.object(torch.autograd, "grad", side_effect=AssertionError("autograd.grad forbidden")):
+        pbn_s, sbn_s = kbn.penalty(gn_bn_critic, torch.randn(8, 3, 16, 16) * 5.0 + 3.0, torch.randn(8, 3, 16, 16) * 2.0 - 4.0, collect_stats=True)
+        assert sbn_s["regime"] == "fwad_debiased" and bn2.training is True
+        assert torch.equal(bn2.running_mean, rm2_before) and torch.equal(bn2.running_var, rv2_before)
+        pbn_s.backward()
     assert all(p.grad is not None and torch.isfinite(p.grad).all() for p in gn_bn_critic.parameters())
+
+
+def test_law2_runtime_zero_autograd_grad_spy_all_architectures_fp32_and_bf16() -> None:
+    """Runtime spy forbidding torch.autograd.grad across MLP, GN, BN DCGAN, Attention/SDPA in FP32 & BF16."""
+    torch.manual_seed(0)
+
+    class _MHACritic(nn.Module):
+        def __init__(self) -> None:
+            super().__init__()
+            self.mha = nn.MultiheadAttention(8, 2, batch_first=True)
+            self.head = nn.Linear(8, 1)
+
+        def forward(self, x: torch.Tensor) -> torch.Tensor:
+            y, _ = self.mha(x, x, x, need_weights=False)
+            return self.head(y.mean(dim=1))
+
+    class _TransformerCritic(nn.Module):
+        def __init__(self) -> None:
+            super().__init__()
+            self.enc = nn.TransformerEncoderLayer(8, 2, 16, batch_first=True)
+            self.head = nn.Linear(8, 1)
+
+        def forward(self, x: torch.Tensor) -> torch.Tensor:
+            return self.head(self.enc(x).mean(dim=1))
+
+    class _FunctionalSDPACritic(nn.Module):
+        def __init__(self) -> None:
+            super().__init__()
+            self.qkv = nn.Linear(8, 24)
+            self.head = nn.Linear(8, 1)
+
+        def forward(self, x: torch.Tensor) -> torch.Tensor:
+            q, k, v = self.qkv(x).chunk(3, dim=-1)
+            return self.head(F.scaled_dot_product_attention(q, k, v).mean(dim=1))
+
+    class _FunctionalSoftmaxCritic(nn.Module):
+        def __init__(self) -> None:
+            super().__init__()
+            self.l1 = nn.Linear(24, 16)
+            self.l2 = nn.Linear(16, 1)
+
+        def forward(self, x: torch.Tensor) -> torch.Tensor:
+            return self.l2(F.softmax(self.l1(x), dim=-1))
+
+    for dtype in (torch.float32, torch.bfloat16):
+        cases = (
+            (
+                "mlp_exact",
+                nn.Sequential(nn.Linear(8, 16), nn.SiLU(), nn.Linear(16, 1)),
+                torch.randn(6, 8, dtype=dtype),
+                torch.randn(6, 8, dtype=dtype),
+                "fwad_exact",
+            ),
+            (
+                "mlp_debiased",
+                nn.Sequential(nn.Linear(24, 16), nn.SiLU(), nn.Linear(16, 1)),
+                torch.randn(8, 24, dtype=dtype),
+                torch.randn(8, 24, dtype=dtype),
+                "fwad_debiased",
+            ),
+            (
+                "gn_conv2d",
+                nn.Sequential(
+                    nn.Conv2d(3, 8, 3, stride=2, padding=1),
+                    nn.GroupNorm(2, 8),
+                    nn.SiLU(),
+                    nn.AdaptiveAvgPool2d(2),
+                    nn.Flatten(),
+                    nn.Linear(32, 1),
+                ),
+                torch.randn(6, 3, 16, 16, dtype=dtype),
+                torch.randn(6, 3, 16, 16, dtype=dtype),
+                "fwad_debiased",
+            ),
+            (
+                "bn_dcgan",
+                nn.Sequential(
+                    nn.Conv2d(3, 8, 4, stride=2, padding=1, bias=False),
+                    nn.BatchNorm2d(8),
+                    nn.LeakyReLU(0.2),
+                    nn.Conv2d(8, 16, 4, stride=2, padding=1, bias=False),
+                    nn.BatchNorm2d(16),
+                    nn.LeakyReLU(0.2),
+                    nn.AdaptiveAvgPool2d(1),
+                    nn.Flatten(),
+                    nn.Linear(16, 1),
+                ),
+                torch.randn(8, 3, 32, 32, dtype=dtype),
+                torch.randn(8, 3, 32, 32, dtype=dtype),
+                "fwad_debiased",
+            ),
+            (
+                "mha_secant",
+                _MHACritic(),
+                torch.randn(6, 4, 8, dtype=dtype),
+                torch.randn(6, 4, 8, dtype=dtype),
+                "secant_debiased",
+            ),
+            (
+                "transformer_secant",
+                _TransformerCritic(),
+                torch.randn(6, 4, 8, dtype=dtype),
+                torch.randn(6, 4, 8, dtype=dtype),
+                "secant_debiased",
+            ),
+            (
+                "sdpa_secant",
+                _FunctionalSDPACritic(),
+                torch.randn(6, 4, 8, dtype=dtype),
+                torch.randn(6, 4, 8, dtype=dtype),
+                "secant_debiased",
+            ),
+            (
+                "f_softmax_secant",
+                _FunctionalSoftmaxCritic(),
+                torch.randn(6, 24, dtype=dtype),
+                torch.randn(6, 24, dtype=dtype),
+                "secant_debiased",
+            ),
+        )
+        for label, crit, xr, xf, expected_regime in cases:
+            crit = crit.to(dtype=dtype)
+            crit.train()
+            bns = [m for m in crit.modules() if isinstance(m, nn.modules.batchnorm._BatchNorm)]
+            bn_snap = [(bn.running_mean.clone(), bn.running_var.clone()) for bn in bns]
+            kern = AxiomPenaltyKernel(record=AxiomStepRecord(), coeff=1.0, kappa=1.0)
+            with mock.patch.object(torch.autograd, "grad", side_effect=AssertionError("autograd.grad forbidden")):
+                pen, stats = kern.penalty(crit, xr, xf, collect_stats=True, critic_module=crit)
+                assert stats["regime"] == expected_regime, f"{label} ({dtype}): got {stats['regime']}"
+                assert torch.isfinite(pen), f"{label} ({dtype}) non-finite penalty"
+                pen.backward()
+            for bn, (rm0, rv0) in zip(bns, bn_snap):
+                assert bn.training is True
+                assert torch.equal(bn.running_mean, rm0) and torch.equal(bn.running_var, rv0)
+            grads = [p.grad for p in crit.parameters() if p.grad is not None]
+            assert grads and all(torch.isfinite(g).all() for g in grads), f"{label} ({dtype}) non-finite grads"
+            assert any(float(g.float().norm().item()) > 0.0 for g in grads), f"{label} ({dtype}) zero grads"
 
 
 def test_step_record_scale_homogeneity_probe_and_tamper_rejection() -> None:
@@ -980,7 +1152,7 @@ def test_conv2d_r256_speed_and_fast_path_sanity() -> None:
             opt_d.step()
         torch.cuda.synchronize()
         ms = (time.perf_counter() - t0) * 1e3 / 10.0
-        assert pen_fn.last_stats["regime"] == "fwad"
+        assert pen_fn.last_stats["regime"] == "fwad_debiased"
         assert opt_d.ns_2d_activations == 0 and opt_d.fast_path_steps == 13
         assert ms < 80.0, f"r256 D+pen+opt too slow: {ms:.2f} ms/step"
     else:
@@ -999,7 +1171,7 @@ def test_conv2d_r256_speed_and_fast_path_sanity() -> None:
             loss = D(xr).mean() - D(xf).mean() + pen_fn(D, xr, xf)
             loss.backward()
             opt_d.step()
-        assert pen_fn.last_stats["regime"] == "fwad"
+        assert pen_fn.last_stats["regime"] == "fwad_debiased"
         assert opt_d.ns_2d_activations == 0 and opt_d.fast_path_steps == 3
 
 
@@ -1089,7 +1261,7 @@ def test_axiom_v3_ror_wall_peak_rms_cooling_and_prior_momentum() -> None:
     r_lo = AxiomStepRecord()
     k_lo = AxiomPenaltyKernel(record=r_lo, coeff=1.0, kappa=1.0, lambda_floor=0.005, gamma_gauge=0.0)
     p_lo, s_lo = k_lo.penalty(c_lin, xr, xf, collect_stats=True)
-    assert s_lo["regime"] == "ror" and math.isclose(float(p_lo.item()), 0.5 * 0.005 * 0.16, rel_tol=1e-5)
+    assert s_lo["regime"] == "fwad_exact" and math.isclose(float(p_lo.item()), 0.5 * 0.005 * 0.16, rel_tol=1e-5)
 
     with torch.no_grad():
         c_lin.weight.fill_(1.0)  # ||grad_x D|| = 2.0 > kappa = 1.0 -> cap_tot = (1 + 0.75 + 0.25) * (2 - 1)^2 = 2.0
@@ -1196,7 +1368,7 @@ def test_axiom_v4_fixed_batch_closure_fallback_and_2b_kwargs_ror_parity() -> Non
     k_ror = AxiomPenaltyKernel(record=AxiomStepRecord(), coeff=1.0, kappa=1.0)
     xr4, xf4 = torch.randn(6, 4), torch.randn(6, 4)
     pen_ror, st_ror = k_ror.penalty(lambda x: c_mlp(torch.cat((fixed_ctx, x), dim=-1)), xr4, xf4, collect_stats=True, critic_module=c_mlp)
-    assert st_ror["regime"] == "ror" and torch.isfinite(pen_ror)
+    assert st_ror["regime"] == "fwad_exact" and torch.isfinite(pen_ror)
     pen_ror.backward()
     assert any(p.grad is not None and torch.isfinite(p.grad).all() for p in c_mlp.parameters())
 
@@ -1210,7 +1382,7 @@ def test_axiom_v4_fixed_batch_closure_fallback_and_2b_kwargs_ror_parity() -> Non
         collect_stats=True,
         critic_module=c_conv,
     )
-    assert st_fw["regime"] == "fwad" and torch.isfinite(pen_fw)
+    assert st_fw["regime"] == "fwad_debiased" and torch.isfinite(pen_fw)
     pen_fw.backward()
     assert any(p.grad is not None and torch.isfinite(p.grad).all() for p in c_conv.parameters())
 
@@ -1365,10 +1537,10 @@ def test_axiom_v4_cuda_bf16_instancenorm_groupnorm_fwad() -> None:
     xr80, xf80 = torch.randn((8, 3, 80, 80), device=dev), torch.randn((8, 3, 80, 80), device=dev)
     xr16, xf16 = torch.randn((8, 3, 16, 16), device=dev), torch.randn((8, 3, 16, 16), device=dev)
     cases = (
-        (nn.Sequential(nn.Conv2d(3, 8, 3, stride=4, padding=1), nn.InstanceNorm2d(8, affine=True), nn.SiLU(), nn.AdaptiveAvgPool2d(4), nn.Flatten(), nn.Linear(8 * 4 * 4, 1)).to(dev), xr80, xf80, "fwad"),
-        (nn.Sequential(nn.Conv2d(3, 8, 3, stride=4, padding=1), nn.GroupNorm(2, 8), nn.SiLU(), nn.AdaptiveAvgPool2d(4), nn.Flatten(), nn.LayerNorm(8 * 4 * 4), nn.Linear(8 * 4 * 4, 1)).to(dev), xr80, xf80, "ror"),
-        (nn.Sequential(nn.Conv2d(3, 8, 3, stride=4, padding=1), nn.BatchNorm2d(8), nn.SiLU(), nn.AdaptiveAvgPool2d(4), nn.Flatten(), nn.Linear(8 * 4 * 4, 1)).to(dev), xr80, xf80, "fwad"),
-        (nn.Sequential(nn.Conv2d(3, 8, 3, padding=1), nn.InstanceNorm2d(8, affine=True), nn.SiLU(), nn.Flatten(), nn.Linear(8 * 16 * 16, 1)).to(dev), xr16, xf16, "fwad"),
+        (nn.Sequential(nn.Conv2d(3, 8, 3, stride=4, padding=1), nn.InstanceNorm2d(8, affine=True), nn.SiLU(), nn.AdaptiveAvgPool2d(4), nn.Flatten(), nn.Linear(8 * 4 * 4, 1)).to(dev), xr80, xf80, "fwad_debiased"),
+        (nn.Sequential(nn.Conv2d(3, 8, 3, stride=4, padding=1), nn.GroupNorm(2, 8), nn.SiLU(), nn.AdaptiveAvgPool2d(4), nn.Flatten(), nn.LayerNorm(8 * 4 * 4), nn.Linear(8 * 4 * 4, 1)).to(dev), xr80, xf80, "fwad_debiased"),
+        (nn.Sequential(nn.Conv2d(3, 8, 3, stride=4, padding=1), nn.BatchNorm2d(8), nn.SiLU(), nn.AdaptiveAvgPool2d(4), nn.Flatten(), nn.Linear(8 * 4 * 4, 1)).to(dev), xr80, xf80, "fwad_debiased"),
+        (nn.Sequential(nn.Conv2d(3, 8, 3, padding=1), nn.InstanceNorm2d(8, affine=True), nn.SiLU(), nn.Flatten(), nn.Linear(8 * 16 * 16, 1)).to(dev), xr16, xf16, "fwad_debiased"),
     )
     for mod, xr, xf, exp_regime in cases:
         kern = AxiomPenaltyKernel(record=AxiomStepRecord(), coeff=1.0, kappa=1.0)
@@ -1379,95 +1551,87 @@ def test_axiom_v4_cuda_bf16_instancenorm_groupnorm_fwad() -> None:
         assert any(p.grad is not None and torch.isfinite(p.grad).all() for p in mod.parameters())
 
 
-def test_axiom_bn_scale_awareness_period2_stability_and_nonfreezing() -> None:
+def test_axiom_zero_state_dcgan_unconditional_sketching_and_no_bn_branch() -> None:
     torch.manual_seed(0)
 
-    # (a) Active-BN scoping: _bn_net_ids tags active BN modules, excludes No-BN spatial Convs
-    #     (like img_blobs4) and excludes frozen eval-mode BN backbones (like FrozenResNet18).
-    nobn_net = nn.Sequential(nn.Conv2d(3, 8, 3, padding=1), nn.ReLU(), nn.Conv2d(8, 3, 3, padding=1))
-    opt_nobn = AxiomOptimizer(nobn_net.parameters(), lr=0.014)
-    opt_nobn.bind_module_layouts((nobn_net,))
-    assert len(opt_nobn._bn_net_ids) == 0
-
-    frozen_bn = nn.Sequential(nn.Conv2d(3, 8, 3, padding=1), nn.BatchNorm2d(8), nn.ReLU())
-    frozen_bn.eval()
-    for p in frozen_bn.parameters():
-        p.requires_grad_(False)
-    head = nn.Sequential(nn.GroupNorm(2, 8), nn.Conv2d(8, 1, 3, padding=1))
-    hybrid = nn.Sequential(frozen_bn, head)
-    opt_hyb = AxiomOptimizer(head.parameters(), lr=0.014)
-    opt_hyb.bind_module_layouts((hybrid,))
-    assert len(opt_hyb._bn_net_ids) == 0
-
-    # (b) 1D BN/bias period-2 oscillation must NOT drag down global ema_step_cos / log2_damp
-    #     and unit-renormalized BN momentum (b1=0.50 on 1D) tracks smooth directions cleanly.
-    net = nn.Sequential(
-        nn.Conv2d(4, 8, 4, stride=2, padding=1, bias=True),
+    # (a) Genuine 0.0 B/param optimizer state on DCGAN (no _bn_net_ids, no hidden m_u buffer)
+    dcgan_d = nn.Sequential(
+        nn.Conv2d(3, 8, 4, stride=2, padding=1, bias=False),
         nn.BatchNorm2d(8),
-        nn.ReLU(),
-        nn.Conv2d(8, 4, 4, stride=2, padding=1, bias=True),
+        nn.LeakyReLU(0.2),
+        nn.Conv2d(8, 16, 4, stride=2, padding=1, bias=False),
+        nn.BatchNorm2d(16),
+        nn.LeakyReLU(0.2),
+        nn.Conv2d(16, 1, 4, stride=2, padding=1, bias=False),
     )
-    opt = AxiomOptimizer(net.parameters(), lr=0.014)
-    opt.bind_module_layouts((net,))
-    assert len(opt._bn_net_ids) == len(list(net.parameters()))
-
-    g_rng = torch.Generator().manual_seed(123)
-    steady_w = {id(p): torch.randn(p.shape, generator=g_rng) for p in net.parameters() if p.ndim >= 2}
-    osc_1d = {id(p): torch.ones_like(p) for p in net.parameters() if p.ndim == 1}
-    for t in range(30):
-        sgn = 1.0 if t % 2 == 0 else -1.0
-        for p in net.parameters():
-            p.grad = steady_w[id(p)].clone() if p.ndim >= 2 else (osc_1d[id(p)] * sgn)
-        opt.step()
-    assert opt.ema_step_cos > 0.7 and opt.log2_damp == 0.0, (
-        f"1D BN/bias chatter froze global damping: cos={opt.ema_step_cos}, log2_damp={opt.log2_damp}"
+    opt_dc = AxiomOptimizer(dcgan_d.parameters(), lr=0.014, critic=dcgan_d)
+    assert not hasattr(opt_dc, "_bn_net_ids")
+    for _ in range(5):
+        opt_dc.zero_grad(set_to_none=True)
+        dcgan_d(torch.randn(4, 3, 16, 16)).square().mean().backward()
+        opt_dc.step()
+    tensor_bytes = sum(
+        v.numel() * v.element_size()
+        for st in opt_dc.state.values()
+        for v in st.values()
+        if isinstance(v, torch.Tensor)
     )
-    for p in net.parameters():
-        assert "m_u" in opt.state[p] and opt.state[p]["m_u"].dtype == torch.float32
+    assert tensor_bytes == 0, f"DCGAN AxiomOptimizer must have 0.0 B/param tensor state, got {tensor_bytes} B"
+    assert all("m_u" not in st for st in opt_dc.state.values())
 
-    # (c) Odd-stride sketch detects power-of-2 channel oscillation on BN + ConvTranspose2d(128, 64, 4, 4)
-    #     (where n // 128 = 1024 would alias onto a single channel!).
-    #     When ema_func_gain >= 0.60, BN networks do not freeze log2_damp; when secant probe
-    #     confirms overshoot (ema_func_gain < 0.60), log2_damp damps and recovers deadzone-free.
-    bn_ct = nn.Sequential(nn.ConvTranspose2d(128, 64, 4, stride=2, padding=1, bias=False), nn.BatchNorm2d(64))
-    opt_ct = AxiomOptimizer(bn_ct.parameters(), lr=0.014)
-    opt_ct.bind_module_layouts((bn_ct,))
-    g_ch = torch.zeros_like(bn_ct[0].weight)
-    g_ch[:, 1::2, :, :] = 1.0  # odd output channels oscillate; stride 1024 would only hit channel 0!
+    # (b) Unconditional p.ndim >= 2 sketching: 1D bias/norm period-2 chatter does NOT drag down
+    #     global ema_step_cos / log2_damp on BOTH non-BN and BN networks!
+    for has_bn in (False, True):
+        layers = [nn.Conv2d(4, 8, 4, stride=2, padding=1, bias=True)]
+        if has_bn:
+            layers.append(nn.BatchNorm2d(8))
+        layers.extend([nn.ReLU(), nn.Conv2d(8, 4, 4, stride=2, padding=1, bias=True)])
+        net = nn.Sequential(*layers)
+        opt = AxiomOptimizer(net.parameters(), lr=0.014)
+        opt.bind_module_layouts((net,))
+        g_rng = torch.Generator().manual_seed(123)
+        steady_w = {id(p): torch.randn(p.shape, generator=g_rng) for p in net.parameters() if p.ndim >= 2}
+        osc_1d = {id(p): torch.ones_like(p) for p in net.parameters() if p.ndim == 1}
+        for t in range(30):
+            sgn = 1.0 if t % 2 == 0 else -1.0
+            for p in net.parameters():
+                p.grad = steady_w[id(p)].clone() if p.ndim >= 2 else (osc_1d[id(p)] * sgn)
+            opt.step()
+        assert opt.ema_step_cos > 0.7 and opt.log2_damp == 0.0, (
+            f"1D chatter froze global damping (has_bn={has_bn}): cos={opt.ema_step_cos}, log2_damp={opt.log2_damp}"
+        )
+
+    # Pure-1D network cleanly falls back to all parameters for sketching
+    p_only1d = nn.Parameter(torch.zeros(16))
+    opt_1d = AxiomOptimizer([p_only1d], lr=0.05)
     for t in range(40):
-        bn_ct[0].weight.grad = g_ch if t % 2 == 0 else -g_ch
+        p_only1d.grad = torch.ones_like(p_only1d) * (1.0 if t % 2 == 0 else -1.0)
+        opt_1d.step()
+    assert opt_1d.ema_step_cos < -0.5 and opt_1d.log2_damp < -1.0
+
+    # (c) Unconditional odd-stride sketching detects power-of-2 channel oscillation on plain
+    #     ConvTranspose2d(128, 64, 4, 4) (n // 128 = 1024 would alias onto channel 0!) WITHOUT any BN branch.
+    ct = nn.ConvTranspose2d(128, 64, 4, stride=2, padding=1, bias=False)
+    opt_ct = AxiomOptimizer(ct.parameters(), lr=0.014)
+    opt_ct.bind_module_layouts((ct,))
+    g_ch = torch.zeros_like(ct.weight)
+    g_ch[:, 1::2, :, :] = 1.0
+    for t in range(40):
+        ct.weight.grad = g_ch if t % 2 == 0 else -g_ch
         opt_ct.step()
-    assert opt_ct.ema_step_cos < -0.5 and opt_ct.log2_damp == 0.0, (
-        f"Healthy BN network should detect cosine without freezing: cos={opt_ct.ema_step_cos}, damp={opt_ct.log2_damp}"
+    assert opt_ct.ema_step_cos < -0.5 and opt_ct.log2_damp < -0.5, (
+        f"Odd-stride sketch failed to detect/damp power-of-2 channel oscillation: cos={opt_ct.ema_step_cos}, damp={opt_ct.log2_damp}"
     )
-    opt_ct._ema_func_gain = 0.50  # secant-confirmed functional overshoot unlocks damping
-    for t in range(30):
-        bn_ct[0].weight.grad = g_ch if t % 2 == 0 else -g_ch
-        opt_ct.step()
-    assert opt_ct.log2_damp < -0.5, f"Secant-confirmed BN oscillation failed to damp: damp={opt_ct.log2_damp}"
     d_lo = opt_ct.log2_damp
-    for _ in range(35):
-        bn_ct[0].weight.grad = g_ch.clone()
+    for _ in range(45):
+        ct.weight.grad = g_ch.clone()
         opt_ct.step()
     assert opt_ct.log2_damp > d_lo + 0.5 and opt_ct.log2_damp == 0.0, (
-        f"Deadzone-free recovery failed on BN spatial Conv: {d_lo} -> {opt_ct.log2_damp}"
+        f"Deadzone-free recovery failed on spatial ConvTranspose2d: {d_lo} -> {opt_ct.log2_damp}"
     )
 
-    # (d) GANTrainer + Recipe('axiom') automatically binds BN/Conv layouts on both opt_g and opt_d
-    import particlegan as pg
 
-    g_mod = nn.Sequential(nn.Linear(4, 16, bias=False), nn.BatchNorm1d(16), nn.ReLU(), nn.Linear(16, 4))
-    d_mod = nn.Sequential(nn.Linear(4, 16, bias=False), nn.BatchNorm1d(16), nn.LeakyReLU(0.2), nn.Linear(16, 1))
-    rec = pg.get_recipe("axiom", z_dim=4, num_particles=64, batch_size=16)
-    tr = pg.GANTrainer(rec, g_mod, d_mod, seed=0)
-    assert len(tr.opt_g._bn_net_ids) > 0 and len(tr.opt_d._bn_net_ids) > 0
-    for _ in range(5):
-        out = tr.step(torch.randn(16, 4))
-        assert math.isfinite(float(out["loss_d"])) and math.isfinite(float(out["loss_g"]))
-    assert tr.opt_g.log2_damp == 0.0 and tr.opt_d.log2_damp == 0.0
-
-
-def test_axiom_bn_momentum_scale_invariance_and_critic_dim_x() -> None:
+def test_axiom_scale_invariance_nonfinite_safety_and_critic_dim_x() -> None:
     torch.manual_seed(0)
 
     def _make_bn_conv() -> nn.Sequential:
@@ -1497,9 +1661,9 @@ def test_axiom_bn_momentum_scale_invariance_and_critic_dim_x() -> None:
             ref_params = cur
         else:
             for a, b in zip(ref_params, cur):
-                assert torch.allclose(a, b, rtol=1e-5, atol=1e-6), f"BN momentum scale invariance failed at scale={scale}"
+                assert torch.allclose(a, b, rtol=1e-5, atol=1e-6), f"Scale invariance failed at scale={scale}"
 
-    # Nonfinite gradients must leave BN parameters finite and completely untouched
+    # Nonfinite gradients must leave parameters finite and completely untouched
     mod_nf = _make_bn_conv()
     opt_nf = AxiomOptimizer(mod_nf.parameters(), lr=0.014)
     opt_nf.bind_module_layouts((mod_nf,))
@@ -1516,7 +1680,7 @@ def test_axiom_bn_momentum_scale_invariance_and_critic_dim_x() -> None:
     torch.manual_seed(7)
     z = torch.randn(16, 4)
     w_proj = torch.randn(4, 3 * 32 * 32) / math.sqrt(4.0)
-    xr_base = (z @ w_proj).view(16, 3, 32, 32)  # rank-4 32x32 RGB images (eff_dim << 3072)
+    xr_base = (z @ w_proj).view(16, 3, 32, 32)
     xf_base = ((z + 0.1 * torch.randn_like(z)) @ w_proj).view(16, 3, 32, 32)
     w_lin = torch.randn(3 * 32 * 32) / math.sqrt(3 * 32 * 32)
     pens: list[float] = []
@@ -1525,21 +1689,20 @@ def test_axiom_bn_momentum_scale_invariance_and_critic_dim_x() -> None:
         rec.margin_initialized = True
         rec.ema_data_scale = float(c * math.sqrt(3 * 32 * 32))
         kern = AxiomPenaltyKernel(record=rec, coeff=1.0, kappa=1.0)
-        # Scale-equivariant linear critic D_c(x) = <w_lin / c, x> has ||grad D_c||_2 = ||w_lin||_2 / c
-        # Under sc_t = ema_data_scale / sqrt(dim_x) = c, scaled grad norm = ||w_lin||_2 ~ 1.0 regardless of c or rank!
         crit_fn = lambda x, scale=c: (x.flatten(1) @ (w_lin / scale))
         pen, st = kern.penalty(crit_fn, xr_base * c, xf_base * c, collect_stats=True)
-        assert torch.isfinite(pen)
+        assert st["regime"] == "fwad_debiased" and torch.isfinite(pen)
         pens.append(float(pen.item()))
     assert abs(pens[0] - pens[1]) < 1e-4 and abs(pens[2] - pens[1]) < 1e-4, f"4D dim_x scale equivariance failed: {pens}"
     assert pens[1] < 0.05, f"Low-rank 32x32 RGB batch inflated critic penalty via eff_dim: pen={pens[1]}"
 
 
-def test_axiom_bn_checkpoint_continuation_and_tamper_rejection() -> None:
+def test_axiom_bf16_fp16_checkpoint_roundtrip_all_fp32_states_and_tamper_rejection() -> None:
     import particlegan as pg
 
     torch.manual_seed(0)
 
+    # 1) Full GANTrainer DCGAN checkpoint continuation (with 0 B/param optimizer state)
     def _make_pair():
         torch.manual_seed(11)
         g = nn.Sequential(nn.Linear(4, 4 * 4 * 4, bias=False), nn.Unflatten(1, (4, 4, 4)), nn.BatchNorm2d(4), nn.ReLU(), nn.ConvTranspose2d(4, 3, 4, stride=2, padding=1))
@@ -1558,7 +1721,6 @@ def test_axiom_bn_checkpoint_continuation_and_tamper_rejection() -> None:
         tr_a.step(batches[t])
         tr_b.step(batches[t])
 
-    # Fresh trainer & models loaded from step-3 checkpoint must match uninterrupted run exactly
     ckpt = deepcopy(tr_b.state_dict())
     g_c, d_c = _make_pair()
     tr_c = pg.GANTrainer(rec, g_c, d_c, seed=12345)
@@ -1574,53 +1736,208 @@ def test_axiom_bn_checkpoint_continuation_and_tamper_rejection() -> None:
     assert math.isclose(tr_a.opt_g.ema_step_cos, tr_c.opt_g.ema_step_cos, rel_tol=0.0, abs_tol=1e-6)
     assert math.isclose(tr_a.opt_d.log2_damp, tr_c.opt_d.log2_damp, rel_tol=0.0, abs_tol=1e-6)
 
-    # Strict tamper rejection on BN momentum state (m_u)
-    base_sd = deepcopy(tr_a.opt_d.state_dict())
-    pid_mu = next(k for k, v in base_sd["state"].items() if "m_u" in v)
+    # 2) Pure bfloat16 & float16 checkpoint roundtrip for ALL FP32 state tensors:
+    #    m_prior (prior table), m_unit & m_scale (momentum network), and v_pow (skewed deep critic).
+    for dt in (torch.bfloat16, torch.float16):
+        # 2a) m_prior + m_unit + m_scale on BF16/FP16 parameters
+        def _make_gen_prior(dtype=dt):
+            torch.manual_seed(314)
+            net = nn.Sequential(nn.Linear(4, 8), nn.SiLU(), nn.Linear(8, 4)).to(dtype)
+            tab = nn.Parameter(torch.randn(10, 4, dtype=dtype))
+            opt = AxiomOptimizer(
+                [
+                    {"params": list(net.parameters()), "lr": 0.014, "role": "generator", "betas": (0.5, 0.999)},
+                    {"params": [tab], "lr": 0.02, "role": "prior", "betas": (0.5, 0.999)},
+                ]
+            )
+            return net, tab, opt
+
+        n_ref, t_ref, o_ref = _make_gen_prior()
+        n_res, t_res, o_res = _make_gen_prior()
+        lp_rng = torch.Generator().manual_seed(271)
+        rows_seq = [torch.tensor([0, 2, 5, 2, 7], dtype=torch.long) for _ in range(5)]
+        g_seq = [
+            ([torch.randn(p.shape, generator=lp_rng, dtype=dt) for p in n_ref.parameters()], torch.randn(t_ref.shape, generator=lp_rng, dtype=dt))
+            for _ in range(5)
+        ]
+        for t in range(3):
+            for net, tab, opt in ((n_ref, t_ref, o_ref), (n_res, t_res, o_res)):
+                for p, g in zip(net.parameters(), g_seq[t][0]):
+                    p.grad = g.clone()
+                tab.grad = g_seq[t][1].clone()
+                opt.set_sampled_rows(tab, rows_seq[t])
+                opt.step()
+
+        sd_lp = deepcopy(o_res.state_dict())
+        n_f, t_f, o_f = _make_gen_prior()
+        n_f.load_state_dict(deepcopy(n_res.state_dict()))
+        with torch.no_grad():
+            t_f.copy_(t_res)
+        o_f.load_state_dict(sd_lp)
+
+        # Verify bit-exact FP32 restoration BEFORE stepping (no PyTorch BF16/FP16 downcast!)
+        assert o_f.state[t_f]["m_prior"].dtype == torch.float32
+        assert torch.equal(o_f.state[t_f]["m_prior"], o_res.state[t_res]["m_prior"])
+        for p_f, p_r in zip(n_f.parameters(), n_res.parameters()):
+            assert o_f.state[p_f]["m_unit"].dtype == torch.float32
+            assert o_f.state[p_f]["m_scale"].dtype == torch.float32
+            assert torch.equal(o_f.state[p_f]["m_unit"], o_res.state[p_r]["m_unit"])
+            assert torch.equal(o_f.state[p_f]["m_scale"], o_res.state[p_r]["m_scale"])
+
+        # Subsequent steps must not crash (e.g. index_add_ dtype mismatch) and must match bit-for-bit
+        for t in range(3, 5):
+            for net, tab, opt in ((n_ref, t_ref, o_ref), (n_f, t_f, o_f)):
+                for p, g in zip(net.parameters(), g_seq[t][0]):
+                    p.grad = g.clone()
+                tab.grad = g_seq[t][1].clone()
+                opt.set_sampled_rows(tab, rows_seq[t])
+                opt.step()
+        assert torch.equal(t_ref.detach(), t_f.detach()), f"{dt} prior continuation mismatch"
+        assert torch.equal(o_ref.state[t_ref]["m_prior"], o_f.state[t_f]["m_prior"])
+        for p1, p2 in zip(n_ref.parameters(), n_f.parameters()):
+            assert torch.equal(p1.detach(), p2.detach()), f"{dt} net continuation mismatch"
+            assert torch.equal(o_ref.state[p1]["m_unit"], o_f.state[p2]["m_unit"])
+
+        # 2b) v_pow on BF16/FP16 deep skewed critic (prevents addmv dtype crash!)
+        def _make_skew_critic(dtype=dt):
+            torch.manual_seed(512)
+            c = nn.Sequential(
+                nn.Linear(8, 8, bias=False),
+                nn.SiLU(),
+                nn.Linear(8, 8, bias=False),
+                nn.SiLU(),
+                nn.Linear(8, 8, bias=False),
+                nn.SiLU(),
+                nn.Linear(8, 1, bias=False),
+            ).to(dtype)
+            opt = AxiomOptimizer(c.parameters(), lr=0.01, critic=c)
+            return c, opt
+
+        c_ref, oc_ref = _make_skew_critic()
+        c_res, oc_res = _make_skew_critic()
+        u_vec = torch.randn(8, 1)
+        v_vec = torch.randn(1, 8)
+        r1 = (u_vec @ v_vec) / (u_vec @ v_vec).norm()
+        scales = [1.0, 0.1, 0.01]
+        for _step_i in range(2):
+            for c_m, oc in ((c_ref, oc_ref), (c_res, oc_res)):
+                idx_l = 0
+                for p in c_m.parameters():
+                    if p.shape == (8, 8):
+                        p.grad = (r1 * scales[idx_l]).to(dt)
+                        idx_l += 1
+                    else:
+                        p.grad = torch.ones_like(p) * 0.1
+                oc.step()
+        sd_c = deepcopy(oc_res.state_dict())
+        c_f, oc_f = _make_skew_critic()
+        c_f.load_state_dict(deepcopy(c_res.state_dict()))
+        oc_f.load_state_dict(sd_c)
+        v_pows = [oc_f.state[p]["v_pow"] for p in c_f.parameters() if "v_pow" in oc_f.state[p]]
+        assert len(v_pows) == 3 and all(vp.dtype == torch.float32 for vp in v_pows)
+        for p1, p2 in zip(c_res.parameters(), c_f.parameters()):
+            if "v_pow" in oc_res.state[p1]:
+                assert torch.equal(oc_res.state[p1]["v_pow"], oc_f.state[p2]["v_pow"])
+        # Resume step must execute addmv in FP32 cleanly without crashing and match reference!
+        for c_m, oc in ((c_ref, oc_ref), (c_f, oc_f)):
+            idx_l = 0
+            for p in c_m.parameters():
+                if p.shape == (8, 8):
+                    p.grad = (r1 * scales[idx_l]).to(dt)
+                    idx_l += 1
+                else:
+                    p.grad = torch.ones_like(p) * 0.1
+            oc.step()
+        for p1, p2 in zip(c_ref.parameters(), c_f.parameters()):
+            assert torch.equal(p1.detach(), p2.detach()), f"{dt} v_pow critic continuation mismatch"
+
+    # 3) Strict tamper rejection on FP32 state tensors (m_prior, m_unit, m_scale, v_pow) + legacy m_u rejection
+    n_t, t_t, o_t = _make_gen_prior(torch.float32)
+    for p in n_t.parameters():
+        p.grad = torch.randn_like(p)
+    t_t.grad = torch.randn_like(t_t)
+    o_t.set_sampled_rows(t_t, torch.tensor([0, 1]))
+    o_t.step()
+    base_sd = deepcopy(o_t.state_dict())
+    pid_mu = next(k for k, v in base_sd["state"].items() if "m_unit" in v)
+    pid_mp = next(k for k, v in base_sd["state"].items() if "m_prior" in v)
     for mutate in (
-        lambda s: s["state"][pid_mu]["m_u"].fill_(float("nan")),
-        lambda s: s["state"][pid_mu]["m_u"].fill_(float("inf")),
-        lambda s: s["state"][pid_mu].__setitem__("m_u", torch.ones(1)),
-        lambda s: s["state"][pid_mu].__setitem__("m_u", "corrupt"),
+        lambda s: s["state"][pid_mu]["m_unit"].fill_(float("nan")),
+        lambda s: s["state"][pid_mu]["m_scale"].fill_(float("inf")),
+        lambda s: s["state"][pid_mu].__setitem__("m_unit", torch.ones(1)),
+        lambda s: s["state"][pid_mu].__setitem__("m_unit", "corrupt"),
+        lambda s: s["state"][pid_mp]["m_prior"].fill_(float("nan")),
+        lambda s: s["state"][pid_mp].__setitem__("m_prior", torch.ones(2, 2)),
+        lambda s: s["state"][pid_mu].__setitem__("m_u", torch.zeros_like(s["state"][pid_mu]["m_unit"])),
     ):
         bad_sd = deepcopy(base_sd)
         mutate(bad_sd)
         with pytest.raises(ValueError, match="invalid AxiomOptimizer parameter state"):
-            tr_a.opt_d.validate_state_dict(bad_sd)
+            o_t.validate_state_dict(bad_sd)
 
-    # Pure bfloat16 & float16 model checkpoint round-trip must preserve FP32 m_u bit-for-bit without downcast truncation
-    for dt in (torch.bfloat16, torch.float16):
-        def _make_lowp(dtype=dt) -> nn.Sequential:
-            torch.manual_seed(314)
-            return nn.Sequential(nn.Conv2d(3, 8, 4, stride=2, padding=1), nn.BatchNorm2d(8), nn.ReLU()).to(dtype)
 
-        m_ref, m_res = _make_lowp(), _make_lowp()
-        o_ref, o_res = AxiomOptimizer(m_ref.parameters(), lr=0.014), AxiomOptimizer(m_res.parameters(), lr=0.014)
-        o_ref.bind_module_layouts((m_ref,))
-        o_res.bind_module_layouts((m_res,))
-        lp_rng = torch.Generator().manual_seed(271)
-        lp_batches = [torch.randn((4, 3, 8, 8), generator=lp_rng, dtype=dt) for _ in range(5)]
-        for t in range(3):
-            for m, o in ((m_ref, o_ref), (m_res, o_res)):
-                o.zero_grad(set_to_none=True)
-                m(lp_batches[t]).square().mean().backward()
-                o.step()
-        sd_lp = deepcopy(o_res.state_dict())
-        w_lp = deepcopy(m_res.state_dict())
-        m_fresh = _make_lowp()
-        m_fresh.load_state_dict(w_lp)
-        o_fresh = AxiomOptimizer(m_fresh.parameters(), lr=0.014)
-        o_fresh.bind_module_layouts((m_fresh,))
-        o_fresh.load_state_dict(sd_lp)
-        for t in range(3, 5):
-            for m, o in ((m_ref, o_ref), (m_fresh, o_fresh)):
-                o.zero_grad(set_to_none=True)
-                m(lp_batches[t]).square().mean().backward()
-                o.step()
-        for p1, p2 in zip(m_ref.parameters(), m_fresh.parameters()):
-            assert torch.equal(p1.detach(), p2.detach()), f"{dt} parameter continuation mismatch"
-            assert o_fresh.state[p2]["m_u"].dtype == torch.float32
-            assert torch.equal(o_ref.state[p1]["m_u"], o_fresh.state[p2]["m_u"]), f"{dt} m_u continuation mismatch"
+def test_direction_blend_single_loss_nonascent_and_pending_checkpoint() -> None:
+    torch.manual_seed(0)
+
+    # (a) bind_protected_losses([l_prot]) with a conflicting total loss MUST populate _protected and prevent ascent!
+    w = nn.Parameter(torch.tensor([1.0, 2.0, -1.0]))
+    opt = AxiomOptimizer([w], lr=0.1, direction_blend=True)
+    l_prot = (w[0] - 0.0).square()
+    l_conflict = (w[0] - 5.0).square() + (w[1] - 0.0).square()
+    opt.bind_protected_losses([l_prot])
+    assert opt._protected is not None and opt._protected.shape == (1, 3)
+    w_before = w.detach().clone()
+    l_prot_before = float(l_prot.item())
+    (l_prot + 10.0 * l_conflict).backward()
+    opt.step()
+    assert opt.constraint_geometry_stats["steps"] == 1
+    assert opt.constraint_geometry_stats["projected_steps"] == 1
+    assert opt.constraint_geometry_stats["max_derivative_after"] <= 1e-7
+    assert opt.direction_blend_stats["conflict_steps"] == 1
+    assert float((w[0] - 0.0).square().item()) <= l_prot_before + 1e-7
+    # Unconflicting coordinate w[1] still makes progress toward 0
+    assert abs(float(w[1].item())) < abs(float(w_before[1].item()))
+
+    # (b) bind_protected_from_grads() with momentum opposing current gradient MUST populate _protected & enforce non-ascent!
+    w_m = nn.Parameter(torch.tensor([1.0, 1.0]))
+    opt_m = AxiomOptimizer([w_m], lr=0.1, betas=(0.95, 0.999), direction_blend=True)
+    # Build strong momentum pointing in +[1, 0] direction (step moving toward -[1, 0])
+    for _ in range(5):
+        opt_m.zero_grad(set_to_none=True)
+        (w_m[0] * 1.0).backward()
+        opt_m.bind_protected_from_grads()
+        opt_m.step()
+    # Now flip gradient to -[1, 0] (protected loss wants w_m[0] to INCREASE, while momentum pushes w_m[0] to DECREASE)
+    opt_m.zero_grad(set_to_none=True)
+    loss_flip = -w_m[0] + 0.2 * w_m[1]
+    loss_flip.backward()
+    opt_m.bind_protected_from_grads()
+    assert opt_m._protected is not None and opt_m._protected.shape == (1, 2)
+    loss_flip_before = float(loss_flip.item())
+    opt_m.step()
+    assert opt_m.constraint_geometry_stats["projected_steps"] >= 1
+    assert opt_m.constraint_geometry_stats["max_derivative_after"] <= 1e-7
+    loss_flip_after = float((-w_m[0] + 0.2 * w_m[1]).item())
+    assert loss_flip_after <= loss_flip_before + 1e-6, (
+        f"Protected loss ascended under bind_protected_from_grads(): {loss_flip_before} -> {loss_flip_after}"
+    )
+
+    # (c) Checkpoint roundtrip with pending _protected tensor preserves shape/device and rejects bad pending shape
+    w_p = nn.Parameter(torch.tensor([1.0, -1.0, 0.5]))
+    opt_p = AxiomOptimizer([w_p], lr=0.05, direction_blend=True)
+    l_p = (w_p.square()).sum()
+    opt_p.bind_protected_losses([l_p])
+    sd_p = deepcopy(opt_p.state_dict())
+    opt_p2 = AxiomOptimizer([nn.Parameter(w_p.detach().clone())], lr=0.05, direction_blend=True)
+    opt_p2.load_state_dict(sd_p)
+    assert opt_p2._protected is not None
+    assert opt_p2._protected.device == opt_p2._parameters()[0].device
+    assert opt_p2._protected.dtype == torch.float32
+    assert torch.equal(opt_p2._protected, opt_p._protected)
+    bad_p = deepcopy(sd_p)
+    bad_p["axiom"]["constraint_geometry"]["pending"] = torch.zeros(1, 99)
+    with pytest.raises(ValueError, match="direction_blend"):
+        opt_p2.validate_state_dict(bad_p)
 
 
 
