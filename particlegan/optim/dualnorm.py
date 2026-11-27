@@ -1593,14 +1593,11 @@ def make_normalized_optimizer(recipe, params, *, critic=None, **options):
                 optimizer._conv_layouts.update(collect_conv_layouts((critic,)))
             _attach_unified_v15_critic_hook(critic, optimizer.record)
         elif recipe.effective_critic_formulation == "axiom":
-            from .._axiom.critic import AxiomStepRecord, _attach_axiom_critic_hook
+            from .._axiom.state import AxiomStepRecord, _attach_axiom_critic_hook
             optimizer.record = AxiomStepRecord()
             optimizer._axiom_record = optimizer.record
             if hasattr(optimizer, "bind_module_layouts"):
                 optimizer.bind_module_layouts((critic,))
-            elif hasattr(optimizer, "_conv_layouts"):
-                from .._axiom.optimizer import collect_conv_layouts as _axiom_conv_layouts
-                optimizer._conv_layouts.update(_axiom_conv_layouts((critic,)))
             _attach_axiom_critic_hook(critic, optimizer.record)
         elif recipe.effective_critic_formulation == "cond_fiber":
             from ..cond_fiber import _CondFiberObserverStepRecord, _attach_cond_fiber_critic_hook
