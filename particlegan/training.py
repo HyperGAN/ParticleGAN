@@ -1072,36 +1072,33 @@ class GANTrainer:
                 )
                 prim_op = getattr(self.loss, "t1c", None) or getattr(self.loss, "rhbi", None)
                 is_axiom_atomic = False
-                rec_ax_step = getattr(self.opt_d, "record", None) if recipe.effective_critic_formulation == "axiom" else None
                 if recipe.effective_critic_formulation == "axiom":
-                    if rec_ax_step is not None and self.prior_noise_generator is None and hasattr(unwrap_prior(self.prior), "z"):
-                        rec_ax_step._active_prior_table = unwrap_prior(self.prior).z
-                        rec_ax_step._active_batch_rows = indices.detach() if indices is not None else None
-                    if use_simplex and len(real) >= 8:
-                        from ._axiom.transport import compute_discrete_atomic_gate, project_transport_features
-                        _y_proj = project_transport_features(real.detach(), max_spatial=getattr(prim_op, "max_spatial", 8))
-                        _cs = getattr(rec_ax_step, "chart_state", None) if rec_ax_step is not None else None
-                        _ch = None
-                        _rd = None
-                        if isinstance(_cs, dict) and isinstance(_cs.get("sum"), torch.Tensor) and isinstance(_cs.get("count"), torch.Tensor) and _cs["sum"].shape[1] == _y_proj.shape[1]:
-                            _cc = _cs["count"].to(device=real.device, dtype=torch.float32).clamp_min(1e-8)
-                            _ch = _cs["sum"].to(device=real.device, dtype=torch.float32) / _cc.unsqueeze(1)
-                            if isinstance(_cs.get("sq_dev"), torch.Tensor):
-                                _rd = (_cs["sq_dev"].to(device=real.device, dtype=torch.float32) / _cc).clamp_min(1e-12).sqrt()
-                        is_axiom_atomic = compute_discrete_atomic_gate(_y_proj, charts=_ch, radii=_rd) > 0.5
-                if prim_op is not None and hasattr(prim_op, "bind_discrete_prior_step"):
+                    from ._axiom.transport import prepare_axiom_transport_step
+                    rec_ax_step = getattr(self.opt_d, "record", None)
+                    base_p = unwrap_prior(self.prior)
+                    simplicial_active = prepare_axiom_transport_step(
+                        prim_op,
+                        rec_ax_step,
+                        real,
+                        prior_table=getattr(base_p, "z", None),
+                        batch_rows=indices,
+                        is_discrete_prior=(self.prior_noise_generator is None),
+                        use_simplex=use_simplex,
+                        simplex_chart_weight=recipe.rhbi_simplex_chart_weight,
+                    )
+                    is_axiom_atomic = bool(
+                        use_simplex and recipe.rhbi_simplex_chart_weight > 0.0 and not simplicial_active
+                    )
+                elif prim_op is not None and hasattr(prim_op, "bind_discrete_prior_step"):
                     simplicial_active = (
                         use_simplex
-                        and not is_axiom_atomic
                         and recipe.rhbi_simplex_chart_weight > 0.0
-                        and (recipe.effective_critic_formulation == "axiom" or recipe.rhbi_simplex_macro_settle)
+                        and recipe.rhbi_simplex_macro_settle
                     )
                     prim_op.bind_discrete_prior_step(
                         self.prior_noise_generator is None,
                         simplicial_active=simplicial_active,
                     )
-                    if rec_ax_step is not None and hasattr(rec_ax_step, "_simplicial_step"):
-                        rec_ax_step._simplicial_step = bool(simplicial_active)
                 if hasattr(self.loss, "bind_discrete_prior_step") and hasattr(self.loss, "manifold_chart_loss"):
                     rgdt_manifold_active = (
                         recipe.rgdt_manifold_chart_weight > 0.0
