@@ -259,7 +259,7 @@ class AxiomPenaltyKernel:
         lam = (self.lambda_floor * torch.exp((self.beta_ema * excess).clamp_max(self._c_max))).to(s_hat.dtype)
         self.record.observe_grad_sq_tensor(s_hat.detach())
         if exact_basis:
-            cap_w = 1.0
+            cap_w = 0.85
         else:
             ema_g = self.record.dev_ema("ema_grad_sq", s_hat.device).to(s_hat.dtype)
             cap_w = 0.5 * smoothstep01((ema_g / k2 - 0.65) / 0.25)

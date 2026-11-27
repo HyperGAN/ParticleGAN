@@ -383,7 +383,7 @@ def test_exact_basis_zero_variance_vs_stochastic_unbiased_and_zero_jensen() -> N
     pen_hi, st_hi = kern_hi.penalty(lin_hi, xr32, xf32, collect_stats=True)
     assert float(pen_hi.item()) > 0.5 * st_hi["lambda_eff"] * st_hi["s_hat"] + 1e-3
 
-    # Exact-basis (K == d) full 1.0x real+fake Lipschitz hinge wall above kappa.
+    # Exact-basis (K == d) 0.85x real+fake Lipschitz hinge wall above kappa.
     lin2 = nn.Linear(2, 1, bias=False)
     with torch.no_grad():
         lin2.weight.copy_(torch.tensor([[2.0, 0.0]]))
@@ -392,7 +392,7 @@ def test_exact_basis_zero_variance_vs_stochastic_unbiased_and_zero_jensen() -> N
     rec2.observe_margin_and_scale(torch.ones(16, 1), -torch.ones(16, 1), xr2, xf2)
     kern2 = AxiomPenaltyKernel(record=rec2, coeff=1.0, kappa=1.0, gamma_gauge=0.0)
     pen2, st2 = kern2.penalty(lin2, xr2, xf2, collect_stats=True)
-    exp_hinge2 = 2.0 * (math.sqrt(st2["s_hat"] + 1e-12) - 1.0) ** 2
+    exp_hinge2 = 1.7 * (math.sqrt(st2["s_hat"] + 1e-12) - 1.0) ** 2
     assert math.isclose(float(pen2.item()), 0.5 * (st2["lambda_eff"] * st2["s_hat"] + exp_hinge2), rel_tol=1e-4)
 
 
