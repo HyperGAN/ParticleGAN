@@ -39,11 +39,22 @@ DECLARED_SCALED_RES16_TANH_MODEL = {
     "rail_guard": 1e-4,
     "fourier": 3,
 }
+DECLARED_SCALED_RES16_TANH_V2_MODEL = {
+    "hidden": 128,
+    "layers": 16,
+    "architecture": "scaled_residual_mlp",
+    "output_activation": "tanh_rail_guard",
+    "tanh_scale": 5.25,
+    "rail_guard": 1e-4,
+    "fourier": 3,
+    "preserve_latent_norm": False,
+}
 DECLARED_NATIVE_MODELS = (
     PLAIN_NATIVE_MODEL,
     DECLARED_DEEP_MLP16_MODEL,
     DECLARED_RES16_TANH_MODEL,
     DECLARED_SCALED_RES16_TANH_MODEL,
+    DECLARED_SCALED_RES16_TANH_V2_MODEL,
 )
 
 
@@ -344,10 +355,16 @@ def build_declared_native_models(context, model_spec):
             component="discriminator",
         )
         return g.to(context.device), d.to(context.device)
-    if canonical(model_spec) == canonical(DECLARED_SCALED_RES16_TANH_MODEL):
+    if canonical(model_spec) in (
+        canonical(DECLARED_SCALED_RES16_TANH_MODEL),
+        canonical(DECLARED_SCALED_RES16_TANH_V2_MODEL),
+    ):
         from benchmarks.toy_audit.api_vectors import ScaledResidualMLPGenerator
         n_blocks = (int(model_spec["layers"]) - 2) // 2
         scale = float(model_spec["tanh_scale"])
+        # Legacy grid100_res16_scaled_tanh omits preserve_latent_norm and stays
+        # frozen at True for archived receipt compatibility; v2 sets False explicitly.
+        preserve_latent_norm = bool(model_spec.get("preserve_latent_norm", True))
         g = context.construct(
             lambda: ScaledResidualMLPGenerator(
                 context.recipe.z_dim,
@@ -356,7 +373,7 @@ def build_declared_native_models(context, model_spec):
                 2,
                 scale=scale,
                 use_norm=True,
-                preserve_latent_norm=True,
+                preserve_latent_norm=preserve_latent_norm,
             ),
             component="generator",
         )

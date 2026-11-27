@@ -14,11 +14,26 @@ class GradientCoherence:
     mode = "gradient_coherence"
     beta = 7 / 8  # EMA span 15 updates
 
-    def __init__(self, min_gain: float = 0.015, power: float = 1.0):
-        self.min_gain = min_gain
-        self.power = power
+    def __init__(self, min_gain: float = 0.015, power: float = 1.0, beta: float = 7 / 8):
+        for name, val in (("min_gain", min_gain), ("power", power), ("beta", beta)):
+            if type(val) not in (int, float) or not math.isfinite(val) or val <= 0:
+                raise ValueError(f"invalid gradient coherence {name}: {val!r}")
+        if beta >= 1 or min_gain > 1:
+            raise ValueError("invalid gradient coherence bounds")
+        self.beta = float(beta)
+        self.min_gain = float(min_gain)
+        self.power = float(power)
         self.packet = None
         self.response = dict(applied_steps=0)
+
+    @classmethod
+    def for_mode(cls, mode: str) -> "GradientCoherence":
+        """Construct the declared gradient coherence controller for a recipe mode."""
+        if mode == "coherent_G_mean_v1":
+            return cls(min_gain=0.015, power=1.0)
+        if mode == "coherent_G_damped_v2":
+            return cls(min_gain=0.015, power=2.0)
+        raise ValueError(f"unknown generator gradient response mode: {mode!r}")
 
     @torch.no_grad()
     def observe(self, gradients):

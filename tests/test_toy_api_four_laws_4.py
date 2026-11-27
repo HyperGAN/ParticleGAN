@@ -103,9 +103,9 @@ def test_exports_specs_problem_only_thresholds_and_cases_contract() -> None:
         assert case["default_recipe"] == "unified_v14"
         assert case["legacy_ids"] == [f"four-laws-{case['id']}"]
 
-    # Guardrail: all 9 Four Laws cases are registered alongside the 205 existing cases + BN-DCGAN guard
+    # Guardrail: all 9 Four Laws cases are registered alongside the 206 existing cases + BN-DCGAN guard
     discovered = api_contract.discover()
-    assert len(discovered) == 215
+    assert len(discovered) == 216
     assert set(fl4.TASKS) <= set(discovered)
 
 
@@ -303,4 +303,54 @@ def test_forge_formulation_context_integration_and_rng_audit(task_id: str) -> No
     changed = {k for k in set(before) | set(after) if before.get(k) != after.get(k)}
     unintended = changed - allowed
     assert not unintended, f"{task_id}: observe() perturbed non-eval FormulationContext streams: {unintended}"
+
+
+def test_finalize_observation_fails_closed_on_none_and_nan_for_le_bounds() -> None:
+    """None/NaN/Inf metrics must NEVER auto-pass <= bounds via negative sentinel coercion."""
+    tid = "fl_law42_deep_resbn_and_conv1x1"
+    bad_metrics = {
+        "finite_fraction": 1.0,
+        "sw1": None,
+        "var_ratio_err": float("nan"),
+        "conv1x1_sw1": float("inf"),
+        "conv1x1_sw1_ratio": 1.0,
+    }
+    obs = fl4._finalize_observation(tid, bad_metrics, [])
+    assert obs["passed"] is False
+    assert "sw1 <= 0.1" in obs["failed_bounds"]
+    assert "var_ratio_err <= 0.25" in obs["failed_bounds"]
+    assert "conv1x1_sw1 <= 0.1" in obs["failed_bounds"]
+    assert obs["margins"]["sw1"] == -10.0
+    assert obs["margins"]["var_ratio_err"] == -10.0
+    # JSON-safe output must still violate the <= thresholds so external graders fail closed too.
+    assert obs["metrics"]["sw1"] > 0.1
+    assert obs["metrics"]["var_ratio_err"] > 0.25
+    assert obs["metrics"]["conv1x1_sw1"] > 0.1
+    assert json.dumps(obs["metrics"], allow_nan=False)
+
+
+def test_oracle_controls_v2_no_global_rng_leak_and_mask_rng_cpu_uint8_restore() -> None:
+    """oracle_controls_v2 must not mutate global torch RNG; mask RNG restore must pass CPU uint8 state."""
+    from unittest import mock
+
+    global_before = torch.get_rng_state().clone()
+    controls = fl4.oracle_controls_v2()
+    assert controls
+    assert all(item["passed"] is item["expected_pass"] for item in controls.values())
+    assert torch.equal(global_before, torch.get_rng_state())
+
+    gen_mod = fl4.HighDSparseTanhGenerator(z_dim=4, hidden=16, out_dim=8, obs_prob=0.5, mask_seed=7)
+    _ = gen_mod(torch.zeros(2, 4))
+    raw_state = gen_mod.mask_rng_state()
+    assert raw_state is not None
+    # Pass a float32/non-uint8 tensor view (simulating deserialized or non-uint8 state) and verify
+    # load_mask_rng_state converts it to a CPU uint8 clone before calling Generator.set_state.
+    seen_states: list[torch.Tensor] = []
+    fake_gen = mock.MagicMock()
+    fake_gen.set_state.side_effect = lambda st: seen_states.append(st)
+    with mock.patch.object(gen_mod, "_get_mask_rng", return_value=fake_gen):
+        gen_mod.load_mask_rng_state(raw_state.to(dtype=torch.int64), torch.device("cuda", 0))
+    assert len(seen_states) == 1
+    assert seen_states[0].device.type == "cpu"
+    assert seen_states[0].dtype == torch.uint8
 

@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "id": "grid100_res16_scaled_tanh_v2",
+  "description": "Clean un-neutered 16-layer ScaledResidualMLPGenerator (preserve_latent_norm=False) with genuine pre-head LayerNorm and S=5.25 TanhRailGuard head; removes the legacy gamma=1e-3 residual shrink, algebraic LayerNorm cancellation, and atanh(tanh) identity lock present in archived grid100_res16_scaled_tanh.",
+  "adapter": "native100",
+  "execution": {
+    "initializer": "deterministic_orthogonal",
+    "resources": {
+      "num_particles": 20000,
+      "z_dim": 2,
+      "batch_size": 2048
+    },
+    "model": {
+      "hidden": 128,
+      "layers": 16,
+      "architecture": "scaled_residual_mlp",
+      "output_activation": "tanh_rail_guard",
+      "tanh_scale": 5.25,
+      "rail_guard": 1e-4,
+      "fourier": 3,
+      "preserve_latent_norm": false
+    },
+    "problem": "grid100",
+    "steps": 7000,
+    "prior": {
+      "kind": "mog",
+      "sigma": 0.025,
+      "standardize": false,
+      "init_std": 2.88
+    },
+    "protocol": "screening",
+    "produces_state": true,
+    "prior_contract": "recipe_owned_v1"
+  },
+  "evaluation": {
+    "sampling_contract_version": 1,
+    "sampling_law": "public_prior_without_output_noise",
+    "eval_output_noise": "clean",
+    "kind": "native_accuracy",
+    "evaluator": "benchmarks.toy100.accuracy_gate:evaluate_suite",
+    "coverage_evaluator": "benchmarks.toy100.gate:evaluate_suite",
+    "scoring_weights": "live",
+    "eval_interval": 250,
+    "eval_samples": 20000,
+    "minimum_stable_checks": 5,
+    "holdout_samples": 100000,
+    "max_saturated_fraction": 0.001,
+    "coverage_thresholds": {
+      "min_samples": 20000,
+      "min_modes": 100,
+      "min_hq_mode_mass": 0.005,
+      "min_precision": 0.75,
+      "max_mass_tv": 0.1,
+      "max_mode_mass": 0.02,
+      "min_cov_eig_ratio": 0.4,
+      "max_cov_eig_ratio": 1.7,
+      "min_radial_median_ratio": 0.65,
+      "max_radial_median_ratio": 1.4,
+      "all_finite": true
+    },
+    "accuracy_limits": {
+      "mass_tv": 0.06,
+      "center_rms_sigma": 0.2,
+      "abs_cov_trace_bias": 0.1,
+      "radial_ks": 0.04
+    }
+  },
+  "resources": {
+    "gpus": 1,
+    "gpu_memory_mb": 2048,
+    "cpu_threads": 1,
+    "timeout_seconds": 3600
+  },
+  "requires_capabilities": [
+    "checkpoint",
+    "named_rng",
+    "live_sampling",
+    "mog_prior"
+  ],
+  "dependencies": [
+    {
+      "task": "grid100",
+      "kind": "gate"
+    }
+  ]
+}

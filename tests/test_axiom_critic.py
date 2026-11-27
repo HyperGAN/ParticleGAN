@@ -260,20 +260,19 @@ def test_fwad_accuracy_on_mlp_conv_bn_groupnorm_and_vit_plus_bn_preservation() -
 def test_automatic_secant_fallback_on_emulated_quantized_and_low_precision_ulp() -> None:
     torch.manual_seed(0)
 
-    # 1) EmulatedLinear (MXFP8 & NVFP4) automatically triggers secant fallback and caches id.
+    # 1) EmulatedLinear (MXFP8 & NVFP4) supports native fwAD jvp cleanly without secant fallback.
     for fmt in ("mxfp8", "nvfp4"):
         critic = nn.Sequential(nn.Linear(2, 16), nn.SiLU(), nn.Linear(16, 1))
         emulate_linear_training_(critic, fmt)
         kern = AxiomPenaltyKernel(record=AxiomStepRecord(), coeff=1.0, kappa=1.0)
         xr, xf = torch.randn(16, 2), torch.randn(16, 2)
         pen1, st1 = kern.penalty(critic, xr, xf, collect_stats=True)
-        assert st1["regime"] == "secant" and torch.isfinite(pen1) and float(pen1.item()) > 0.0
-        assert id(critic) in kern._fwad_unsupported
+        assert st1["regime"] == "fwad" and torch.isfinite(pen1) and float(pen1.item()) > 0.0
+        assert id(critic) not in kern._fwad_unsupported
         pen1.backward()
         assert any(p.grad is not None and float(p.grad.abs().sum().item()) > 0.0 for p in critic.parameters())
-        # Second call goes directly to secant via cached capability flag.
         pen2, st2 = kern.penalty(critic, xr, xf, collect_stats=True)
-        assert st2["regime"] == "secant" and torch.isfinite(pen2)
+        assert st2["regime"] == "fwad" and torch.isfinite(pen2)
 
     # 2) Precision-aware sparsity prevents ULP underflow in BF16 / FP16 on high-D critics.
     assert _secant_sparsity(1024, 0.02, torch.float32) == 1024
@@ -299,16 +298,20 @@ def test_automatic_secant_fallback_on_emulated_quantized_and_low_precision_ulp()
         def forward(self, x: torch.Tensor) -> torch.Tensor:
             return _NoJvpOp.apply(x, self.w)
 
-    for dt in (torch.bfloat16, torch.float16):
+    # 3) Custom autograd.Function without jvp triggers capability-based secant fallback and caches id.
+    for dt in (torch.float32, torch.bfloat16, torch.float16):
         c_lp = _NoJvpCritic(512, dt)
         xr_lp = torch.randn(16, 512, dtype=dt)
         xf_lp = torch.randn(16, 512, dtype=dt)
         kern_lp = AxiomPenaltyKernel(record=AxiomStepRecord())
         pen_lp, st_lp = kern_lp.penalty(c_lp, xr_lp, xf_lp, collect_stats=True)
         assert st_lp["regime"] == "secant"
+        assert id(c_lp) in kern_lp._fwad_unsupported
         assert torch.isfinite(pen_lp) and st_lp["s_hat"] > 0.0
         pen_lp.backward()
         assert c_lp.w.grad is not None and bool(torch.isfinite(c_lp.w.grad).all())
+        pen_lp2, st_lp2 = kern_lp.penalty(c_lp, xr_lp, xf_lp, collect_stats=True)
+        assert st_lp2["regime"] == "secant" and torch.isfinite(pen_lp2)
 
 
 # ---------------------------------------------------------------------------

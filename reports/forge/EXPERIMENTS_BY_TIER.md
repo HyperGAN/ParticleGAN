@@ -2,9 +2,9 @@
 
 Current task assignments, grouped by goal view and qualification tier. Required tasks gate progression; ranking and diagnostic tasks retain their declared roles.
 
-Catalog: **227 tasks**; **185 assigned** to at least one view; **42 unassigned**. Showing **44/44 views**.
+Catalog: **228 tasks**; **185 assigned** to at least one view; **43 unassigned**. Showing **44/44 views**.
 
-Declared priors across the catalog: **112 MoGParticlePrior**, **115 ParticlePrior** (including **12 nonsampled parameter controls**). Every experiment defines `execution.prior` explicitly; candidate and API defaults cannot supply it. `kind: mog` selects `MoGParticlePrior`; `kind: particle_cloud` selects `ParticlePrior`. Sigma alone does not identify the code path. Ordinary Forge MoG tasks require positive sigma; archived zero-sigma MoG evidence keeps its recorded kind. Task sigma is absolute; API demonstrations may instead record the recipe's relative `sigma_rel`.
+Declared priors across the catalog: **113 MoGParticlePrior**, **115 ParticlePrior** (including **12 nonsampled parameter controls**). Every experiment defines `execution.prior` explicitly; candidate and API defaults cannot supply it. `kind: mog` selects `MoGParticlePrior`; `kind: particle_cloud` selects `ParticlePrior`. Sigma alone does not identify the code path. Ordinary Forge MoG tasks require positive sigma; archived zero-sigma MoG evidence keeps its recorded kind. Task sigma is absolute; API demonstrations may instead record the recipe's relative `sigma_rel`.
 
 Reproducible comparisons use the fixed screening seed `0` and candidate-independent named RNG streams. Within each task, candidates share architecture, data law, batch size, prior, initialization, training budget, evaluation cadence and sampling law. Only the declared trainer change varies. The initialization column exposes fixed controls and component policies that take precedence over the deterministic orthogonal fallback; these are separate comparison cohorts. Historical results retain their original bindings.
 
@@ -2370,6 +2370,7 @@ These catalog tasks have no tier placement. Add an assignment to a view to inclu
 | [gaussian1d_shallow_smoke](../../configs/forge/tasks/gaussian1d_shallow_smoke.json) | MoGParticlePrior (sigma=0.1) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-gaussian1d-acquisition) | transfer_vector / gaussian_smoke | 1000 | 120 | — |
 | [gaussian1d_shallow_stability](../../configs/forge/tasks/gaussian1d_shallow_stability.json) | MoGParticlePrior (sigma=0.1) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-gaussian1d-acquisition) | transfer_vector / gaussian_stability | 6000 | 600 | [gaussian1d_shallow_smoke](../../configs/forge/tasks/gaussian1d_shallow_smoke.json) (checkpoint) |
 | [grid100_affine_square_named_v1_14k](../../configs/forge/tasks/grid100_affine_square_named_v1_14k.json) | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; component policy; screening | [Question, results, GIFs](#experiment-grid100) | native100_continuation / native_accuracy | 14000 total; 7000 additional | 7200 | [grid100_affine_square_named_v1](../../configs/forge/tasks/grid100_affine_square_named_v1.json) (checkpoint); [clockfree_audit](../../configs/forge/tasks/clockfree_audit.json) (gate) |
+| [grid100_res16_scaled_tanh_v2](../../configs/forge/tasks/grid100_res16_scaled_tanh_v2.json) | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-grid100) | native100 / native_accuracy | 7000 | 3600 | [grid100](../../configs/forge/tasks/grid100.json) (gate) |
 | [recipe-prior-refactor-legacy-ae_gan_hold](../../configs/forge/tasks/recipe-prior-refactor-legacy-ae_gan_hold.json) | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-ae-gan-hold) | transfer_behavior / transfer_sustained | 250 | 300 | — |
 | [recipe-prior-refactor-legacy-clockfree_audit_measurement_v1](../../configs/forge/tasks/recipe-prior-refactor-legacy-clockfree_audit_measurement_v1.json) | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-recipe-prior-refactor-legacy-clockfree-audit-measurement-v1) | clockfree_audit / clockfree_parity | 24 | 300 | — |
 | [recipe-prior-refactor-legacy-cover_leftover](../../configs/forge/tasks/recipe-prior-refactor-legacy-cover_leftover.json) | ParticlePrior (sigma=0) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-cover-leftover) | transfer_behavior / transfer_sustained | 800 | 1800 | — |
@@ -4100,23 +4101,23 @@ Recorded Forge task outcomes (exact saved configuration/source/runtime):
 
 | Task | Configuration | Recorded prior code path | Recorded outcome | Current declaration | Source / cohort | Evidence |
 | --- | --- | --- | --- | --- | --- | --- |
-| five_word_joint_hold | [Axiom](../../configs/forge/ideas/axiom-v5.json) | ParticlePrior (sigma=0) | PASS | matches; source remains frozen | cuda / 73250fe3bd6d / c0b7b1584c3e | [source-bound receipt index](technique-inventory.json) |
+| five_word_joint_hold | [Axiom](../../configs/forge/ideas/axiom-v5.json) | ParticlePrior (sigma=0) | PASS | CHANGED; earlier contract | cuda / 73250fe3bd6d / c0b7b1584c3e | [source-bound receipt index](technique-inventory.json) |
 | five_word_joint_hold | [BCAP dualnorm (experimental starting point)](../../configs/forge/ideas/recipe-prior-refactor-bcap-pure-v1.json) | ParticlePrior (sigma=0) | PASS | CHANGED; earlier contract | cuda / a0493ca3c213 / 8a6ee0b1c9ce | [source-bound receipt index](technique-inventory.json) |
 | five_word_joint_hold | [BISPF](../../configs/forge/ideas/bispf-optimized-quintic-v1.json) | ParticlePrior (sigma=0) | PASS | CHANGED; earlier contract | cuda / d9d72d53761c / a5c1a7106c9f | [source-bound receipt index](technique-inventory.json) |
-| five_word_joint_hold | [EMPF](../../configs/forge/ideas/empf-v8.json) | ParticlePrior (sigma=0) | PASS | matches; source remains frozen | cuda / 50398cb0343e / 011c04414056 | [source-bound receipt index](technique-inventory.json) |
-| five_word_joint_hold | [RHBI](../../configs/forge/ideas/rhbi-v12.json) | ParticlePrior (sigma=0) | PASS | matches; source remains frozen | cuda / 09f0f9d4c75d / 6ac008841db0 | [source-bound receipt index](technique-inventory.json) |
-| five_word_joint_hold | [Unified](../../configs/forge/ideas/unified-v15.json) | ParticlePrior (sigma=0) | FAIL | matches; source remains frozen | cuda / 73250fe3bd6d / 11f2878eba42 | [source-bound receipt index](technique-inventory.json) |
-| five_word_joint_smoke | [Atlas](../../configs/forge/ideas/atlas-particle-normal-v4.json) | ParticlePrior (sigma=0) | PASS | matches; source remains frozen | cuda / 5c522b84bee4 / dc82ab5a8b7f | [source-bound receipt index](technique-inventory.json) |
-| five_word_joint_smoke | [Axiom](../../configs/forge/ideas/axiom-v5.json) | ParticlePrior (sigma=0) | PASS | matches; source remains frozen | cuda / 73250fe3bd6d / c0b7b1584c3e | [source-bound receipt index](technique-inventory.json) |
+| five_word_joint_hold | [EMPF](../../configs/forge/ideas/empf-v8.json) | ParticlePrior (sigma=0) | PASS | CHANGED; earlier contract | cuda / 50398cb0343e / 011c04414056 | [source-bound receipt index](technique-inventory.json) |
+| five_word_joint_hold | [RHBI](../../configs/forge/ideas/rhbi-v12.json) | ParticlePrior (sigma=0) | PASS | CHANGED; earlier contract | cuda / 09f0f9d4c75d / 6ac008841db0 | [source-bound receipt index](technique-inventory.json) |
+| five_word_joint_hold | [Unified](../../configs/forge/ideas/unified-v15.json) | ParticlePrior (sigma=0) | FAIL | CHANGED; earlier contract | cuda / 73250fe3bd6d / 11f2878eba42 | [source-bound receipt index](technique-inventory.json) |
+| five_word_joint_smoke | [Atlas](../../configs/forge/ideas/atlas-particle-normal-v4.json) | ParticlePrior (sigma=0) | PASS | CHANGED; earlier contract | cuda / 5c522b84bee4 / dc82ab5a8b7f | [source-bound receipt index](technique-inventory.json) |
+| five_word_joint_smoke | [Axiom](../../configs/forge/ideas/axiom-v5.json) | ParticlePrior (sigma=0) | PASS | CHANGED; earlier contract | cuda / 73250fe3bd6d / c0b7b1584c3e | [source-bound receipt index](technique-inventory.json) |
 | five_word_joint_smoke | [BCAP dualnorm (experimental starting point)](../../configs/forge/ideas/recipe-prior-refactor-bcap-pure-v1.json) | ParticlePrior (sigma=0) | PASS | CHANGED; earlier contract | cuda / a0493ca3c213 / 8a6ee0b1c9ce | [source-bound receipt index](technique-inventory.json) |
 | five_word_joint_smoke | [BISPF](../../configs/forge/ideas/bispf-optimized-quintic-v1.json) | ParticlePrior (sigma=0) | PASS | CHANGED; earlier contract | cuda / d9d72d53761c / a5c1a7106c9f | [source-bound receipt index](technique-inventory.json) |
-| five_word_joint_smoke | [EMPF](../../configs/forge/ideas/empf-v8.json) | ParticlePrior (sigma=0) | PASS | matches; source remains frozen | cuda / 50398cb0343e / 011c04414056 | [source-bound receipt index](technique-inventory.json) |
-| five_word_joint_smoke | [K3P](../../configs/forge/ideas/recipe-prior-refactor-k3p-v1.json) | ParticlePrior (sigma=0) | PASS | matches; source remains frozen | cuda / 5c522b84bee4 / 3b62b23e9e55 | [source-bound receipt index](technique-inventory.json) |
-| five_word_joint_smoke | [KA2](../../configs/forge/ideas/recipe-prior-refactor-ka2-v1.json) | ParticlePrior (sigma=0) | PASS | matches; source remains frozen | cuda / 5c522b84bee4 / 43dffe153ad5 | [source-bound receipt index](technique-inventory.json) |
-| five_word_joint_smoke | [R1/R2](../../configs/forge/ideas/recipe-prior-refactor-r1r2-v1.json) | ParticlePrior (sigma=0) | FAIL | matches; source remains frozen | cuda / 5c522b84bee4 / 9ab2242697a6 | [source-bound receipt index](technique-inventory.json) |
-| five_word_joint_smoke | [GAN v3 release 0.7](../../configs/forge/ideas/recipe-prior-refactor-release07-gan-v3-v1.json) | ParticlePrior (sigma=0) | FAIL | matches; source remains frozen | cuda / 5c522b84bee4 / 709e0c8d464d | [source-bound receipt index](technique-inventory.json) |
-| five_word_joint_smoke | [RHBI](../../configs/forge/ideas/rhbi-v12.json) | ParticlePrior (sigma=0) | PASS | matches; source remains frozen | cuda / 09f0f9d4c75d / 6ac008841db0 | [source-bound receipt index](technique-inventory.json) |
-| five_word_joint_smoke | [Unified](../../configs/forge/ideas/unified-v15.json) | ParticlePrior (sigma=0) | PASS | matches; source remains frozen | cuda / 73250fe3bd6d / 11f2878eba42 | [source-bound receipt index](technique-inventory.json) |
+| five_word_joint_smoke | [EMPF](../../configs/forge/ideas/empf-v8.json) | ParticlePrior (sigma=0) | PASS | CHANGED; earlier contract | cuda / 50398cb0343e / 011c04414056 | [source-bound receipt index](technique-inventory.json) |
+| five_word_joint_smoke | [K3P](../../configs/forge/ideas/recipe-prior-refactor-k3p-v1.json) | ParticlePrior (sigma=0) | PASS | CHANGED; earlier contract | cuda / 5c522b84bee4 / 3b62b23e9e55 | [source-bound receipt index](technique-inventory.json) |
+| five_word_joint_smoke | [KA2](../../configs/forge/ideas/recipe-prior-refactor-ka2-v1.json) | ParticlePrior (sigma=0) | PASS | CHANGED; earlier contract | cuda / 5c522b84bee4 / 43dffe153ad5 | [source-bound receipt index](technique-inventory.json) |
+| five_word_joint_smoke | [R1/R2](../../configs/forge/ideas/recipe-prior-refactor-r1r2-v1.json) | ParticlePrior (sigma=0) | FAIL | CHANGED; earlier contract | cuda / 5c522b84bee4 / 9ab2242697a6 | [source-bound receipt index](technique-inventory.json) |
+| five_word_joint_smoke | [GAN v3 release 0.7](../../configs/forge/ideas/recipe-prior-refactor-release07-gan-v3-v1.json) | ParticlePrior (sigma=0) | FAIL | CHANGED; earlier contract | cuda / 5c522b84bee4 / 709e0c8d464d | [source-bound receipt index](technique-inventory.json) |
+| five_word_joint_smoke | [RHBI](../../configs/forge/ideas/rhbi-v12.json) | ParticlePrior (sigma=0) | PASS | CHANGED; earlier contract | cuda / 09f0f9d4c75d / 6ac008841db0 | [source-bound receipt index](technique-inventory.json) |
+| five_word_joint_smoke | [Unified](../../configs/forge/ideas/unified-v15.json) | ParticlePrior (sigma=0) | PASS | CHANGED; earlier contract | cuda / 73250fe3bd6d / 11f2878eba42 | [source-bound receipt index](technique-inventory.json) |
 
 Related public-API demonstrations, with their own recorded contracts:
 
@@ -4269,6 +4270,7 @@ Declared Forge numerical gates and sampling:
 | Metric | Required bound |
 | --- | --- |
 | finite_fraction | == 1 |
+| critic_grad_finite | == 1 |
 | mode_coverage | >= 1 |
 | sprite_hq | >= 0.85 |
 | template_rmse | <= 0.12 |
@@ -4301,6 +4303,7 @@ Declared Forge numerical gates and sampling:
 | Metric | Required bound |
 | --- | --- |
 | finite_fraction | == 1 |
+| critic_grad_finite | == 1 |
 | mode_coverage | >= 1 |
 | sprite_hq | >= 0.85 |
 | template_rmse | <= 0.12 |
@@ -4861,7 +4864,7 @@ Related public-API demonstrations, with their own recorded contracts:
 
 Calibrated 10,000-step accuracy budget for the 16-layer MLP Grid100 architecture (replaces the tight 7k horizon for steady-state accuracy while preserving grid100_mlp16 at 7,000 steps as the deep-16L speed diagnostic).
 
-Forge declarations: [grid100](../../configs/forge/tasks/grid100.json), [grid100_14k](../../configs/forge/tasks/grid100_14k.json), [grid100_14k_policy_cloud_coverage_as_served_v1](../../configs/forge/task-variants/policy_cloud_coverage_as_served_v1/grid100_14k_policy_cloud_coverage_as_served_v1.json), [grid100_14k_policy_cloud_coverage_v1](../../configs/forge/task-variants/policy_cloud_coverage_v1/grid100_14k_policy_cloud_coverage_v1.json), [grid100_affine_paired_laws_v1](../../configs/forge/tasks/grid100_affine_paired_laws_v1.json), [grid100_affine_square_named_v1](../../configs/forge/tasks/grid100_affine_square_named_v1.json), [grid100_affine_square_named_v1_14k](../../configs/forge/tasks/grid100_affine_square_named_v1_14k.json), [grid100_mlp16](../../configs/forge/tasks/grid100_mlp16.json), [grid100_mlp16_10k](../../configs/forge/tasks/grid100_mlp16_10k.json), [grid100_policy_cloud_coverage_as_served_v1](../../configs/forge/task-variants/policy_cloud_coverage_as_served_v1/grid100_policy_cloud_coverage_as_served_v1.json), [grid100_policy_cloud_coverage_v1](../../configs/forge/task-variants/policy_cloud_coverage_v1/grid100_policy_cloud_coverage_v1.json), [grid100_release07_cloud_named_v1](../../configs/forge/tasks/grid100_release07_cloud_named_v1.json), [grid100_res16_scaled_tanh](../../configs/forge/tasks/grid100_res16_scaled_tanh.json), [grid100_res16_tanh](../../configs/forge/tasks/grid100_res16_tanh.json), [recipe-prior-refactor-legacy-grid100](../../configs/forge/tasks/recipe-prior-refactor-legacy-grid100.json).
+Forge declarations: [grid100](../../configs/forge/tasks/grid100.json), [grid100_14k](../../configs/forge/tasks/grid100_14k.json), [grid100_14k_policy_cloud_coverage_as_served_v1](../../configs/forge/task-variants/policy_cloud_coverage_as_served_v1/grid100_14k_policy_cloud_coverage_as_served_v1.json), [grid100_14k_policy_cloud_coverage_v1](../../configs/forge/task-variants/policy_cloud_coverage_v1/grid100_14k_policy_cloud_coverage_v1.json), [grid100_affine_paired_laws_v1](../../configs/forge/tasks/grid100_affine_paired_laws_v1.json), [grid100_affine_square_named_v1](../../configs/forge/tasks/grid100_affine_square_named_v1.json), [grid100_affine_square_named_v1_14k](../../configs/forge/tasks/grid100_affine_square_named_v1_14k.json), [grid100_mlp16](../../configs/forge/tasks/grid100_mlp16.json), [grid100_mlp16_10k](../../configs/forge/tasks/grid100_mlp16_10k.json), [grid100_policy_cloud_coverage_as_served_v1](../../configs/forge/task-variants/policy_cloud_coverage_as_served_v1/grid100_policy_cloud_coverage_as_served_v1.json), [grid100_policy_cloud_coverage_v1](../../configs/forge/task-variants/policy_cloud_coverage_v1/grid100_policy_cloud_coverage_v1.json), [grid100_release07_cloud_named_v1](../../configs/forge/tasks/grid100_release07_cloud_named_v1.json), [grid100_res16_scaled_tanh](../../configs/forge/tasks/grid100_res16_scaled_tanh.json), [grid100_res16_scaled_tanh_v2](../../configs/forge/tasks/grid100_res16_scaled_tanh_v2.json), [grid100_res16_tanh](../../configs/forge/tasks/grid100_res16_tanh.json), [recipe-prior-refactor-legacy-grid100](../../configs/forge/tasks/recipe-prior-refactor-legacy-grid100.json).
 
 Declared Forge numerical gates and sampling:
 
@@ -5015,7 +5018,7 @@ Both sustained coverage and independent holdout accuracy must pass.
 | Scoring weights | live |
 | Evaluation output noise | clean |
 
-[grid100_res16_scaled_tanh](../../configs/forge/tasks/grid100_res16_scaled_tanh.json)
+[grid100_res16_scaled_tanh](../../configs/forge/tasks/grid100_res16_scaled_tanh.json), [grid100_res16_scaled_tanh_v2](../../configs/forge/tasks/grid100_res16_scaled_tanh_v2.json)
 
 | Metric | Required bound |
 | --- | --- |
@@ -8205,6 +8208,6 @@ The wider question review also links standalone experiments outside the Forge ti
 - [Later questions](../toy_audit/api_contract/recent_prs/README.md)
 - [Caption questions](../toy_audit/api_contract/caption_prs/README.md)
 
-Declaration input digest: `634f12a16a89ec35faf2069b6d7cfaf3e3d8090895be9b51d8ee1cb9394448ee`. The JSON form includes the individual task and view file hashes.
+Declaration input digest: `169129a02dca1d1fb27d0b7f92ff5a48a96cd94afbffbcf21b07713c3f5c70db`. The JSON form includes the individual task and view file hashes.
 
-Published artifact input digest: `738957157b049ebef17b6e739ee37e661370554f1adc1fc9408ce6786a8caea2`. Artifact hashes and exact recipe/source/runtime bindings are included in the JSON form.
+Published artifact input digest: `42a5d7b4c4b73248bbb207c805b5a8ff56c76ae84e954c9c4e5718a5f8ecd845`. Artifact hashes and exact recipe/source/runtime bindings are included in the JSON form.

@@ -560,3 +560,75 @@ def test_view_chain_bytegan_stretch_and_adapters_dispatch(tmp_path):
             assert grade_result(original, wrong)["gate_status"] == "INVALID"
     finally:
         torch.set_num_threads(old)
+
+
+def test_bytegan_and_interpolation_checkpoint_batch_hash_and_cpu_uint8_set_state():
+    """Verify batch_sequence_sha256 checkpoint continuation and CPU uint8 set_state normalization."""
+    from benchmarks.toy_audit import api_bytegan, api_interpolation
+
+    # 1. ByteGANToyFixture split resume preserves exact batch_sequence_sha256
+    f_direct = api_bytegan.build_case("api-bytegan-hypercube8", device="cpu", seed=0, recipe_name="axiom", max_steps=4)
+    for _ in range(4):
+        f_direct.step()
+
+    f_part = api_bytegan.build_case("api-bytegan-hypercube8", device="cpu", seed=0, recipe_name="axiom", max_steps=4)
+    for _ in range(2):
+        f_part.step()
+    ckpt = deepcopy(f_part.state_dict())
+    assert "batch_sequence_sha256" in ckpt
+
+    f_res = api_bytegan.build_case("api-bytegan-hypercube8", device="cpu", seed=0, recipe_name="axiom", max_steps=4)
+    f_res.load_state_dict(ckpt)
+    for _ in range(2):
+        f_res.step()
+    assert f_res.batch_sequence_sha256 == f_direct.batch_sequence_sha256
+
+    # 2. ByteGANBiGANFixture split resume preserves batch_sequence_sha256 and passes CPU uint8 to input_noise_generator.set_state
+    b_direct = api_bytegan.build_case("api-bytegan-bigan-dictionary", device="cpu", seed=0, recipe_name="axiom", max_steps=4)
+    for _ in range(4):
+        b_direct.step()
+
+    b_part = api_bytegan.build_case("api-bytegan-bigan-dictionary", device="cpu", seed=0, recipe_name="axiom", max_steps=4)
+    for _ in range(2):
+        b_part.step()
+    b_ckpt = deepcopy(b_part.state_dict())
+    assert "batch_sequence_sha256" in b_ckpt
+
+    b_res = api_bytegan.build_case("api-bytegan-bigan-dictionary", device="cpu", seed=0, recipe_name="axiom", max_steps=4)
+    seen_in_states: list[torch.Tensor] = []
+    real_in_gen = b_res.input_noise_generator
+
+    class _SpyGen:
+        device = torch.device("cuda", 0)
+
+        def set_state(self, st: torch.Tensor) -> None:
+            seen_in_states.append(st)
+            real_in_gen.set_state(st)
+
+    b_res.input_noise_generator = _SpyGen()  # type: ignore[assignment]
+    try:
+        b_res.load_state_dict(b_ckpt)
+    finally:
+        b_res.input_noise_generator = real_in_gen
+    assert len(seen_in_states) == 1
+    assert seen_in_states[0].device.type == "cpu" and seen_in_states[0].dtype == torch.uint8
+    for _ in range(2):
+        b_res.step()
+    assert b_res.batch_sequence_sha256 == b_direct.batch_sequence_sha256
+
+    # 3. InterpolationToyFixture split resume preserves exact batch_sequence_sha256
+    i_direct = api_interpolation.build_case("api-interp-sparse-arc", device="cpu", seed=0, recipe_name="axiom", max_steps=4)
+    for _ in range(4):
+        i_direct.step()
+
+    i_part = api_interpolation.build_case("api-interp-sparse-arc", device="cpu", seed=0, recipe_name="axiom", max_steps=4)
+    for _ in range(2):
+        i_part.step()
+    i_ckpt = deepcopy(i_part.state_dict())
+    assert "batch_sequence_sha256" in i_ckpt
+
+    i_res = api_interpolation.build_case("api-interp-sparse-arc", device="cpu", seed=0, recipe_name="axiom", max_steps=4)
+    i_res.load_state_dict(i_ckpt)
+    for _ in range(2):
+        i_res.step()
+    assert i_res.batch_sequence_sha256 == i_direct.batch_sequence_sha256

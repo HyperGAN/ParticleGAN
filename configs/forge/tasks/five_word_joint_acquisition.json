@@ -114,7 +114,7 @@
     "sources": {
       "benchmarks/locked_shared/baseline.py": "8f1f58fc9cb90159c555788e593769d50070deaa078d0637bf881cf074f6680b",
       "benchmarks/locked_shared/observation.py": "bd6f9845b44f1ec2a58d445727990ba5068c7aca3b6f981cf38d738a37c4513b",
-      "benchmarks/toy_audit/api_images.py": "5102bd74ebf3f75a6100c4bfbe4fe788fefd4b2f2e8cb384e651523cf142e88a",
+      "benchmarks/toy_audit/api_images.py": "2b3497ca5655b8bb0d1c630daf96fa5e5f88e7a5b1fb1c01545e32ced40f588e",
       "benchmarks/toy_audit/definition_quality.py": "42d835ab7a0937a6c3759dd719691c721663b7857cb990405253e90f7fbd4cc9",
       "benchmarks/toy_audit/reproducibility.py": "5f29fd7f9579be894e97bf4ad93bee8c77aeff104437b5d4e6dc4a4303935891",
       "benchmarks/transfer_suite/protocol.py": "99469b022b790a18a74021a6fe49424d95f535afaa220643688a1ddd7a70ab89"
@@ -185,6 +185,16 @@
       },
       "qualification_input": false,
       "change": "Bind future executions to integrated provider/adapter bytes. Original research task/source/seed/initialization, receipts and verdicts stay archived at the original PR head. No original attempt is relabelled or regraded."
+    },
+    "integration_source_binding": {
+      "id": "reviewed-model-prs-integration-20261109",
+      "change": "Bind future executions to audit-remediated particlegan/policy.py and api_images.py bytes. Archived research retains its original source, task, gates and outcome; no quality inheritance.",
+      "previous_task_commit": "50abd361b25fd3b56ce0d30852867d15f33cabf9",
+      "previous_task_path": "configs/forge/tasks/five_word_joint_acquisition.json",
+      "previous_task_sha256": "5eb1470fce9f1aad9dea486a43c3ac3276c2568a3fa48cebaae3a3dc712bc2ab",
+      "previous_task_blob": "279a1da6f9fe2dcca550093f5c28073493812565",
+      "integration_receipt": "reports/forge/reviewed-pr-integration-20261126/source-binding.json",
+      "qualification_input": false
     }
   },
   "resources": {

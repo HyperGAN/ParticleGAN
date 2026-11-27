@@ -45,7 +45,9 @@ from .routing import RoutedBatch, RoutedCandidate, RoutedExecution, RoutedRows
 from .training import (
     GANTrainer,
     InputNoise,
+    bind_formulation_records,
     configure_bf16_autocast,
+    critic_g_step_mode,
     critic_source_context,
     float_output,
     uses_bf16_autocast,
@@ -57,7 +59,7 @@ from .vicreg_loss import ParticleRegularizer
 from .coulomb_prior import CoulombPriorRegularizer
 from .sigreg import SIGReg
 from .initial_mmd import InitialMMDRegularizer
-from .low_precision import EmulatedLinear, emulate_linear_training_
+from .low_precision import EmulatedLinear, emulate_linear_training_, validate_emulated_extra_states
 from .bispf import (
     BISPFGates,
     BISPFCriticAdam,
@@ -158,6 +160,17 @@ from .unified_v11 import (
     bind_unified_v11_record,
     record_unified_v11_generator_probe,
 )
+from ._unified_v15 import (
+    UnifiedV15CouplingLoss,
+    UnifiedV15CriticAdam,
+    UnifiedV15CriticPenalty,
+    UnifiedV15GANLoss,
+    UnifiedV15Optimizer,
+    UnifiedV15PriorRegularizer,
+    UnifiedV15StepRecord,
+    bind_unified_v15_record,
+    record_unified_v15_generator_probe,
+)
 from .cond_fiber import (
     CondFiberBank,
     CondFiberCriticAdam,
@@ -190,7 +203,7 @@ from .axiom import (
 from . import init
 
 __all__ = [
-    "EmulatedLinear", "emulate_linear_training_",
+    "EmulatedLinear", "emulate_linear_training_", "validate_emulated_extra_states",
     "disable_autograd_multithreading", "serial_autograd",
     "init",
     "TensorFlowV1Adam",
@@ -216,6 +229,7 @@ __all__ = [
     "UnifiedCriticAdam", "UnifiedCriticPenalty", "UnifiedGANLoss", "UnifiedPriorRegularizer", "UnifiedStepRecord", "bind_unified_record",
     "UnifiedV4CriticAdam", "UnifiedV4CriticPenalty", "UnifiedV4EquilibratedOptimizer", "UnifiedV4GANLoss", "UnifiedV4PriorRegularizer", "UnifiedV4StepRecord", "bind_unified_v4_record",
     "UnifiedV11CondFiberBank", "UnifiedV11CriticAdam", "UnifiedV11CriticPenalty", "UnifiedV11EquilibratedOptimizer", "UnifiedV11GANLoss", "UnifiedV11PriorRegularizer", "UnifiedV11StepRecord", "bind_unified_v11_record", "record_unified_v11_generator_probe",
+    "UnifiedV15CouplingLoss", "UnifiedV15CriticAdam", "UnifiedV15CriticPenalty", "UnifiedV15GANLoss", "UnifiedV15Optimizer", "UnifiedV15PriorRegularizer", "UnifiedV15StepRecord", "bind_unified_v15_record", "record_unified_v15_generator_probe",
     "CondFiberBank", "CondFiberCriticAdam", "CondFiberCriticPenalty", "CondFiberGANLoss", "CondFiberStepRecord", "bind_cond_fiber_record",
     "MinimalConstraintGeneratorOptimizer", "MinimalCriticOptimizer", "MinimalCriticPenalty", "MinimalGeneratorOptimizer", "MinimalLoss", "MinimalPriorRegularizer", "MinimalStepRecord", "bind_minimal_record",
     "AxiomCondFiberBank", "AxiomCriticPenalty", "AxiomGANLoss", "AxiomOptimizer", "AxiomPenaltyKernel", "AxiomPriorRegularizer", "AxiomStepRecord", "AxiomTransportLoss", "bind_axiom_record",
@@ -223,6 +237,6 @@ __all__ = [
     "conditional_energy_score", "joint_reconstruction_loss",
     "masked_mixture_nll", "NeuralComponentImputer", "masked_quantile_transport_loss",
     "DEFAULT_RECIPE", "Recipe", "NetworkLRTransition", "DataDriftController", "get_recipe", "get_recipe_fields", "learning_rate_scale", "learning_rate_scales", "scale_learning_rates", "GANTrainer", "InputNoise",
-    "configure_bf16_autocast", "critic_source_context", "float_output", "uses_bf16_autocast", "uses_channels_last", "uses_simplicial_manifold_loss",
+    "bind_formulation_records", "configure_bf16_autocast", "critic_g_step_mode", "critic_source_context", "float_output", "uses_bf16_autocast", "uses_channels_last", "uses_simplicial_manifold_loss",
     "BatchDistanceDiscriminator", "LinearSkipDiscriminator",
 ]

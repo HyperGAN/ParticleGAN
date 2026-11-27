@@ -8,7 +8,9 @@ import pytest
 from experiments.forge import api
 from experiments.forge import views
 from experiments.forge.contracts import atomic_json, file_hash, read_json, stable_hash
-from experiments.forge.publication_integrity import CORRECTIONS, IDENTITY_FIELDS, load_corrections
+from experiments.forge.publication_integrity import (
+    CORRECTIONS_FILES, IDENTITY_FIELDS, load_corrections,
+)
 from experiments.forge.sampling import validate_declaration
 from ops import refresh_forge_readouts as refresh
 from particlegan import get_recipe
@@ -224,22 +226,27 @@ def test_recipe_substitution_and_ema_sampling_do_not_satisfy_live_formula(curren
 
 def test_scope_corrected_archived_pass_does_not_satisfy_measurement_completion(current_cell):
     root, _, save = current_cell
-    path = root / CORRECTIONS
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_bytes((ROOT / CORRECTIONS).read_bytes())
+    for rel_path in CORRECTIONS_FILES:
+        dest = root / rel_path
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        dest.write_bytes((ROOT / rel_path).read_bytes())
     keys = load_corrections(ROOT)
-    record = next(row for row in read_json(ROOT / COVERAGE)["records"]
-                  if row["key"] in keys and row["status"] == "PASS")
-    record = deepcopy(record)
-    # Preserve exact original bytes/identity, even though the requested family
-    # has a different current candidate and source.
-    save(record)
-    errors = refresh._coverage_observation_errors(root, record,
-        {"candidate": {"id": record["candidate_id"]}, "candidate_revision": record["candidate_revision"],
-         "source": {"digest": record["source_digest"]}},
-        read_json(ROOT / "configs/forge/tasks" / (record["task"] + ".json")), {})
-    assert "corrected_archived_diagnostic" in errors
-    assert record["status"] == "PASS"
+    coverage_records = read_json(ROOT / COVERAGE)["records"]
+    for rel_path in CORRECTIONS_FILES:
+        reg = rel_path.as_posix()
+        record = next(row for row in coverage_records
+                      if row["key"] in keys and keys[row["key"]]["registry"] == reg
+                      and row["status"] == "PASS")
+        record = deepcopy(record)
+        # Preserve exact original bytes/identity, even though the requested family
+        # has a different current candidate and source.
+        save(record)
+        errors = refresh._coverage_observation_errors(root, record,
+            {"candidate": {"id": record["candidate_id"]}, "candidate_revision": record["candidate_revision"],
+             "source": {"digest": record["source_digest"]}},
+            read_json(ROOT / "configs/forge/tasks" / (record["task"] + ".json")), {})
+        assert "corrected_archived_diagnostic" in errors
+        assert record["status"] == "PASS"
 
 
 def test_published_scope_can_be_intact_while_current_measurements_are_missing(monkeypatch, tmp_path):

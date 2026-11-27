@@ -204,3 +204,18 @@ def test_checkpoints_that_recorded_the_old_init_field_still_load():
     checkpoint["recipe"]["initialization"] = "unknown"
     with pytest.raises(ValueError, match="recipe"):
         build().load_state_dict(checkpoint)
+
+
+def test_deterministic_orthogonal_handles_rmsnorm_without_bias():
+    net = nn.Sequential(
+        nn.Linear(4, 8),
+        nn.RMSNorm(8),
+        nn.RMSNorm(8, elementwise_affine=False),
+        nn.Linear(8, 2),
+    )
+    decls = init.declarations(net)
+    assert decls["1.weight"] is init.KEEP
+    assert "1.bias" not in decls
+    before_scale = net[1].weight.detach().clone()
+    init.deterministic_orthogonal_(net, seed=0)
+    assert torch.equal(net[1].weight, before_scale)

@@ -3927,6 +3927,7 @@ Current pass criteria:
 | Metric | Required bound |
 | --- | --- |
 | finite_fraction | == 1 |
+| critic_grad_finite | == 1 |
 | mode_coverage | >= 1 |
 | sprite_hq | >= 0.85 |
 | template_rmse | <= 0.12 |
@@ -3961,6 +3962,7 @@ Current pass criteria:
 | Metric | Required bound |
 | --- | --- |
 | finite_fraction | == 1 |
+| critic_grad_finite | == 1 |
 | mode_coverage | >= 1 |
 | sprite_hq | >= 0.85 |
 | template_rmse | <= 0.12 |
@@ -11651,6 +11653,7 @@ Current pass criteria:
 | Metric | Required bound |
 | --- | --- |
 | finite_fraction | == 1 |
+| critic_grad_finite | == 1 |
 | mode_coverage | >= 1 |
 | sprite_hq | >= 0.85 |
 | template_rmse | <= 0.12 |
@@ -11685,6 +11688,7 @@ Current pass criteria:
 | Metric | Required bound |
 | --- | --- |
 | finite_fraction | == 1 |
+| critic_grad_finite | == 1 |
 | mode_coverage | >= 1 |
 | sprite_hq | >= 0.85 |
 | template_rmse | <= 0.12 |
@@ -19039,6 +19043,7 @@ Current pass criteria:
 | Metric | Required bound |
 | --- | --- |
 | finite_fraction | == 1 |
+| critic_grad_finite | == 1 |
 | mode_coverage | >= 1 |
 | sprite_hq | >= 0.85 |
 | template_rmse | <= 0.12 |
@@ -19073,6 +19078,7 @@ Current pass criteria:
 | Metric | Required bound |
 | --- | --- |
 | finite_fraction | == 1 |
+| critic_grad_finite | == 1 |
 | mode_coverage | >= 1 |
 | sprite_hq | >= 0.85 |
 | template_rmse | <= 0.12 |

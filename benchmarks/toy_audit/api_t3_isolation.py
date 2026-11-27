@@ -30,6 +30,8 @@ from particlegan import (
     ParticlePrior,
     Recipe,
     UpdatePolicy,
+    bind_formulation_records,
+    critic_g_step_mode,
     init,
     learning_rate_scales,
 )
@@ -475,38 +477,14 @@ def t3_isolation_oracle_controls() -> dict[str, dict[str, Any]]:
     }
 
 
-def _bind_formulation_record(recipe: Recipe, opt_d: Any, loss_fn: Any, prior_reg_fn: Any = None) -> None:
-    record = getattr(opt_d, "record", None)
-    if record is None:
-        return
-    eff = recipe.effective_critic_formulation
-    if eff == "bispf":
-        from particlegan.bispf import bind_thermal_source
-        bind_thermal_source(record, loss_fn, prior_reg_fn)
-    elif eff == "empf":
-        from particlegan.empf import bind_empf_record
-        bind_empf_record(record, loss_fn, prior_reg_fn)
-    elif eff == "t2_secant":
-        from particlegan.t2_critic import bind_t2_record
-        bind_t2_record(record, loss_fn, prior_reg_fn)
-    elif eff == "unified_v11":
-        from particlegan.unified_v11 import bind_unified_v11_record
-        bind_unified_v11_record(record, loss_fn, prior_reg_fn)
-    elif eff == "axiom":
-        from particlegan.axiom import bind_axiom_record
-        bind_axiom_record(record, loss_fn, prior_reg_fn)
-    elif eff == "minimal":
-        from particlegan.minimal import bind_minimal_record
-        bind_minimal_record(record, loss_fn, prior_reg_fn)
-    elif eff == "rhbi" or recipe.rhbi_weight > 0 or recipe.rhbi_critic_weight > 0:
-        from particlegan.rhbi import bind_rhbi_record
-        bind_rhbi_record(record, loss_fn, prior_reg_fn)
-    elif eff == "t1_coupling" or recipe.t1c_weight > 0:
-        from particlegan.t1_coupling import bind_t1_coupling_record
-        bind_t1_coupling_record(record, loss_fn, prior_reg_fn)
-    elif eff == "rgdt":
-        from particlegan.t3_dynamics import bind_rgdt_record
-        bind_rgdt_record(record, loss_fn, prior_reg_fn)
+def _bind_formulation_record(
+    recipe: Recipe,
+    opt_d: Any,
+    loss_fn: Any,
+    prior_reg_fn: Any = None,
+    generator: nn.Module | None = None,
+) -> None:
+    bind_formulation_records(recipe, opt_d, loss_fn, prior_reg_fn, generator=generator)
 
 
 class T3IsolationFixture:
@@ -564,6 +542,7 @@ class T3IsolationFixture:
             "rgdt",
             "axiom",
             "unified_v11",
+            "unified_v15",
             "minimal",
         )
         ema_critic = None if recipe.effective_critic_formulation in no_ema_forms else deepcopy(self.D)
@@ -575,7 +554,7 @@ class T3IsolationFixture:
         )
         self.loss = recipe.make_loss()
         self.penalty = recipe.make_critic_penalty(self.opt_d, collect_stats=True)
-        _bind_formulation_record(recipe, self.opt_d, self.loss, None)
+        bind_formulation_records(recipe, self.opt_d, self.loss, None, generator=self.G)
 
         stream_map = dict(streams or {})
         latent_gen = stream_map.get("latent_generator") or torch.Generator(device=self.device).manual_seed(int(seed) + 101)
@@ -635,7 +614,6 @@ class T3IsolationFixture:
         real_d = real_d_cpu.to(self.device)
         real_g = real_g_cpu.to(self.device)
 
-        flags = [p.requires_grad for p in self.D.parameters()]
         try:
             game_rec = getattr(getattr(self.penalty, "regularizer", None), "record", None)
             noise = self.policy.begin_step(real_d, game_record=game_rec, execution_limit=self.max_steps)
@@ -660,52 +638,51 @@ class T3IsolationFixture:
             self.opt_d.step()
             self.policy.after_critic_step()
 
-            for p in self.D.parameters():
-                p.requires_grad_(False)
-            self.opt_g.zero_grad(set_to_none=True)
-            z_g, rows_g = self.prior.sample(b_sz, generator=self.policy.latent_generator)
-            flat_rows = rows_g.flatten()
-            self.policy.observe_sampled_rows(flat_rows)
-            fake_g = self.policy.generate(
-                z_g,
-                rows=flat_rows,
-                sigma=noise.output_sigma,
-                stream=self.policy.noise_generator,
-            )
-            real_logits_g = self.critic(real_g)
-            self._bind_discrete_step(True)
-            loss_gan = self.loss.g_loss(self.critic(fake_g), real_logits_g)
+            with critic_g_step_mode(self.D):
+                self.opt_g.zero_grad(set_to_none=True)
+                z_g, rows_g = self.prior.sample(b_sz, generator=self.policy.latent_generator)
+                flat_rows = rows_g.flatten()
+                self.policy.observe_sampled_rows(flat_rows)
+                fake_g = self.policy.generate(
+                    z_g,
+                    rows=flat_rows,
+                    sigma=noise.output_sigma,
+                    stream=self.policy.noise_generator,
+                )
+                real_logits_g = self.critic(real_g)
+                self._bind_discrete_step(True)
+                loss_gan = self.loss.g_loss(self.critic(fake_g), real_logits_g)
 
-            protected_evaluator = None
-            if self.recipe.constraint_geometry_mode == "strict_progress":
-                locations = self.prior.z.detach().clone()
-                sampled_latent = z_g.detach().clone()
+                protected_evaluator = None
+                if self.recipe.constraint_geometry_mode == "strict_progress":
+                    locations = self.prior.z.detach().clone()
+                    sampled_latent = z_g.detach().clone()
 
-                def protected_evaluator() -> tuple[torch.Tensor]:
-                    rec = getattr(self.opt_d, "record", None)
-                    prev_probe = getattr(rec, "_in_protected_probe", False) if rec is not None else False
-                    if rec is not None:
-                        rec._in_protected_probe = True
-                    try:
-                        replay = sampled_latent + (self.prior.z[flat_rows] - locations[flat_rows])
-                        gen_r = self.policy.generate(replay, rows=flat_rows, sigma=0.0, stream=None)
-                        self._bind_discrete_step(True)
-                        return (self.loss.g_loss(self.critic(gen_r), real_logits_g),)
-                    finally:
-                        self._bind_discrete_step(False)
+                    def protected_evaluator() -> tuple[torch.Tensor]:
+                        rec = getattr(self.opt_d, "record", None)
+                        prev_probe = getattr(rec, "_in_protected_probe", False) if rec is not None else False
                         if rec is not None:
-                            rec._in_protected_probe = prev_probe
+                            rec._in_protected_probe = True
+                        try:
+                            replay = sampled_latent + (self.prior.z[flat_rows] - locations[flat_rows])
+                            gen_r = self.policy.generate(replay, rows=flat_rows, sigma=0.0, stream=None)
+                            self._bind_discrete_step(True)
+                            return (self.loss.g_loss(self.critic(gen_r), real_logits_g),)
+                        finally:
+                            self._bind_discrete_step(False)
+                            if rec is not None:
+                                rec._in_protected_probe = prev_probe
 
-            self.policy.before_generator_backward()
-            constraint_geometry_backward(
-                loss_gan,
-                self.opt_g,
-                (loss_gan,),
-                protected_evaluator=protected_evaluator,
-            )
-            self.policy.after_generator_backward(loss_gan=loss_gan.detach(), loss_critic=adv_d.detach())
-            self.opt_g.step()
-            self.policy.after_generator_step()
+                self.policy.before_generator_backward()
+                constraint_geometry_backward(
+                    loss_gan,
+                    self.opt_g,
+                    (loss_gan,),
+                    protected_evaluator=protected_evaluator,
+                )
+                self.policy.after_generator_backward(loss_gan=loss_gan.detach(), loss_critic=adv_d.detach())
+                self.opt_g.step()
+                self.policy.after_generator_step()
             self.policy.finish_step()
 
             if self.kind == "t3_iso_horizon_saddle_shift" and self.completed_steps == SADDLE_SHIFT_STEP:
@@ -727,8 +704,6 @@ class T3IsolationFixture:
             raise
         finally:
             self._bind_discrete_step(False)
-            for p, flag in zip(self.D.parameters(), flags):
-                p.requires_grad_(flag)
 
     def observe(self, reference: torch.Tensor) -> dict[str, Any]:
         pts = self.prior.z.detach()
@@ -779,9 +754,9 @@ class T3IsolationFixture:
         if state["recipe"] != self.recipe.to_dict() or state["max_steps"] != self.max_steps:
             raise ValueError("T3IsolationFixture checkpoint recipe or max_steps mismatch")
         self.policy.load_state_dict(state["policy"])
-        self.data_d_rng.set_state(state["data_d_rng"])
-        self.data_g_rng.set_state(state["data_g_rng"])
-        self.input_noise_generator.set_state(state["input_noise_rng"])
+        self.data_d_rng.set_state(state["data_d_rng"].detach().to(device="cpu", dtype=torch.uint8).clone())
+        self.data_g_rng.set_state(state["data_g_rng"].detach().to(device="cpu", dtype=torch.uint8).clone())
+        self.input_noise_generator.set_state(state["input_noise_rng"].detach().to(device="cpu", dtype=torch.uint8).clone())
         self.pre_shift_hq = state["pre_shift_hq"]
         self.frozen_snapshot = None if state["frozen_snapshot"] is None else state["frozen_snapshot"].clone()
         if state["loss_fallback_ell"] is not None and hasattr(self.loss, "_fallback_ell"):

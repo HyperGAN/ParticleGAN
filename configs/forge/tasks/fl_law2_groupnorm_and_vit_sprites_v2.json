@@ -85,6 +85,11 @@
         1.0
       ],
       [
+        "critic_grad_finite",
+        "==",
+        1.0
+      ],
+      [
         "mode_coverage",
         ">=",
         1.0
@@ -106,7 +111,7 @@
       ]
     ],
     "sources": {
-      "benchmarks/toy_audit/api_four_laws_123.py": "ba76986d5fd69d474518a9430b757311cfc998ec76666d067ae43b62edc2b86a",
+      "benchmarks/toy_audit/api_four_laws_123.py": "be28ca53a22b9ad1fee2b56611bb85346a8672f35b2d66f5f4291ee1fcad54b1",
       "experiments/forge/four_laws.py": "bb749a4e2068bd3257dc26fce8c4706ddabe55e24b53d2e1a104f2d22b27fe83"
     }
   },

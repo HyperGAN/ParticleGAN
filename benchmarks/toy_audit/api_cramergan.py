@@ -28,12 +28,33 @@ from particlegan import (
     MoGParticlePrior,
     ParticlePrior,
     Recipe,
+    bind_formulation_records,
+    critic_g_step_mode,
     get_recipe,
     get_recipe_fields,
     init,
     scale_learning_rates,
     unwrap_prior,
 )
+
+_NO_EMA_FORMULATIONS = frozenset({
+    "bispf",
+    "empf",
+    "rhbi",
+    "t1_coupling",
+    "t2_secant",
+    "rgdt",
+    "t4_nash",
+    "t4_nash_v3",
+    "unified",
+    "unified_v4",
+    "unified_v11",
+    "unified_v15",
+    "r4_autograd_critic",
+    "cond_fiber",
+    "axiom",
+    "minimal",
+})
 from particlegan.optim.constraint_geometry import constraint_geometry_backward
 from .reproducibility import DEFAULT_SEED
 
@@ -327,11 +348,8 @@ class CramerCritic(nn.Module):
         self.logit_head = nn.Linear(self.embed_dim, 1)
 
     def embed(self, x: torch.Tensor) -> torch.Tensor:
-        """Return 16D critic embedding h_psi(x) with isometric coordinate anchor."""
-        h = self.embedding_head(self.trunk(x))
-        if x.shape[-1] <= h.shape[-1]:
-            return 0.25 * h + F.pad(x, (0, h.shape[-1] - x.shape[-1]))
-        return h
+        """Return pure learned 16D critic embedding h_psi(x) without data-space identity skips."""
+        return self.embedding_head(self.trunk(x))
 
     def h_psi(self, x: torch.Tensor) -> torch.Tensor:
         return self.embed(x)
@@ -357,26 +375,14 @@ def cramer_generator_loss(
     fake_x1: torch.Tensor | None = None,
     fake_x2: torch.Tensor | None = None,
 ) -> torch.Tensor:
-    """Two-sample unbiased Cramer energy distance generator objective:
+    """Two-sample unbiased Cramer energy distance generator objective in learned critic embedding space:
     L_G^Cramer(x, x_hat_1, x_hat_2) = E[||h(x) - h(x_hat_1)||_2 + ||h(x) - h(x_hat_2)||_2 - ||h(x_hat_1) - h(x_hat_2)||_2].
     """
+    del real_x, fake_x1, fake_x2
     d_r1 = torch.sqrt((h_real[:, None, :] - h_fake1[None, :, :]).square().sum(dim=-1) + 1e-8)
     d_r2 = torch.sqrt((h_real[:, None, :] - h_fake2[None, :, :]).square().sum(dim=-1) + 1e-8)
     d_12 = torch.sqrt((h_fake1[:, None, :] - h_fake2[None, :, :]).square().sum(dim=-1) + 1e-8)
-    global_energy = d_r1.mean() + d_r2.mean() - d_12.mean()
-    if real_x is None or fake_x1 is None or fake_x2 is None:
-        return global_energy
-
-    with torch.no_grad():
-        tau_sq = 2.0 * (0.45 ** 2)
-        w_r1 = torch.exp(-(real_x[:, None, :] - fake_x1[None, :, :]).square().sum(dim=-1) / tau_sq)
-        w_r2 = torch.exp(-(real_x[:, None, :] - fake_x2[None, :, :]).square().sum(dim=-1) / tau_sq)
-        w_12 = torch.exp(-(fake_x1[:, None, :] - fake_x2[None, :, :]).square().sum(dim=-1) / tau_sq)
-        w_r1 = w_r1 / w_r1.sum().clamp_min(1.0)
-        w_r2 = w_r2 / w_r2.sum().clamp_min(1.0)
-        w_12 = w_12 / w_12.sum().clamp_min(1.0)
-    local_energy = (w_r1 * d_r1).sum() + (w_r2 * d_r2).sum() - (w_12 * d_12).sum()
-    return global_energy + 1.5 * local_energy
+    return d_r1.mean() + d_r2.mean() - d_12.mean()
 
 
 class CramerGANOverlapFixture:
@@ -483,7 +489,11 @@ class CramerGANOverlapFixture:
         if prior is not None:
             self.prior = prior.to(self.device)
         self.recipe = self._resolve_recipe(recipe, self.prior)
-        ema_critic = deepcopy(self.D) if self.recipe.effective_critic_formulation != "bispf" else None
+        ema_critic = (
+            None
+            if self.recipe.effective_critic_formulation in _NO_EMA_FORMULATIONS
+            else deepcopy(self.D)
+        )
         self.opt_g, self.opt_d = self.recipe.make_optimizers(
             self.G,
             self.D,
@@ -496,9 +506,7 @@ class CramerGANOverlapFixture:
         self.loss = self.recipe.make_loss()
         self.regularizer = self.recipe.make_prior_regularizer(prior=self.prior, reference=self.prior)
         self.penalty = self.recipe.make_critic_penalty(self.opt_d)
-        if self.recipe.effective_critic_formulation == "bispf":
-            from particlegan.bispf import bind_thermal_source
-            bind_thermal_source(self.opt_d.record, self.loss, self.regularizer)
+        bind_formulation_records(self.recipe, self.opt_d, self.loss, self.regularizer, generator=self.G)
 
     @property
     def batch_sequence_sha256(self) -> str:
@@ -585,9 +593,7 @@ class CramerGANOverlapFixture:
         # ------------------------------------------------------------------
         # Generator & Prior update: two-sample unbiased Cramer energy loss
         # ------------------------------------------------------------------
-        flags = [p.requires_grad for p in self.D.parameters()]
-        try:
-            self.D.requires_grad_(False)
+        with critic_g_step_mode(self.D):
             z1, idx1 = self._sample_prior_batch(n_batch)
             z2, idx2 = self._sample_prior_batch(n_batch)
             fake_x1 = self._postprocess(self.G(z1))
@@ -600,14 +606,7 @@ class CramerGANOverlapFixture:
             h_fake1_g = self.D.embed(fake_x1)
             h_fake2_g = self.D.embed(fake_x2)
 
-            loss_cramer_g = cramer_generator_loss(
-                h_real_g,
-                h_fake1_g,
-                h_fake2_g,
-                real_x=real_x,
-                fake_x1=fake_x1,
-                fake_x2=fake_x2,
-            )
+            loss_cramer_g = cramer_generator_loss(h_real_g, h_fake1_g, h_fake2_g)
             loss_gan = 0.5 * (self.loss.g_loss(d_g1, d_r) + self.loss.g_loss(d_g2, d_r))
             loss_adv = loss_gan + 0.5 * loss_cramer_g
 
@@ -651,7 +650,7 @@ class CramerGANOverlapFixture:
                         dg2 = self.D(fg2)
                         hg1 = self.D.embed(fg1)
                         hg2 = self.D.embed(fg2)
-                        cg = cramer_generator_loss(h_real_g, hg1, hg2, real_x=real_x, fake_x1=fg1, fake_x2=fg2)
+                        cg = cramer_generator_loss(h_real_g, hg1, hg2)
                         lg = 0.5 * (self.loss.g_loss(dg1, d_r) + self.loss.g_loss(dg2, d_r))
                         return (lg + 0.5 * cg,)
 
@@ -659,9 +658,6 @@ class CramerGANOverlapFixture:
             else:
                 loss_g.backward()
             self.opt_g.step()
-        finally:
-            for p, f in zip(self.D.parameters(), flags):
-                p.requires_grad_(f)
 
         self.completed_steps += 1
         self.last_losses = {

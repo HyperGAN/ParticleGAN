@@ -305,7 +305,7 @@ def test_native_profile_and_deterministic_init_unwrap_manipulated_prior():
         [
             {
                 "class": "particlegan.priors.NormalNoiseManipulator",
-                "config": {"penalty_weight": 1.0, "sigma": 0.1},
+                "config": {"penalty_weight": 1.0, "sigma": 0.1, "kappa_radial": 1.0},
             }
         ]
     ]

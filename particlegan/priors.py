@@ -436,8 +436,31 @@ class ManipulatedPrior(nn.Module):
             gen = noise_generator if noise_generator is not None else generator
             return self._transform(base_codes, idx, gen, eps=eps), idx
 
-        idx = self.sample_indices(batch_size, generator=generator)
         gen = noise_generator if noise_generator is not None else generator
+        if getattr(self.base, "code_law", "table") != "table":
+            if self._samplers:
+                idx = self.sample_indices(batch_size, generator=generator)
+                code_gen = gen if self._base_sample_noise else generator
+                base_codes = self.base._fresh_codes(
+                    len(idx), code_gen, eps=eps if self._base_sample_noise else None
+                )
+            elif self._base_sample_noise:
+                base_codes, idx = self.base.sample(
+                    batch_size, generator=generator, fixed_first_n=False,
+                    offset=offset, eps=eps, noise_generator=noise_generator
+                )
+            else:
+                base_codes, idx = self.base.sample(
+                    batch_size, generator=generator, fixed_first_n=False, offset=offset
+                )
+            return self._transform(base_codes, idx, gen, eps=eps), idx
+
+        from .particle_prior import FreshGaussianPrior, GaussianPrior
+        if isinstance(self.base, (FreshGaussianPrior, GaussianPrior)):
+            base_codes, idx = self.base.sample(batch_size, generator=generator)
+            return self._transform(base_codes, idx, gen, eps=eps), idx
+
+        idx = self.sample_indices(batch_size, generator=generator)
         codes = self.forward(idx, generator=gen, eps=eps)
         return codes, idx
 
@@ -758,7 +781,7 @@ class NormalNoiseManipulator(PriorManipulator):
     normal_noise: bool = True
     additive_transform: bool = True
     row_local_gradients: bool = True
-    config_fields: Tuple[str, ...] = ("sigma",)
+    config_fields: Tuple[str, ...] = ("sigma", "kappa_radial")
 
     def __init__(
         self,
