@@ -94,7 +94,7 @@ managed through the existing PyPI account associated with 255labs.xyz.
 
    ```sh
    python -m venv /tmp/particlegan-release-smoke
-   /tmp/particlegan-release-smoke/bin/python -m pip install particlegan==0.13.1
+   /tmp/particlegan-release-smoke/bin/python -m pip install particlegan==0.14.0
    cd /tmp
    /tmp/particlegan-release-smoke/bin/python -c 'from particlegan import DEFAULT_RECIPE, get_recipe, Recipe; r = get_recipe(); assert DEFAULT_RECIPE == "axiom"; assert Recipe.from_dict(r.to_dict()) == r'
    ```

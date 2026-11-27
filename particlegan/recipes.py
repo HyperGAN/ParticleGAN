@@ -2665,18 +2665,22 @@ def get_recipe_fields(name="gan", *, trainer=None, **overrides):
     recipe. ``"bcap_adam"`` retains the earlier native-Adam
     preset. Both disable the guard, anchor, latent damping, extra
     regularization, EMA serving and additive training noise.
-    ``"axiom"`` is the selected energy-optimal clean-slate Four-Laws default
-    (``DEFAULT_RECIPE``, matching ``axiom-v5``): a self-contained ``<=2,500``-LOC
-    core (``particlegan/_axiom/``) with strictly zero ``torch.autograd.grad``,
-    zero SVD/``eigh``/``pinv``, and strictly clock-free dynamics. It pairs
-    ``AxiomGANLoss`` / ``AxiomTransportLoss`` (conformal local horizons,
-    deconflicted chart & atomic matching, zero-``eigh`` conditional fiber bank),
-    ``AxiomCriticPenalty`` (compute-regime-dispatched exact RoR on low-D /
-    GroupNorm / quantized critics and fast ``fwAD`` linear-R1+R2 on high-res
-    Conv2d, plus zero-mean logit gauge), ``AxiomPriorRegularizer`` (exact
-    mass/LTV Laguerre pullback with central finite-offset isometry), and
-    ``AxiomOptimizer`` (zero-state 4D Conv2d Frobenius-MP, compound-pathology
-    Critic NS fast path, verified batch-RMS trust, and zero-``pinv``
+    ``"axiom"`` is the selected clean-slate 9-module Four-Laws default
+    (``DEFAULT_RECIPE``, matching ``axiom-v6``): a self-contained acyclic
+    core (``particlegan/_axiom/``, schema-2 fail-closed checkpoints) with
+    strictly zero ``torch.autograd.grad``, zero SVD/``eigh``/``pinv``, and
+    strictly clock-free dynamics. It pairs ``AxiomGANLoss`` /
+    ``AxiomTransportLoss`` / ``AxiomCondFiberBank`` (continuous
+    ``kappa_struct``, zero-sync GPU quota-balanced routing, Nadaraya-Watson
+    simplicial manifold projection, and FP64 zero-``eigh`` Halley/NS
+    conditional fiber bank), ``AxiomCriticPenalty`` (native ``fwAD`` including
+    ``EmulatedLinear.jvp`` with capability-based central-secant fallback,
+    zero-Jensen EMA-gated Lipschitz hinge, and zero-mean logit gauge),
+    ``AxiomPriorRegularizer`` + ``PrototypeAtlas`` (anisotropic LTC atlas,
+    continuous ``rho_atom``, GPU commitment ledger, and Whitened Burg Log-Det
+    pullback), and ``AxiomOptimizer`` (``0.0 B/param`` 4D Conv2d state,
+    compound-pathology 2D NS + Schatten-6 ceiling, single ``fork_rng``
+    verified batch-RMS trust, and single-backward zero-``pinv``
     ``direction_blend``) plus ``bf16_channels_last`` conv training at constant
     learning rates (``lr=0.014``, ``d_lr_mult=1.5``, ``prior_lr_mult=2.9``,
     ``prior_reg=0.02``, ``optimizer_smoothing=0.05``).

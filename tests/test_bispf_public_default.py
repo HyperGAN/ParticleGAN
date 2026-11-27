@@ -17,7 +17,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_public_default_matches_every_selected_candidate_field_except_label():
-    axiom_candidate = json.loads((ROOT / "configs/forge/ideas/axiom-v5.json").read_text())
+    axiom_candidate = json.loads((ROOT / "configs/forge/ideas/axiom-v6.json").read_text())
     actual = json.loads(json.dumps(asdict(get_recipe())))
     assert DEFAULT_RECIPE == actual["name"] == "axiom"
     for field, value in axiom_candidate["recipe_overrides"].items():
