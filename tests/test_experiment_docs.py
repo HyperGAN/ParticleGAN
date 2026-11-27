@@ -68,7 +68,7 @@ def test_all_base_tasks_preserve_fingerprints_and_bytes_vs_develop():
     if base_ref is None:
         pytest.skip("develop ref unavailable in detached/shallow CI checkout")
     task_paths = _all_base_task_paths()
-    assert len(task_paths) == 162
+    assert len(task_paths) == 163
     for path in task_paths:
         rel = path.relative_to(ROOT).as_posix()
         current_bytes = path.read_bytes()
@@ -82,7 +82,7 @@ def test_all_base_tasks_preserve_fingerprints_and_bytes_vs_develop():
 
 def test_all_base_pages_svgs_and_sidecars_exist_and_are_valid():
     task_ids = [json.loads(p.read_text(encoding="utf-8"))["id"] for p in _all_base_task_paths()]
-    assert len(task_ids) == 162
+    assert len(task_ids) == 163
     assert (EXPERIMENTS_DIR / "README.md").is_file()
     assert LAWS_HUB.is_file()
 
@@ -127,7 +127,7 @@ def test_svg_generation_is_deterministic():
 
 def test_generated_markdown_has_safe_mermaid_math_and_resolving_links():
     md_files = sorted(EXPERIMENTS_DIR.glob("*.md")) + [LAWS_HUB]
-    assert len(md_files) == 164
+    assert len(md_files) == 165
     anchor_cache: dict[Path, set[str]] = {}
     broken_links: list[str] = []
     math_issues: list[str] = []
@@ -279,7 +279,7 @@ def test_dynamic_laws_registry_and_inline_task_documentation(tmp_path: Path):
 
 def test_dcgan_r256_renders_scaling_metrics_and_repo_bloat_passes():
     catalog = build_experiment_catalog(ROOT)
-    assert catalog["experiment_count"] == 162
+    assert catalog["experiment_count"] == 163
     assert catalog["full_suite_count"] == 59
     assert catalog["unimplemented_backlog_count"] == 12
     r256 = (EXPERIMENTS_DIR / "dcgan_performance_r256.md").read_text(encoding="utf-8")

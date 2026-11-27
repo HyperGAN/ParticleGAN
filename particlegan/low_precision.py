@@ -145,7 +145,7 @@ class _Linear(torch.autograd.Function):
     @staticmethod
     def jvp(ctx, dx, dw, db, _d_owner):
         x, weight = ctx.saved_tensors
-        owner, format = ctx.owner, ctx.owner.format
+        format = ctx.owner.format
         with _no_autocast(x.device):
             dy = None
             if dx is not None:

@@ -127,7 +127,7 @@
     "sources": {
       "benchmarks/locked_shared/baseline.py": "8f1f58fc9cb90159c555788e593769d50070deaa078d0637bf881cf074f6680b",
       "benchmarks/locked_shared/observation.py": "bd6f9845b44f1ec2a58d445727990ba5068c7aca3b6f981cf38d738a37c4513b",
-      "benchmarks/toy_audit/api_images.py": "5102bd74ebf3f75a6100c4bfbe4fe788fefd4b2f2e8cb384e651523cf142e88a",
+      "benchmarks/toy_audit/api_images.py": "2b3497ca5655b8bb0d1c630daf96fa5e5f88e7a5b1fb1c01545e32ced40f588e",
       "benchmarks/toy_audit/definition_quality.py": "42d835ab7a0937a6c3759dd719691c721663b7857cb990405253e90f7fbd4cc9",
       "benchmarks/toy_audit/reproducibility.py": "5f29fd7f9579be894e97bf4ad93bee8c77aeff104437b5d4e6dc4a4303935891",
       "benchmarks/transfer_suite/protocol.py": "99469b022b790a18a74021a6fe49424d95f535afaa220643688a1ddd7a70ab89",
@@ -136,7 +136,7 @@
       "experiments/forge/word_tasks.py": "79dd0d4c04989e07e168347255c0db3adc62cc5d0b657c27b9b71b0055761814",
       "particlegan/conditional_transport.py": "4ffa96e7688825b83e618edbc1f0e2a6bc1ac6fb2e3e5d04d7f27274069e24ee",
       "particlegan/kinetic_transport.py": "8922627370b55e9e6b47e4c946f94cbd23f87bf17a94c6b9410fcf3c3967c1ee",
-      "particlegan/policy.py": "be442dcf21f03a5d1cd364177724fc15560df8cbf401c85bd4630f62f5ea9535"
+      "particlegan/policy.py": "17f41d827c883d0a3d96051d1468634ae800a9fc0d961a5d477088d38d0f7bbd"
     },
     "evaluator_revision": {
       "id": "pr-474-develop-integration-20261108",
@@ -279,13 +279,13 @@
     },
     "integration_source_binding": {
       "id": "reviewed-model-prs-integration-20261109",
-      "change": "Bind future executions to the reviewed combined source. Archived research retains its original source, task, gates and outcome; no quality inheritance.",
-      "qualification_input": false,
-      "previous_task_commit": "4a5ff6d4db831a23a7c95b5d14ce84ff73dfee06",
+      "change": "Bind future executions to audit-remediated particlegan/policy.py and api_images.py bytes. Archived research retains its original source, task, gates and outcome; no quality inheritance.",
+      "previous_task_commit": "50abd361b25fd3b56ce0d30852867d15f33cabf9",
       "previous_task_path": "configs/forge/tasks/five_word_joint_smoke.json",
-      "previous_task_sha256": "8a07fce73063693f6724a0cde97bfa91054e0036721c42a98e9a6cd6f5cce674",
-      "previous_task_blob": "289ff3cfe7fc5bef663459c192bee7fd8c80971d",
-      "integration_receipt": "reports/forge/reviewed-pr-integration-20261109/source-binding.json"
+      "previous_task_sha256": "ec1c7af0accdee873a77a7839fff8a6792218c08ec165f001b41b0722d7e2f17",
+      "previous_task_blob": "ed895a1b25e7379836cf1bba5ceacbbd2f4d1509",
+      "integration_receipt": "reports/forge/reviewed-pr-integration-20261126/source-binding.json",
+      "qualification_input": false
     }
   },
   "resources": {

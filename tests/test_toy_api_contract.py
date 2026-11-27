@@ -127,7 +127,7 @@ def test_executable_inventory_retains_every_historical_question_and_pr231():
     gan_stretch = {
         "api-alice-spiral-bigan", "api-cgan-overlapping-classes",
         "api-cramer-energy-overlap", "api-cyclegan-unpaired-constellation",
-        "api-grid100-res16-scaled-tanh",
+        "api-grid100-res16-scaled-tanh", "api-grid100-res16-scaled-tanh-v2",
         "api-infogan-anisotropic-modes", "api-misgan-mcar-p50-recovery",
         "api-misgan-mcar-p80-anchored", "api-pacgan-unequal-mass", "api-pacgan8-grid100",
     }
@@ -152,6 +152,6 @@ def test_executable_inventory_retains_every_historical_question_and_pr231():
                   and name not in four_laws_stretch
                   and name not in bn_dcgan_guard}
     assert len(historical) == 186
-    assert len(cases) == 215  # Eight model cases, scoped MisGAN, ten GAN stretch cases, nine Four Laws cases, and BN-DCGAN guard.
+    assert len(cases) == 216  # Eight model cases, scoped MisGAN, eleven GAN stretch cases (incl. clean scaled_tanh_v2), nine Four Laws cases, and BN-DCGAN guard.
     assert all(case["evaluation_observations"] >= case.get("terminal_observations", 5)
                for case in cases.values())
