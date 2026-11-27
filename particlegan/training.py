@@ -213,34 +213,26 @@ def critic_source_context(critic, source):
     conversion or additive input noise) allocates a new tensor storage pointer so
     formulation hooks still match ``source`` during critic penalty evaluation.
     """
+    from ._axiom.state import axiom_source_context
+
     target = critic
-    if target is not None and not (hasattr(target, "_t2_record") or hasattr(target, "_axiom_record")):
+    if target is not None and not hasattr(target, "_t2_record"):
         inner = getattr(target, "critic", None)
-        if inner is not None and (hasattr(inner, "_t2_record") or hasattr(inner, "_axiom_record")):
+        if inner is not None and hasattr(inner, "_t2_record"):
             target = inner
     has_t2 = target is not None and source is not None and hasattr(target, "_t2_record")
-    has_axiom = target is not None and source is not None and hasattr(target, "_axiom_record")
-    if not (has_t2 or has_axiom):
-        yield
-        return
     sentinel = object()
     prev_t2 = sentinel
-    prev_axiom = sentinel
     if has_t2:
         from ._t2_critic.critic import _tensor_identity_key
         prev_t2 = getattr(target, "_t2_pending_source_key", sentinel)
         target._t2_pending_source_key = _tensor_identity_key(source)
-    if has_axiom:
-        from ._axiom.critic import _tensor_id
-        prev_axiom = getattr(target, "_axiom_pending_source_key", sentinel)
-        target._axiom_pending_source_key = _tensor_id(source)
     try:
-        yield
+        with axiom_source_context(critic, source):
+            yield
     finally:
         if has_t2:
             target._t2_pending_source_key = None if prev_t2 is sentinel else prev_t2
-        if has_axiom:
-            target._axiom_pending_source_key = None if prev_axiom is sentinel else prev_axiom
 
 
 def _enter_critic_g_step_mode(critic):
@@ -371,15 +363,8 @@ class InputNoise(nn.Module):
                         float_parts=float_parts,
                         overwrite=True,
                     )
-            if hasattr(target, "_axiom_input") or hasattr(self.critic, "_axiom_record"):
-                rec_ax = getattr(target, "_axiom_record", getattr(self.critic, "_axiom_record", None))
-                if rec_ax is None or not getattr(rec_ax, "_in_penalty", False):
-                    target._axiom_input = x
-                    if rec_ax is not None:
-                        target._axiom_record = rec_ax
-                    prev_parts = getattr(target, "_axiom_parts", None)
-                    if isinstance(prev_parts, tuple) and prev_parts:
-                        target._axiom_parts = (x, *prev_parts[1:])
+            from ._axiom.state import override_axiom_capture_input
+            override_axiom_capture_input(out, x, critic=self.critic, args=args, kwargs=kwargs)
         return out
 
 
@@ -653,7 +638,7 @@ class GANTrainer:
             from .cond_fiber import bind_cond_fiber_record
             bind_cond_fiber_record(self.opt_d.record, self.loss, self.prior_regularizer)
         elif recipe.effective_critic_formulation == "axiom":
-            from ._axiom.critic import bind_axiom_record
+            from ._axiom.state import bind_axiom_record
             bind_axiom_record(self.opt_d.record, self.loss, self.prior_regularizer)
             if self.prior_regularizer is not None and getattr(self.prior_regularizer, "_bound_device", None) is None:
                 g_dev = next((p.device for p in self.G.parameters()), None)
@@ -1147,9 +1132,14 @@ class GANTrainer:
                     # Its contribution to the training objective is recipe.prior_reg.
                     raw = self.prior.z if recipe.num_particles <= 1024 else self.prior.z[torch.unique(indices)]
                     prior_reg = self.prior_regularizer(raw)
+                aux_terms = []
+                if recipe.prior_reg > 0 and prior_reg.requires_grad:
+                    aux_terms.append(recipe.prior_reg * prior_reg)
                 loss_g = loss_gan + recipe.prior_reg * prior_reg
                 if self.prior.z.requires_grad and recipe.prior_l2 > 0:
-                    loss_g = loss_g + recipe.prior_l2 * self.prior.z.square().mean()
+                    l2_term = recipe.prior_l2 * self.prior.z.square().mean()
+                    aux_terms.append(l2_term)
+                    loss_g = loss_g + l2_term
                 prior_manip_loss = None
                 if self._prior_penalty:
                     raw_rows = self.prior.z if recipe.num_particles <= 1024 else self.prior.z[torch.unique(indices)]
@@ -1187,6 +1177,8 @@ class GANTrainer:
                             macro_settle=recipe.rhbi_simplex_macro_settle,
                             curve_settle=recipe.rhbi_simplex_curve_settle,
                         )
+                    if simplex_loss.requires_grad:
+                        aux_terms.append(simplex_loss)
                     loss_g = loss_g + simplex_loss
                 rgdt_chart_loss = None
                 if (
@@ -1203,6 +1195,8 @@ class GANTrainer:
                         real_g,
                         record=getattr(self.opt_d, "record", None),
                     )
+                    if rgdt_chart_loss.requires_grad:
+                        aux_terms.append(rgdt_chart_loss)
                     loss_g = loss_g + rgdt_chart_loss
                 self.opt_g.zero_grad()
                 protected_evaluator = None
@@ -1225,8 +1219,20 @@ class GANTrainer:
                         finally:
                             if rec is not None:
                                 rec._in_protected_probe = prev_probe
-                constraint_geometry_backward(loss_g, self.opt_g, (loss_gan,),
-                                             protected_evaluator=protected_evaluator)
+                use_axiom_single_bw = (
+                    recipe.optimizer_family == "axiom"
+                    and recipe.constraint_geometry_mode == "direction_blend"
+                    and hasattr(self.opt_g, "backward_with_protected")
+                    and not self._prior_penalty
+                    and not recipe.kinetic_transport_weight
+                    and not recipe.kinetic_transport_local_weight
+                )
+                if use_axiom_single_bw:
+                    aux_loss = sum(aux_terms[1:], aux_terms[0]) if aux_terms else None
+                    self.opt_g.backward_with_protected(loss_gan, aux_loss)
+                else:
+                    constraint_geometry_backward(loss_g, self.opt_g, (loss_gan,),
+                                                 protected_evaluator=protected_evaluator)
                 self.policy.after_generator_backward(
                     loss_gan=loss_gan.detach(), loss_critic=(loss_d - penalty).detach())
                 if self._gradient_response is not None:

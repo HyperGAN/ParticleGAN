@@ -1488,10 +1488,10 @@ class Recipe:
             options = {
                 "coeff": self.reg_coeff,
                 "kappa": self.reg_kappa,
-                "lambda_floor": 0.005,
+                "lambda_floor": 0.025,
                 "beta_ema": 1.5,
                 "gamma_gauge": 0.03,
-                "max_lambda": 2.0,
+                "max_lambda": 4.0,
                 **overrides,
             }
             if options["coeff"] < 0 or options["kappa"] <= 0 or options["lambda_floor"] < 0 or options["gamma_gauge"] < 0:
@@ -2062,9 +2062,11 @@ class Recipe:
             if self.prior_update == "frozen":
                 options["weight"] = 0.
             reg_ax = AxiomPriorRegularizer(reference, **options)
-            rec_ax = getattr(prior, "_axiom_record", None) if prior is not None else None
-            if rec_ax is not None:
-                reg_ax.axiom_record = rec_ax
+            if prior is not None:
+                from ._axiom.state import get_module_record
+                rec_ax = get_module_record(prior)
+                if rec_ax is not None:
+                    reg_ax.axiom_record = rec_ax
             return reg_ax
         if self.prior_regularizer == "minimal":
             from .minimal import MinimalPriorRegularizer
@@ -2580,21 +2582,16 @@ class Recipe:
                 opt_d.record._enable_secant_probe = True
                 _attach_minimal_generator_hook(generator, opt_d.record)
         if self.effective_critic_formulation == "axiom" and hasattr(opt_d, "record"):
-            from ._axiom.critic import _attach_axiom_generator_hook
-            opt_g._axiom_record = opt_d.record
-            opt_d._axiom_record = opt_d.record
-            if hasattr(opt_g, "bind_module_layouts"):
-                opt_g.bind_module_layouts((generator, encoder))
-            elif hasattr(opt_g, "_conv_layouts"):
-                from ._axiom.optimizer import collect_conv_layouts as _axiom_conv_layouts
-                opt_g._conv_layouts.update(_axiom_conv_layouts((generator, encoder)))
-            if hasattr(opt_g, "_gen_param_ids") and generator is not None:
-                opt_g._gen_param_ids = {id(p) for p in generator.parameters()}
-            if generator is not None and self.encoder_mode == "none" and self.model == "gan":
-                opt_d.record._enable_secant_probe = True
-                _attach_axiom_generator_hook(generator, opt_d.record)
-            if base_prior is not None:
-                base_prior._axiom_record = opt_d.record
+            from ._axiom.state import bind_axiom_optimizers
+            bind_axiom_optimizers(
+                opt_g,
+                opt_d,
+                generator=generator,
+                encoder=encoder,
+                prior=prior,
+                base_prior=base_prior,
+                enable_secant_probe=(generator is not None and self.encoder_mode == "none" and self.model == "gan"),
+            )
         return opt_g, opt_d
 
 

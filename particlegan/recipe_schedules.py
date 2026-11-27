@@ -169,7 +169,7 @@ def make_plain_adam(recipe, params, *, critic=None, **options):
             optimizer.record = _CondFiberObserverStepRecord()
             _attach_cond_fiber_critic_hook(critic, optimizer.record)
         elif recipe.effective_critic_formulation == "axiom":
-            from ._axiom.critic import AxiomStepRecord, _attach_axiom_critic_hook
+            from ._axiom.state import AxiomStepRecord, _attach_axiom_critic_hook
             optimizer.record = AxiomStepRecord()
             optimizer._axiom_record = optimizer.record
             _attach_axiom_critic_hook(critic, optimizer.record)
