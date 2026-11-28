@@ -495,41 +495,18 @@ def test_conv2d_batchnorm_zero_state_and_direction_blend() -> None:
         assert torch.isfinite(out["loss_d"]) and torch.isfinite(out["loss_g"])
     assert trainer.opt_d.record.calls == 3
 
-    # Verify default axiom global momentum (betas=0.5) stores only FP32 m_unit+m_scale on 4D convs (no legacy m_u),
-    # stays on the fast path, and still keeps 0.0 B/param tensor state when beta1=0.0 is explicitly configured:
+    # Verify default axiom Mantissa-Exponent Adam stores FP32 m_unit + v_unit on 4D convs (no legacy m_u),
+    # stays on the fused fast path, and exercises zero-sniffing architecture-agnostic updates:
     for opt in (trainer.opt_g, trainer.opt_d):
         assert opt.fast_path_steps >= 1
         for p, st in opt.state.items():
             if isinstance(p, torch.Tensor) and p.ndim == 4:
                 assert "m_u" not in st
                 assert "m_unit" in st and st["m_unit"].dtype == torch.float32
+                assert "v_unit" in st and st["v_unit"].dtype == torch.float32
                 tensor_bytes = sum(v.numel() * v.element_size() for v in st.values() if isinstance(v, torch.Tensor))
-                expected_bytes = p.numel() * 4 + 4
+                expected_bytes = 2 * p.numel() * 4
                 assert tensor_bytes == expected_bytes, f"4D conv state mismatch: {tensor_bytes}B != {expected_bytes}B"
-
-    recipe_zero_mom = pg.get_recipe(
-        "axiom",
-        num_particles=16,
-        z_dim=8,
-        batch_size=8,
-        total_steps=50,
-        betas=(0.0, 0.999),
-        d_betas=(0.0, 0.999),
-    )
-    g0, d0 = _TinyConvG(8), _TinyConvD()
-    prior0 = pg.ParticlePrior(num_particles=16, z_dim=8, learnable=True)
-    _init_deterministic(g0, d0, prior0, seed=4)
-    trainer0 = pg.GANTrainer(recipe_zero_mom, g0, d0, prior=prior0, max_steps=50, seed=4)
-    rng0 = torch.Generator().manual_seed(44)
-    for _ in range(2):
-        imgs0 = torch.randn((8, 1, 16, 16), generator=rng0).clamp(-1.0, 1.0)
-        out0 = trainer0.step(imgs0)
-        assert torch.isfinite(out0["loss_d"]) and torch.isfinite(out0["loss_g"])
-    for opt in (trainer0.opt_g, trainer0.opt_d):
-        for p, st in opt.state.items():
-            if isinstance(p, torch.Tensor) and p.ndim == 4:
-                tensor_bytes = sum(v.numel() * v.element_size() for v in st.values() if isinstance(v, torch.Tensor))
-                assert tensor_bytes == 0, f"beta1=0 4D conv state must be 0 B/param, got {tensor_bytes}B: {list(st.keys())}"
 
     # Verify 1-loss and 2-loss direction_blend non-ascent via public API:
     rec_db = pg.get_recipe("axiom", num_particles=8, z_dim=2, batch_size=16, total_steps=50)

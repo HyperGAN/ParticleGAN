@@ -178,7 +178,7 @@ def compute_contrast_confidence(y_feat: Tensor, *, max_b: int = 64) -> Tensor:
     sorted_nn = dist.clone().fill_diagonal_(_INF).amin(1).sort().values
     med_all = (0.5 * (sorted_all[batch_n + (n_off - 1) // 2] + sorted_all[batch_n + n_off // 2])).clamp_min(1e-30)
     med_nn = 0.5 * (sorted_nn[(batch_n - 1) // 2] + sorted_nn[batch_n // 2])
-    return where(sorted_all[-1] <= 1e-24, 1.0, smoothstep01((0.55 - med_nn / med_all) / 0.30))
+    return where(sorted_all[-1] <= 1e-24, 1.0, smoothstep01((0.50 - med_nn / med_all) / 0.30))
 
 
 @no_grad()
@@ -957,7 +957,7 @@ class AxiomTransportLoss(nn.Module):
         c_ot = -(p_slack_w * (0.5 * self.tau * df)).sum() + (w_rel * self.tau) * (p_align * rel_mat).sum()
         total = kappa * (c_norm + c_ot) + (1 - kappa) * c_rel
         if record is not None:
-            if mutate:
+            if mutate and kappa >= 0.5:
                 _observe_transport_thermal(x_proj, y_proj, ell, aux, disc, simp, has_cond, record)
             t_s = float(getattr(record, "thermal_scale", 1.0))
             total = (

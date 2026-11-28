@@ -346,12 +346,15 @@ class AxiomCondFiberBank:
 
 def _partition_strata(batch_n: int, cond_disc):
     if cond_disc is None:
-        return [((0,), arange(batch_n, dtype=_LONG))], ones((batch_n, batch_n), dtype=_BOOL)
+        return [((0,), arange(batch_n, dtype=_LONG, device="cpu"))], ones((batch_n, batch_n), dtype=_BOOL, device="cpu")
     rows = cond_disc.detach().reshape(batch_n, -1).to("cpu", _LONG)
     buckets: dict[tuple[int, ...], list[int]] = {}
     for idx, row in enumerate(rows.tolist()):
         buckets.setdefault(tuple(int(v) for v in row), []).append(idx)
-    return [(k, tensor(buckets[k], dtype=_LONG)) for k in sorted(buckets)], (rows[:, None] == rows[None]).all(-1)
+    return (
+        [(k, tensor(buckets[k], dtype=_LONG, device="cpu")) for k in sorted(buckets)],
+        (rows[:, None] == rows[None]).all(-1),
+    )
 
 
 def _fallback_midpoint_regression(c, z, groups):
@@ -369,7 +372,8 @@ def _fallback_midpoint_regression(c, z, groups):
 
 def _query_and_update_bank(bank, groups, c, x, y, mutate: bool, mean_blend: float):
     batch_n, d_x = x.shape
-    has_op, w_op = zeros(batch_n, dtype=_BOOL), eye(d_x, dtype=_F64)[None].expand(batch_n, d_x, d_x).clone()
+    has_op = zeros(batch_n, dtype=_BOOL, device="cpu")
+    w_op = eye(d_x, dtype=_F64, device="cpu")[None].expand(batch_n, d_x, d_x).clone()
     delta_m, m_x, m_pool = x.new_zeros((3, batch_n, d_x)).unbind(0)
     err_cov, row_w, m_gate = x.new_zeros((batch_n, d_x, d_x)), x.new_zeros(batch_n), x.new_zeros((batch_n, 1))
     pending, max_mean_err = [], 0.0

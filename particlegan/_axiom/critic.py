@@ -267,7 +267,7 @@ class AxiomPenaltyKernel:
             cap_w = 0.85
         else:
             ema_g = self.record.dev_ema("ema_grad_sq", s_hat.device).to(s_hat.dtype)
-            cap_w = 0.5 * smoothstep01((ema_g / k2 - 0.65) / 0.25)
+            cap_w = 0.5 * smoothstep01((ema_g / k2 - 4.0) / 2.0)
         hinge = cap_w * sum(torch.relu((q + 1e-12).sqrt() - self.kappa).square().mean() for q in (sqr, sqf))
         p_slope = 0.5 * self.coeff * (lam * s_hat + hinge)
         if self.gamma_gauge > 0.0:
