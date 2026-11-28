@@ -907,6 +907,19 @@ def test_atomic_transit_shield_and_committed_ledger_kappa_override():
     lv.backward()
     assert torch.isfinite(lv) and x_far2.grad is not None and float(x_far2.grad.norm().item()) > 0.05
 
+    # Even when a minibatch hits kappa == 0.0 (med_nn / med_all >= 0.55, e.g. even-parity hypercube
+    # slice where min Hamming distance is 2 -> ratio ~0.707), an active atomic_ledger bypasses the
+    # early relativistic fast-path return so committed transport still drives x_fake.
+    y_hi_ratio = atoms256[((atoms256 > 0).sum(1) % 2) == 0][:64]
+    assert float(T.compute_contrast_confidence(y_hi_ratio).item()) <= 1e-4
+    x_far3 = (atoms256[:64] + 1.5).requires_grad_(True)
+    df3 = torch.zeros(64, requires_grad=True)
+    dr3 = torch.zeros(64)
+    T.prepare_axiom_transport_step(fn, rec, y_hi_ratio, prior_table=z_tab, batch_rows=rows, is_discrete_prior=True)
+    lv3 = fn(x_far3, y_hi_ratio, df3, dr3, record=rec, allow_state_update=False)
+    lv3.backward()
+    assert torch.isfinite(lv3) and x_far3.grad is not None and float(x_far3.grad.norm().item()) > 0.05
+
 
 def test_continuous_quota_routing_conservation_zero_halo_pull_and_checkpoint():
     # Exact quota conservation of _gpu_quota_assign across multi-component scores

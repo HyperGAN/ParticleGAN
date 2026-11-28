@@ -110,6 +110,22 @@ def test_effective_dimension_and_continuous_probe_schedule() -> None:
     assert probe_schedule(16, 3 * 256 * 256) == (1, 4)
 
 
+    # Correlated 4D image (dim > 256): _coord_scale uses sqrt(dim_x), avoiding low-rank spatial inflation.
+    low_rank_img = (torch.randn(16, 3, 1, 1) * torch.ones(16, 3, 32, 32)) + 0.05 * torch.randn(16, 3, 32, 32)
+    assert float(effective_dimension(low_rank_img).item()) < 50.0
+    rec_img = AxiomStepRecord()
+    rec_img.observe_margin_and_scale(torch.ones(16, 1), -torch.ones(16, 1), low_rank_img, low_rank_img)
+    sc_img = float(axiom_critic._coord_scale(low_rank_img, low_rank_img, rec_img).item())
+    assert math.isclose(sc_img, float(rec_img.ema_data_scale) / math.sqrt(3 * 32 * 32), rel_tol=1e-4)
+
+    # Small 4D tensor (dim <= 256) keeps effective_dimension scaling.
+    small_img = (torch.randn(16, 1, 1, 1) * torch.ones(16, 1, 16, 16)) + 0.05 * torch.randn(16, 1, 16, 16)
+    rec_sm = AxiomStepRecord()
+    rec_sm.observe_margin_and_scale(torch.ones(16, 1), -torch.ones(16, 1), small_img, small_img)
+    sc_sm = float(axiom_critic._coord_scale(small_img, small_img, rec_sm).item())
+    assert math.isclose(sc_sm, float(rec_sm.ema_data_scale) / math.sqrt(float(effective_dimension(small_img).item())), rel_tol=1e-4)
+
+
 def test_scale_equivariance_across_ten_decades_standalone_and_tracked() -> None:
     torch.manual_seed(11)
     w_lin = torch.randn(4, 1)

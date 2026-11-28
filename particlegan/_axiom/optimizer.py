@@ -41,7 +41,7 @@ _OPT_DEFAULTS = (
     ("foreach", None),
     ("fused", None),
 )
-_FP32_KEYS = ("v_pow", "m_unit", "m_scale", "m_prior")
+_FP32_KEYS = ("v_pow", "m_unit", "v_unit", "m_scale", "m_prior")
 _SCALARS = (
     ("last_step_gain", 0.0, None, True),
     ("ema_func_gain", 0.0, 1.0, True),
@@ -52,6 +52,8 @@ _SCALARS = (
 _META_KEYS = ("schema", "family", "direction_blend", "prev_step_sketch", "sampled_rows") + tuple(s[0] for s in _SCALARS)
 _SKETCH_DIM = 67
 _W_LOG2_FLOOR = log2(1e-12)
+_ME_EPS_REL_SQ = 1e-12
+_ME_UP_CLAMP = 0.25
 
 
 def _require(ok):
@@ -274,6 +276,53 @@ def _add_deltas(params, deltas, dev):
             param.add_(delta)
 
 
+def _me_scale_factors(log2_s, l2_rms, beta2):
+    d_eff = max(-30.0, min(_ME_UP_CLAMP, l2_rms - log2_s))
+    l2_eff = log2_s + d_eff
+    hi = max(log2_s, l2_eff)
+    v_scale = beta2 * (2.0 ** (2.0 * (log2_s - hi))) + (1.0 - beta2) * (2.0 ** (2.0 * (l2_eff - hi)))
+    new_s = hi + 0.5 * log2(max(v_scale, 1e-300))
+    return new_s, 2.0 ** (log2_s - new_s), 2.0 ** (l2_eff - new_s)
+
+
+def _me_adam_single(state, param, grad, rate, beta1, beta2):
+    numel = param.numel()
+    if numel <= 0 or rate <= 0.0:
+        return
+    g_u, l2_g, ok = mantissa_exponent_normalize(grad)
+    if not ok.item():
+        return
+    l2_rms = float(l2_g.item()) - 0.5 * log2(float(numel))
+    g_hat = g_u.float() * sqrt(float(numel))
+    if "m_unit" not in state or "v_unit" not in state:
+        state["log2_init"], state["log2_ref"] = True, l2_rms
+        state["m_unit"], state["v_unit"] = g_hat.clone(), g_hat.square()
+        step = g_hat / (state["v_unit"] + _ME_EPS_REL_SQ).sqrt()
+        param.add_(step.to(param.dtype), alpha=-rate)
+        return
+    new_s, r_old, r_new = _me_scale_factors(state.get("log2_ref", l2_rms), l2_rms, beta2)
+    m_u, v_u = state["m_unit"], state["v_unit"]
+    m_u.mul_(beta1 * r_old).add_(g_hat, alpha=(1.0 - beta1) * r_new)
+    v_u.mul_(beta2 * r_old * r_old).addcmul_(g_hat, g_hat, value=(1.0 - beta2) * r_new * r_new)
+    state["log2_ref"] = new_s
+    param.add_((m_u / (v_u + _ME_EPS_REL_SQ).sqrt()).to(param.dtype), alpha=-rate)
+
+
+def _apply_me_adam_fast(init_items, fast_items):
+    if init_items:
+        ps, gs, lrs = (list(col) for col in zip(*init_items))
+        denoms = torch._foreach_sqrt(torch._foreach_add(torch._foreach_mul(gs, gs), _ME_EPS_REL_SQ))
+        torch._foreach_addcdiv_(ps, gs, denoms, lrs)
+    if fast_items:
+        ps, gs, ms, vs, m_old, g_new, v_old, v_new, lrs = (list(col) for col in zip(*fast_items))
+        torch._foreach_mul_(ms, m_old)
+        torch._foreach_add_(ms, torch._foreach_mul(gs, g_new))
+        torch._foreach_mul_(vs, v_old)
+        torch._foreach_addcmul_(vs, gs, gs, v_new)
+        denoms = torch._foreach_sqrt(torch._foreach_add(vs, _ME_EPS_REL_SQ))
+        torch._foreach_addcdiv_(ps, ms, denoms, lrs)
+
+
 def collect_conv_layouts(modules):
     """Map Conv2d/ConvTranspose2d weight ids to ``(is_transposed, groups)``."""
     return {
@@ -296,8 +345,8 @@ class AxiomOptimizer(Optimizer):
         self,
         params,
         *,
-        lr=0.014,
-        betas=(0.0, 0.999),
+        lr=0.0002,
+        betas=(0.5, 0.999),
         eps=1e-8,
         smoothing=0.05,
         direction_blend=False,
@@ -681,39 +730,44 @@ class AxiomOptimizer(Optimizer):
         return s6_b
 
     def _step_network(self, net_items, norm_map, coeffs, gen_probe, dev):
-        coh, s_osc, s_base, s_spike, g_eq, decay, has_hist, g_mult, d_mult = coeffs
-        fast_p, fast_g, fast_a, fast_gt, upd_p, upd_d, ns_b = [], [], [], [], [], [], {}
-        for i, (p, g, lr_p, fac, half_l2, beta1, is_gen, extra, _) in enumerate(net_items):
-            can_fast = not gen_probe and beta1 == 0.0 and not isinstance(extra, tuple)
-            if (res := _resolve_norms(p, g, norm_map.get(i), not can_fast)) is None:
+        del gen_probe, dev
+        coh, g_mult, d_mult = coeffs[0], coeffs[7], coeffs[8]
+        init_items, fast_items = [], []
+        for i, (p, g, lr_p, beta1, beta2, is_gen) in enumerate(net_items):
+            rate = lr_p * (g_mult if is_gen else d_mult) * coh
+            if rate <= 0.0 or (numel := p.numel()) <= 0:
                 continue
-            g_unit, l2_g, l2_p, has_w = res
+            pair = norm_map.get(i)
             state = self.state[p]
-            cur_l2 = l2_g + l2_p - half_l2
-            ref_l2 = _update_log2_ref(state, cur_l2, g_eq, decay, has_w)
-            ratio = 2.0 ** max(-20.0, min(20.0, ref_l2 - cur_l2))
-            s_tikh = (
-                (g_eq * (s_base * ratio + s_spike * max(0.0, ratio - 1.0)) + s_osc * ratio)
-                if (has_hist and (has_w or state.get("log2_init", False)))
-                else 0.0
+            if pair is None or not (1e-17 < pair[0] < 1e17) or p.dtype != _F32 or g.dtype != _F32:
+                _me_adam_single(state, p, g, rate, beta1, beta2)
+                continue
+            g_rms = pair[0] / sqrt(float(numel))
+            l2_rms = log2(max(g_rms, 1e-300))
+            if "m_unit" not in state or "v_unit" not in state:
+                g_hat = g / g_rms
+                state["log2_init"], state["log2_ref"] = True, l2_rms
+                state["m_unit"], state["v_unit"] = g_hat.clone(), g_hat.square()
+                init_items.append((p, g_hat, -rate))
+                continue
+            new_s, r_old, r_new = _me_scale_factors(state.get("log2_ref", l2_rms), l2_rms, beta2)
+            state["log2_ref"] = new_s
+            fast_items.append(
+                (
+                    p,
+                    g,
+                    state["m_unit"],
+                    state["v_unit"],
+                    beta1 * r_old,
+                    (1.0 - beta1) * r_new / g_rms,
+                    beta2 * r_old * r_old,
+                    (1.0 - beta2) * r_new * r_new / (g_rms * g_rms),
+                    -rate,
+                )
             )
-            rate = lr_p * (g_mult if is_gen else d_mult) * fac * coh
-            eff = -rate / hypot(1.0, s_tikh)
-            if isinstance(g_unit, float):
-                fast_p.append(p)
-                fast_g.append(g)
-                fast_a.append(eff / g_unit)
-                fast_gt.append(extra)
-            elif isinstance(extra, tuple):
-                rows, cols, _ = extra
-                trans = rows > cols
-                mat = _apply_momentum(state, p, g_unit, beta1).float().reshape(rows, cols).transpose(0, int(trans))
-                ns_b.setdefault((mat.shape[0], mat.shape[1]), []).append((p, mat, trans, rate, s_tikh))
-            else:
-                delta = (_apply_momentum(state, p, g_unit, beta1) * eff).to(p.dtype)
-                upd_p.append(p)
-                upd_d.append(delta if extra is None else delta * extra.to(delta.dtype))
-        self._apply_updates(fast_p, fast_g, fast_a, fast_gt, upd_p, upd_d, ns_b, dev)
+        if init_items or fast_items:
+            self.fast_path_steps += 1
+            _apply_me_adam_fast(init_items, fast_items)
 
     def _apply_updates(self, fast_p, fast_g, fast_a, fast_gt, upd_p, upd_d, ns_b, dev):
         if fast_p:
@@ -894,7 +948,7 @@ class AxiomOptimizer(Optimizer):
         prior_boost = self._prior_scale < 1.0
         for group in self.param_groups:
             is_prior, req = group["algorithm"] == "axiom_prior", group.get("sampled_rows_required", True)
-            is_gen, beta1 = group["role"] != "critic", group["betas"][0]
+            is_gen, (beta1, beta2) = group["role"] != "critic", group["betas"]
             base_lr = group["lr"] * lr_scale * (self._prior_scale if is_prior else 1.0)
             for param in group["params"]:
                 if (grad := param.grad) is None:
@@ -911,11 +965,7 @@ class AxiomOptimizer(Optimizer):
                     continue
                 if self._track_probe(gen_probe, param):
                     tracked.append((param, param.detach().clone()))
-                fac, half_l2, rows, cols, min_d = self._param_metrics(param)
-                shape = (rows, cols, min_d) if (param.ndim in (2, 4) and min_d >= 2) else None
-                net_items.append(
-                    (param, grad, lr_p, fac, half_l2, beta1, is_gen, shape, shape is not None and not is_gen)
-                )
+                net_items.append((param, grad, lr_p, beta1, beta2, is_gen))
         return pairs, net_items, prior_items, tracked, dev
 
     @staticmethod
@@ -1016,7 +1066,7 @@ class AxiomOptimizer(Optimizer):
             pairs, prior_items, net_items, g_mult, d_mult, dev
         )
         ema_cos = (0.90 * self.ema_step_cos + 0.10 * synced[1]) if (has_hist and synced[0] > 0.5) else self.ema_step_cos
-        g_down, g_up = smoothstep01((-0.45 - ema_cos) / 0.25), smoothstep01((ema_cos + 0.35) / 0.35)
+        g_down, g_up = smoothstep01((-0.70 - ema_cos) / 0.20), smoothstep01((ema_cos + 0.60) / 0.30)
         self.ema_step_cos, self.log2_damp = ema_cos, max(-10.0, min(0.0, self.log2_damp - 0.12 * g_down + 0.25 * g_up))
         coh, s_osc_raw = 2.0**self.log2_damp, self.smoothing * smoothstep01((-0.35 - ema_cos) / 0.35)
         g_eq = smoothstep01((0.55 - ema_cos) / 0.30)
@@ -1025,7 +1075,6 @@ class AxiomOptimizer(Optimizer):
         s_base = self.smoothing * keep
         s_osc, s_spike = s_osc_raw * keep, 4.0 * s_base
         self._finish_priors(pre_priors, synced, prior_off, s_osc, s_base, s_spike, g_eq, decay, has_hist)
-        s6_b = self._route_critic(net_items, norm_map, s_therm, dev)
         self._step_network(
             net_items,
             norm_map,
@@ -1033,7 +1082,6 @@ class AxiomOptimizer(Optimizer):
             gen_probe,
             dev,
         )
-        self._apply_schatten6(s6_b, dm_val)
         gain, used = self._finish_trust(
             rec, is_critic, gen_probe, tracked, (pre_gain, step_sc, s_therm, is_simp), stiff
         )
@@ -1145,7 +1193,7 @@ class AxiomOptimizer(Optimizer):
             if key in state_val:
                 _require(
                     _tensor_finite(t := state_val[key])
-                    and (key not in ("m_unit", "m_prior") or shape is None or t.shape == shape)
+                    and (key not in ("m_unit", "v_unit", "m_prior") or shape is None or t.shape == shape)
                 )
 
     def validate_state_dict(self, saved):

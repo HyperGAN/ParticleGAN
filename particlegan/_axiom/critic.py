@@ -56,9 +56,14 @@ def probe_schedule(batch_size, dim):
 
 @torch.no_grad()
 def _coord_scale(x_real, x_fake, record):
-    """Coordinate scale s_scale = s_data / sqrt(d_eff) without host syncs."""
+    """Coordinate scale s_scale = s_data / sqrt(d) without host syncs."""
     dev = x_real.device
-    sd = effective_dimension(x_real).sqrt()
+    dim_x = max(1, int(x_real[0].numel()))
+    sd = (
+        x_real.new_full((), math.sqrt(float(dim_x)), dtype=torch.float64)
+        if (x_real.ndim >= 4 and dim_x > 256)
+        else effective_dimension(x_real).sqrt()
+    )
     if record._ema["margin_initialized"] or "margin_initialized" in record._ema_t:
         return (record.dev_ema("ema_data_scale", dev) / sd).clamp(1e-30, 1e30).float()
     work_dt = torch.float64 if x_real.dtype == torch.float64 else torch.float32
@@ -262,7 +267,7 @@ class AxiomPenaltyKernel:
             cap_w = 0.85
         else:
             ema_g = self.record.dev_ema("ema_grad_sq", s_hat.device).to(s_hat.dtype)
-            cap_w = 0.5 * smoothstep01((ema_g / k2 - 0.65) / 0.25)
+            cap_w = 0.5 * smoothstep01((ema_g / k2 - 4.0) / 2.0)
         hinge = cap_w * sum(torch.relu((q + 1e-12).sqrt() - self.kappa).square().mean() for q in (sqr, sqf))
         p_slope = 0.5 * self.coeff * (lam * s_hat + hinge)
         if self.gamma_gauge > 0.0:

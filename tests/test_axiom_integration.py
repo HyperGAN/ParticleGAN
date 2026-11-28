@@ -495,12 +495,18 @@ def test_conv2d_batchnorm_zero_state_and_direction_blend() -> None:
         assert torch.isfinite(out["loss_d"]) and torch.isfinite(out["loss_g"])
     assert trainer.opt_d.record.calls == 3
 
-    # Verify 0.0 B/param tensor state on 4D Conv2d / ConvTranspose2d layers (no m_u momentum tensors):
+    # Verify default axiom Mantissa-Exponent Adam stores FP32 m_unit + v_unit on 4D convs (no legacy m_u),
+    # stays on the fused fast path, and exercises zero-sniffing architecture-agnostic updates:
     for opt in (trainer.opt_g, trainer.opt_d):
+        assert opt.fast_path_steps >= 1
         for p, st in opt.state.items():
             if isinstance(p, torch.Tensor) and p.ndim == 4:
+                assert "m_u" not in st
+                assert "m_unit" in st and st["m_unit"].dtype == torch.float32
+                assert "v_unit" in st and st["v_unit"].dtype == torch.float32
                 tensor_bytes = sum(v.numel() * v.element_size() for v in st.values() if isinstance(v, torch.Tensor))
-                assert tensor_bytes == 0, f"4D conv state must be 0 B/param, got {tensor_bytes}B: {list(st.keys())}"
+                expected_bytes = 2 * p.numel() * 4
+                assert tensor_bytes == expected_bytes, f"4D conv state mismatch: {tensor_bytes}B != {expected_bytes}B"
 
     # Verify 1-loss and 2-loss direction_blend non-ascent via public API:
     rec_db = pg.get_recipe("axiom", num_particles=8, z_dim=2, batch_size=16, total_steps=50)
