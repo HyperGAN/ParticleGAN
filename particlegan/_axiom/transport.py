@@ -178,7 +178,7 @@ def compute_contrast_confidence(y_feat: Tensor, *, max_b: int = 64) -> Tensor:
     sorted_nn = dist.clone().fill_diagonal_(_INF).amin(1).sort().values
     med_all = (0.5 * (sorted_all[batch_n + (n_off - 1) // 2] + sorted_all[batch_n + n_off // 2])).clamp_min(1e-30)
     med_nn = 0.5 * (sorted_nn[(batch_n - 1) // 2] + sorted_nn[batch_n // 2])
-    return where(sorted_all[-1] <= 1e-24, 1.0, smoothstep01((0.65 - med_nn / med_all) / 0.35))
+    return where(sorted_all[-1] <= 1e-24, 1.0, smoothstep01((0.55 - med_nn / med_all) / 0.30))
 
 
 @no_grad()
@@ -935,7 +935,7 @@ class AxiomTransportLoss(nn.Module):
         kappa = kappa_t.item()
         rel_diff = (dr - df) if n_f == n_r else (dr[None] - df[:, None])
         c_rel = 0.5 * self.tau * (F.softplus(rel_diff).mean() - math.log(2))
-        if kappa <= 1e-4:
+        if kappa <= 1e-4 and getattr(record, "atomic_ledger", None) is None:
             if hasattr(record, "_disc_gate"):
                 record._disc_gate = 0.0
             return self.weight * c_rel

@@ -16,9 +16,9 @@
   "changed_factors": [
     "Complete clean-slate Axiom v6 rewrite across 9 acyclic modules (math_ops, state, atlas, fiber, critic, optimizer, prior, transport, loss) with strict readability/complexity gates (Ruff C901 <= 10, Radon BoolCC <= 15, zero semicolon-packed lines), zero autograd.grad/svd/eigh/pinv/torch.compile, zero legacy sibling imports, zero new Recipe fields (179 exact), and strictly clock-free schema-2 checkpointing.",
     "Law 1 (atlas.py + prior.py): clock-free stationary hit confidence n_k, unbiased b_k>=1 anisotropic covariance atlas (D<=64 full SPD / D>64 diagonal behind unified directional LTC helpers), exact 100%-LTC merge & principal-axis split, directional LTC coalescence + Marchenko-Pastur shrinkage, continuous annular-gap ratio rho_atom, single GPU-vectorized Hamilton commitment ledger (zero CPU bounce), rank-free should_use_axiom_pullback (per_sample_dim<=64), curvature-compensated GL(D)-invariant Whitened Burg Log-Det pullback (+ unbiased 2-sketch U-statistic for d_z>max(D,16)), and clock-free boolean row_init stationary EMA.",
-    "Law 2 (critic.py): uniform U-statistic intrinsic effective dimension d_eff & 2-step shock-aware coordinate scale s_scale, continuous element-budget K(d) & b_reg(B,d) probe law (eliminating dim<=16/256 & ndim>=4 cliffs), zero-autograd.grad fwAD primary + capability-based precision-aware central secant fallback (eliminating class-name sniffing), zero-Jensen exact-basis vs linear stochastic penalty with stronger lambda_floor=0.025 and max_lambda=4.0, and zero-mean logit gauge.",
-    "Law 3 (fiber.py + transport.py + loss.py): dimension-free feature projection P_feat + continuous distance-contrast confidence kappa_struct (eliminating dim>1024/4096 cliffs & _spatial_cluster_ratio trapdoor), scale-invariant dimensionless BI-vs-critic balance, conformal k=3 horizon & k=4 orphan rescue, unified GPU Hamilton ledger with BiGAN inverse contraction, dimension-agnostic O(dc)xO(dx)-equivariant FP64 conditional fiber bank via Halley eigensplit & coupled NS whitening (gamma_fast=0.88, bank_mean_blend=0.75, equilibrium-unbiased mean & C1 chi-squared tail guard), and smoothly g_conn-gated simplicial manifold interpolation.",
-    "Law 4 (optimizer.py + state.py): eliminates _bn_net_ids & m_u (true 0.0 B/param Conv2d state), prime-67 coprime odd-stride sketch, weight-normalized IEEE-754 mantissa-exponent log-norm (36-decade loss-scale + BN weight-norm drift invariant), all-5-P1 Huber-capped cosine-gated settling, 1x1 Conv2d==Linear isomorphism, compound-pathology critic NS vs spectral-bounded 0-NS critic (gamma_spec = min(sqrt(m), 2*sqrt(r_stable))) + Schatten-6 ceiling, single fork_rng-isolated batch-RMS verified trust, complete 1/2-loss direction_blend (streaming zero-pinv projection + single-backward backward_with_protected), weak-registry attr-free state binding, and FP32 state preservation on BF16/FP16 checkpoint reload."
+    "Law 2 (critic.py): uniform U-statistic intrinsic effective dimension d_eff for vectors/small tensors and sqrt(dim_x) coordinate scale for 4D images with dim_x>256 (eliminating low-rank spatial correlation penalty inflation), continuous element-budget K(d) & b_reg(B,d) probe law, zero-autograd.grad fwAD primary + capability-based precision-aware central secant fallback (eliminating class-name sniffing), zero-Jensen exact-basis vs linear stochastic penalty, and zero-mean logit gauge.",
+    "Law 3 (fiber.py + transport.py + loss.py): dimension-free feature projection P_feat + continuous distance-contrast confidence kappa_struct with 0.55 natural-image cutoff and committed atomic_ledger early-exit guard (eliminating dim>1024/4096 cliffs & _spatial_cluster_ratio trapdoor), scale-invariant dimensionless BI-vs-critic balance, conformal k=3 horizon & k=4 orphan rescue, unified GPU Hamilton ledger with BiGAN inverse contraction, dimension-agnostic O(dc)xO(dx)-equivariant FP64 conditional fiber bank via Halley eigensplit & coupled NS whitening (gamma_fast=0.88, bank_mean_blend=0.75, equilibrium-unbiased mean & C1 chi-squared tail guard), and smoothly g_conn-gated simplicial manifold interpolation.",
+    "Law 4 (optimizer.py + state.py): eliminates _bn_net_ids & m_u in favor of global architecture-agnostic spherical momentum (betas=d_betas=(0.5, 0.999)) with fused _foreach_* fast-path momentum (4 B/param FP32 m_unit state, 0 B/param when beta1=0), prime-67 coprime odd-stride sketch, weight-normalized IEEE-754 mantissa-exponent log-norm (36-decade loss-scale + BN weight-norm drift invariant), all-5-P1 Huber-capped cosine-gated settling, 1x1 Conv2d==Linear isomorphism, compound-pathology critic NS vs spectral-bounded 0-NS critic (gamma_spec = min(sqrt(m), 2*sqrt(r_stable))) + Schatten-6 ceiling, single fork_rng-isolated batch-RMS verified trust, complete 1/2-loss direction_blend (streaming zero-pinv projection + single-backward backward_with_protected), weak-registry attr-free state binding, and FP32 state preservation on BF16/FP16 checkpoint reload."
   ],
   "claim_contract": {
     "sampling_law": "task_declared",
@@ -68,7 +68,7 @@
     "beta2_anneal_end": 0.2,
     "beta2_end": null,
     "betas": [
-      0.0,
+      0.5,
       0.999
     ],
     "birth_death_backend": "knn",
@@ -91,7 +91,7 @@
     "critic_r1_real": true,
     "critic_step_mode": "none",
     "d_betas": [
-      0.0,
+      0.5,
       0.999
     ],
     "d_eps": null,

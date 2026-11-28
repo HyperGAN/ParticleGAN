@@ -274,6 +274,39 @@ def _add_deltas(params, deltas, dev):
             param.add_(delta)
 
 
+def _queue_fast_step(state, p, g, g_norm, beta1, eff, extra, fast_lists, mom_items):
+    if beta1 > 0.0 and "m_unit" in state:
+        mom_items.append((p, g, g_norm, beta1, eff, extra, state["m_unit"]))
+        return
+    if beta1 > 0.0:
+        state["m_unit"] = (g / g_norm).to(_F32)
+        state["m_scale"] = p.new_ones((), dtype=_F32)
+    fast_lists[0].append(p)
+    fast_lists[1].append(g)
+    fast_lists[2].append(eff / g_norm)
+    fast_lists[3].append(extra)
+
+
+def _apply_mom_fast(mom_items):
+    ps, gs, gns, b1s, effs, gts, ms = (list(col) for col in zip(*mom_items))
+    torch._foreach_mul_(ms, b1s)
+    torch._foreach_add_(ms, torch._foreach_mul(gs, [(1.0 - b1) / gn for b1, gn in zip(b1s, gns)]))
+    mnorms = torch.stack(torch._foreach_norm(ms)).tolist()
+    torch._foreach_mul_(ms, [1.0 / n if (isfinite(n) and n > 1e-17) else 0.0 for n in mnorms])
+    plain_p, plain_m, plain_a = [], [], []
+    for p, m, eff, gt in zip(ps, ms, effs, gts):
+        if gt is not None:
+            p.addcmul_(m.to(p.dtype), (gt * eff).to(p.dtype))
+        elif p.dtype == _F32:
+            plain_p.append(p)
+            plain_m.append(m)
+            plain_a.append(eff)
+        else:
+            p.add_(m.to(p.dtype), alpha=eff)
+    if plain_p:
+        torch._foreach_add_(plain_p, torch._foreach_mul(plain_m, plain_a))
+
+
 def collect_conv_layouts(modules):
     """Map Conv2d/ConvTranspose2d weight ids to ``(is_transposed, groups)``."""
     return {
@@ -682,9 +715,10 @@ class AxiomOptimizer(Optimizer):
 
     def _step_network(self, net_items, norm_map, coeffs, gen_probe, dev):
         coh, s_osc, s_base, s_spike, g_eq, decay, has_hist, g_mult, d_mult = coeffs
-        fast_p, fast_g, fast_a, fast_gt, upd_p, upd_d, ns_b = [], [], [], [], [], [], {}
+        fast_p, fast_g, fast_a, fast_gt, mom_items, upd_p, upd_d, ns_b = [], [], [], [], [], [], [], {}
+        fast_lists = (fast_p, fast_g, fast_a, fast_gt)
         for i, (p, g, lr_p, fac, half_l2, beta1, is_gen, extra, _) in enumerate(net_items):
-            can_fast = not gen_probe and beta1 == 0.0 and not isinstance(extra, tuple)
+            can_fast = not gen_probe and not isinstance(extra, tuple)
             if (res := _resolve_norms(p, g, norm_map.get(i), not can_fast)) is None:
                 continue
             g_unit, l2_g, l2_p, has_w = res
@@ -700,10 +734,7 @@ class AxiomOptimizer(Optimizer):
             rate = lr_p * (g_mult if is_gen else d_mult) * fac * coh
             eff = -rate / hypot(1.0, s_tikh)
             if isinstance(g_unit, float):
-                fast_p.append(p)
-                fast_g.append(g)
-                fast_a.append(eff / g_unit)
-                fast_gt.append(extra)
+                _queue_fast_step(state, p, g, g_unit, beta1, eff, extra, fast_lists, mom_items)
             elif isinstance(extra, tuple):
                 rows, cols, _ = extra
                 trans = rows > cols
@@ -713,6 +744,10 @@ class AxiomOptimizer(Optimizer):
                 delta = (_apply_momentum(state, p, g_unit, beta1) * eff).to(p.dtype)
                 upd_p.append(p)
                 upd_d.append(delta if extra is None else delta * extra.to(delta.dtype))
+        if mom_items:
+            if not fast_p:
+                self.fast_path_steps += 1
+            _apply_mom_fast(mom_items)
         self._apply_updates(fast_p, fast_g, fast_a, fast_gt, upd_p, upd_d, ns_b, dev)
 
     def _apply_updates(self, fast_p, fast_g, fast_a, fast_gt, upd_p, upd_d, ns_b, dev):

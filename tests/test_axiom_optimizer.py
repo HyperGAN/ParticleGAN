@@ -519,6 +519,62 @@ def test_bf16_fp32_state_checkpoint_and_schema2_fail_closed() -> None:
             opt_b.validate_state_dict(bad)
 
 
+def test_fast_path_batched_momentum_parity_and_period2_cancellation() -> None:
+    torch.manual_seed(21)
+    conv_fast = nn.Sequential(nn.Conv2d(3, 8, 3, padding=1), nn.BatchNorm2d(8))
+    conv_slow = deepcopy(conv_fast).double()
+    opt_fast = AxiomOptimizer(
+        conv_fast.parameters(),
+        lr=0.02,
+        betas=(0.5, 0.999),
+        conv_layouts=collect_conv_layouts((conv_fast,)),
+    )
+    opt_slow = AxiomOptimizer(
+        conv_slow.parameters(),
+        lr=0.02,
+        betas=(0.5, 0.999),
+        conv_layouts=collect_conv_layouts((conv_slow,)),
+    )
+    for _ in range(4):
+        grads = [torch.randn_like(p) for p in conv_fast.parameters()]
+        for pf, ps, g in zip(conv_fast.parameters(), conv_slow.parameters(), grads):
+            pf.grad = g.clone()
+            ps.grad = g.double()
+        opt_fast.step()
+        opt_slow.step()
+    assert opt_fast.fast_path_steps == 4 and opt_slow.fast_path_steps == 0
+    for pf, ps in zip(conv_fast.parameters(), conv_slow.parameters()):
+        assert torch.allclose(pf.float(), ps.float(), rtol=1e-4, atol=1e-4)
+        assert opt_fast.state[pf]["m_unit"].dtype == torch.float32
+        assert opt_fast.state[pf]["m_scale"].dtype == torch.float32
+
+    # Period-2 transverse oscillation + small consistent drift: beta1=0.5 cancels the
+    # oscillating component and steers purely along the consistent drift direction.
+    w = nn.Parameter(torch.ones(4))
+    opt_p2 = AxiomOptimizer([w], lr=0.1, betas=(0.5, 0.999))
+    osc = torch.tensor([1.0, -1.0, 0.0, 0.0])
+    drift = torch.tensor([0.0, 0.0, 0.1, 0.1])
+    w.grad = (osc + drift).clone()
+    opt_p2.step()
+    w.grad = (-osc + drift).clone()
+    opt_p2.step()
+    m_after = opt_p2.state[w]["m_unit"]
+    assert float(m_after[:2].abs().max().item()) < 1e-6
+    assert torch.allclose(m_after[2:], torch.full((2,), math.sqrt(0.5)), atol=1e-5)
+
+    # Exact dyadic-norm sign reversal cancels to zero cleanly.
+    w0 = nn.Parameter(torch.ones(4))
+    opt_z = AxiomOptimizer([w0], lr=0.1, betas=(0.5, 0.999))
+    g0 = torch.tensor([1.0, -1.0, 1.0, -1.0])  # exact L2 norm == 2.0
+    w0.grad = g0.clone()
+    opt_z.step()
+    w0_after_1 = w0.detach().clone()
+    w0.grad = -g0.clone()
+    opt_z.step()
+    assert torch.allclose(w0, w0_after_1, atol=1e-6)
+    assert float(opt_z.state[w0]["m_unit"].norm().item()) == 0.0
+
+
 @pytest.mark.cuda
 def test_cuda_conv2d_fast_path_and_zero_byte_state() -> None:
     if not torch.cuda.is_available():
